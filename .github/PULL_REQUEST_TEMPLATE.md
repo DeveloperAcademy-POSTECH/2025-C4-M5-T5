@@ -18,8 +18,8 @@ PR을 제출하기 전에 다음 사항들을 확인해주세요:
 ## 관련 이슈 (Related Issue)
 <!--
 이 PR이 해결하는 관련 이슈 번호를 참조하세요. 예: Closes #123
-Closes #이슈번호
 -->
+Closes #이슈번호
 
 ## 테스트 방법 (How to Test)
 <!--
