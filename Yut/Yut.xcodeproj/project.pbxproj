@@ -29,9 +29,26 @@
 		69DF5E4B2E209A4800CE5E2A /* YutUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = YutUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		277D74AD2E28887900DE2A2E /* Exceptions for "Yut" folder in "Yut" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Core/Models/.gitkeep,
+				Features/GamePlay/ViewModels/.gitkeep,
+				Features/GamePlay/Views/.gitkeep,
+				Features/Yut/ViewModels/.gitkeep,
+				Resources/Fonts/.gitkeep,
+			);
+			target = 69DF5E332E209A4600CE5E2A /* Yut */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		69DF5E362E209A4600CE5E2A /* Yut */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				277D74AD2E28887900DE2A2E /* Exceptions for "Yut" folder in "Yut" target */,
+			);
 			path = Yut;
 			sourceTree = "<group>";
 		};
@@ -397,7 +414,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = NBC28VW8Q2;
+				DEVELOPMENT_TEAM = H2WD8C55D7;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "카메라 접근 허용";
@@ -426,7 +443,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = NBC28VW8Q2;
+				DEVELOPMENT_TEAM = H2WD8C55D7;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "카메라 접근 허용";
