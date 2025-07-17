@@ -234,8 +234,8 @@ class Coordinator: NSObject, ARSessionDelegate {
         if self.yutBoardAnchor != nil { return }
         
         do {
-            let boardEntity = try ModelEntity.load(named: "dummy_board.usdz")
-            boardEntity.scale = [0.0005, 0.0005, 0.0005]
+            let boardEntity = try ModelEntity.load(named: "Board.usdz")
+            // boardEntity.scale = [2.0, 2.0, 2.0]
             
             let anchorEntity = AnchorEntity(anchor: anchor)
             anchorEntity.addChild(boardEntity)
@@ -295,7 +295,7 @@ class Coordinator: NSObject, ARSessionDelegate {
         let yutScale: Float = 0.05   // 윷 크기 조절
         for i in 0..<4 {
             do {
-                let yutEntity = try ModelEntity.load(named: "Yut.usd")
+                let yutEntity = try ModelEntity.load(named: "Yut.usdz")
                 let rotation = simd_quatf(angle: .pi / 2, axis: [1, 0, 0])
                 yutEntity.orientation = rotation
                 yutEntity.scale = [yutScale, yutScale, yutScale]
