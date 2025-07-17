@@ -4,7 +4,11 @@
       "color" : {
         "color-space" : "display-p3",
         "components" : {
+<<<<<<< HEAD
           "alpha" : "1.000",
+=======
+          "alpha" : "0.050",
+>>>>>>> origin/feat/home-view-27
           "blue" : "0x16",
           "green" : "0x21",
           "red" : "0x39"
@@ -23,9 +27,15 @@
         "color-space" : "display-p3",
         "components" : {
           "alpha" : "1.000",
+<<<<<<< HEAD
           "blue" : "0xE1",
           "green" : "0xF3",
           "red" : "0xFA"
+=======
+          "blue" : "0x26",
+          "green" : "0x33",
+          "red" : "0x43"
+>>>>>>> origin/feat/home-view-27
         }
       },
       "idiom" : "universal"

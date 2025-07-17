@@ -18,6 +18,7 @@ struct RoundedBrownButton: View {
                 action()
             }
         }) {
+<<<<<<< HEAD
             ZStack {
 
                 RoundedRectangle(cornerRadius: 34)
@@ -39,6 +40,16 @@ struct RoundedBrownButton: View {
             }
             .frame(maxWidth: .infinity)
             .frame(height: 75)
+=======
+            Text(title)
+                .foregroundColor(.brown2)
+                .font(.system(size: 22, weight: .bold, design: .default))
+                .padding(.vertical, 20)
+                .frame(maxWidth: .infinity)
+                .frame(height: 75)
+                .background(isEnabled ? Color("white2") : Color.gray)
+                .cornerRadius(34)
+>>>>>>> origin/feat/home-view-27
         }
         .disabled(!isEnabled)
     }
