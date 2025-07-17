@@ -19,15 +19,14 @@ struct RoundedBrownButton: View {
             }
         }) {
             Text(title)
-                .foregroundColor(.white)
-                .font(.headline)
-                .padding(.vertical, 12)
+                .foregroundColor(.brown2)
+                .font(.system(size: 22, weight: .bold, design: .default))
+                .padding(.vertical, 20)
                 .frame(maxWidth: .infinity)
-                .frame(height: 70)
-                .background(isEnabled ? Color(red: 56/255, green: 40/255, blue: 33/255) : Color.gray)
-                .cornerRadius(24)
+                .frame(height: 75)
+                .background(isEnabled ? Color("white2") : Color.gray)
+                .cornerRadius(34)
         }
-        .padding(.horizontal, 30)
         .disabled(!isEnabled)
     }
 }
