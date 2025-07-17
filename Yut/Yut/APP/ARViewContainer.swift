@@ -42,6 +42,7 @@ struct ARViewContainer: UIViewRepresentable {
         // MARK: - AR 환경설정 (Configuration)
         let config = ARWorldTrackingConfiguration()
         config.planeDetection = [.horizontal]
+        arView.addCoachig()
         arView.session.run(config)
         
         return arView
