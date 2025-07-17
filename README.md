@@ -7,10 +7,10 @@
 
 
 ## Team. T5
-| 🐶 HappyJay 장성태 | 🖋️ Noter 소연수 | ✨ Glowny 박승은 | 🦫 Hidy 이윤서 | 🍭 Sena 박세연 |
+| 🐶 HappyJay 장성태 | 🖋️ Noter 소연수 | ✨ Glowny 박승은 | 🦫 Hidy 이윤서 | 🍭 Sena 황세연 |
 |:-:|:-:|:-:|:-:|:-:|
 | <img src="https://avatars.githubusercontent.com/u/50876959?v=4" width=120>  | <img src="https://avatars.githubusercontent.com/u/65909443?v=4" width=120>  |  <img src="https://avatars.githubusercontent.com/u/112964257?v=4" width=120> |  <img src="https://avatars.githubusercontent.com/u/174097344?v=4" width=120> | <img src="https://avatars.githubusercontent.com/u/138393738?v=4" width=120>  |
-| [@SingleBungle](https://github.com/SingleBungle)  | [@01sys10](https://github.com/01sys10)  |  [@sep037](https://github.com/sep037) | [@yunsly](https://github.com/yunsly)  | [@hiseyeon](https://github.com/hiseyeon)  |
+| [@SingleBungIe](https://github.com/SingleBungIe)  | [@01sys10](https://github.com/01sys10)  |  [@sep037](https://github.com/sep037) | [@yunsly](https://github.com/yunsly)  | [@hiseyeon](https://github.com/hiseyeon)  |
 
 
 ---
