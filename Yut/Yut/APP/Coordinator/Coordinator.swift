@@ -235,7 +235,7 @@ class Coordinator: NSObject, ARSessionDelegate {
         
         do {
             let boardEntity = try ModelEntity.load(named: "Board.usdz")
-            //boardEntity.scale = [0.0005, 0.0005, 0.0005]
+            // boardEntity.scale = [2.0, 2.0, 2.0]
             
             let anchorEntity = AnchorEntity(anchor: anchor)
             anchorEntity.addChild(boardEntity)
