@@ -63,7 +63,10 @@ struct ContentView : View {
                 case .readyToThrow:
                     // 윷 던지는 버튼
                     EmptyView()
-                    
+                    RoundedBrownButton(title: "윷 던지기 활성화", isEnabled: true) {
+                        arState.actionStream.send(.fixBoardPosition)
+                        arState.actionStream.send(.startMonitoringMotion)
+                    }
                 }
             }
         }

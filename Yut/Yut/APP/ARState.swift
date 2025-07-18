@@ -13,6 +13,7 @@ enum ARAction {
     case fixBoardPosition
     case disablePlaneVisualization
     case createYuts
+    case startMonitoringMotion
 }
 
 // 앱의 현재 단계 정의
