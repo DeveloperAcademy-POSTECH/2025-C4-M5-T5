@@ -18,16 +18,28 @@ struct RoundedBrownButton: View {
                 action()
             }
         }) {
-            Text(title)
-                .foregroundColor(.white)
-                .font(.headline)
-                .padding(.vertical, 12)
-                .frame(maxWidth: .infinity)
-                .frame(height: 70)
-                .background(isEnabled ? Color(red: 56/255, green: 40/255, blue: 33/255) : Color.gray)
-                .cornerRadius(24)
+            ZStack {
+
+                RoundedRectangle(cornerRadius: 34)
+                    .fill(
+                        (isEnabled ? Color("white2") : Color.gray)
+                            .opacity(0.05)
+                    )
+                    .blur(radius: 12.5)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 34)
+                            .stroke(
+                                Color("white2").opacity(0.2),
+                                lineWidth: 1
+                            )
+                    )
+                Text(title)
+                    .foregroundColor(.brown2)
+                    .font(.system(size: 22, weight: .bold, design: .default))
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 75)
         }
-        .padding(.horizontal, 30)
         .disabled(!isEnabled)
     }
 }
