@@ -1,0 +1,79 @@
+//
+//  HostNameInputView.swift
+//  Yut
+//
+//  Created by Hwnag Seyeon on 7/17/25.
+//
+
+import SwiftUI
+
+struct HostNameInputView: View {
+    @State private var nickname: String = ""
+    @FocusState private var isFocused: Bool
+    @StateObject private var keyboard = KeyboardObserver()
+    
+    var body: some View {
+        ZStack {
+            Color("backgroundColor")
+                .ignoresSafeArea()
+            VStack {
+                VStack(alignment: .leading, spacing: 32) {
+                    Text("닉네임을 입력해 주세요")
+                        .font(.system(size: 28, weight: .bold, design: .default))
+//                        .foregroundColor(.brown1)
+                    
+                    // 닉네임 입력창
+                    ZStack(alignment: .leading) {
+                        if nickname.isEmpty {
+                            Text("닉네임")
+                                .font(.system(size: 20, weight: .bold))
+                                .foregroundColor(.gray)
+                                .padding(.leading, 26)
+                        }
+                        
+                        TextField("", text: $nickname)
+                            .frame(height: 41)
+                            .focused($isFocused)
+                            .submitLabel(.done)
+                            .onAppear {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                    isFocused = true // 화면 뜨자마자 자동 포커스
+                                }
+                            }
+                            .padding(.horizontal, 26)
+                            .padding(.vertical, 17)
+                            .background(
+                                RoundedRectangle(cornerRadius: 18)
+                                    .stroke(Color.brown, lineWidth: 1)
+                            )
+                    }
+                    
+                    
+                    
+                    Spacer()
+                }
+                .padding(.horizontal, 20)
+
+                
+                if keyboard.isKeyboardVisible {
+                    Button(action: {
+                        print("닉네임 입력 완료: \(nickname)")
+                        isFocused = false // 키보드 닫기
+                        // 버튼 클릭시 Action
+                    }) {
+                        Text("입력 완료")
+                            .foregroundColor(.white)
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.brown)
+                    }
+                }
+            }
+        }
+    }
+}
+
+#Preview {
+    HostNameInputView()
+}
