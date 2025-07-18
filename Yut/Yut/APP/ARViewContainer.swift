@@ -18,7 +18,7 @@ struct ARViewContainer: UIViewRepresentable {
         Coordinator()
     }
     
-    // swiftUI 뷰가 생성될 때 한번만 호출됨 -> ARView 초기화 & 설정
+    // swiftUI 뷰가 생성될 때 한번만 호출 -> ARView 초기화 & 설정
     func makeUIView(context: Context) -> some UIView {
         let arView = ARView(frame: .zero)
         
