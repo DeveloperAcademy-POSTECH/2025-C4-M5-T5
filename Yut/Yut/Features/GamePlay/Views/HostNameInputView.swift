@@ -11,6 +11,7 @@ struct HostNameInputView: View {
     @State private var nickname: String = ""
     @FocusState private var isFocused: Bool
     @StateObject private var keyboard = KeyboardObserver()
+
     
     var body: some View {
         ZStack {
@@ -48,8 +49,15 @@ struct HostNameInputView: View {
                             )
                     }
                     
-                    
-                    
+                    HStack {
+                        Spacer()
+                        
+                        Text("0/10")
+                            .font(.system(size: 16))
+                            .foregroundColor(.gray)
+                    }
+                    .padding(.top, -27)
+                    .padding(.trailing, 12)
                     Spacer()
                 }
                 .padding(.horizontal, 20)
@@ -72,6 +80,10 @@ struct HostNameInputView: View {
             }
         }
     }
+}
+
+struct FormState {
+    var nickname: String = ""
 }
 
 #Preview {
