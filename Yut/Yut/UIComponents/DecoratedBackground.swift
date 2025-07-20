@@ -23,15 +23,10 @@ struct DecoratedBackground<Content: View>: View {
                 Image("top1")
                     .resizable()
                     .scaledToFit()
-                    .frame(maxWidth: .infinity)
-                
                 Spacer()
-                
                 Image("bottom1")
                     .resizable()
                     .scaledToFit()
-                    .frame(maxWidth: .infinity)
-                    .ignoresSafeArea(edges: .bottom)
             }
             .ignoresSafeArea()
 
