@@ -7,12 +7,36 @@
 
 import SwiftUI
 
-struct DecoratedBackground: View {
-    var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
-    }
-}
+struct DecoratedBackground<Content: View>: View {
+    let content: Content
 
-#Preview {
-    DecoratedBackground()
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+
+    var body: some View {
+        ZStack {
+            Color(.white1)
+                .ignoresSafeArea()
+
+            VStack {
+                Image("top1")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxWidth: .infinity)
+                
+                Spacer()
+                
+                Image("bottom1")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxWidth: .infinity)
+                    .ignoresSafeArea(edges: .bottom)
+            }
+            .ignoresSafeArea()
+
+            content
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
 }
