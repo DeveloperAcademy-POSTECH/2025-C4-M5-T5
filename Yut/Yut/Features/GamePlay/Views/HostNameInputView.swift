@@ -15,7 +15,7 @@ struct HostNameInputView: View {
     
     var body: some View {
         ZStack {
-            Color("backgroundColor")
+            Color("White1")
                 .ignoresSafeArea()
             VStack {
                 VStack(alignment: .leading, spacing: 32) {

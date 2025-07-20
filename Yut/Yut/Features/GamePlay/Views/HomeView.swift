@@ -10,7 +10,7 @@ import SwiftUI
 struct HomeView: View {
     var body: some View {
         ZStack {
-            Color("white1")
+            Color("White1")
                 .ignoresSafeArea()
             
             VStack(spacing: 0) {
@@ -32,15 +32,10 @@ struct HomeView: View {
             
             VStack {
                 Spacer()
-                
-                Image("Yut_light")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 200, height: 200)
-//
-//                Text("윷")
-//                    .foregroundColor(.brown1)
-//                    .font(.system(size: 236, weight: .bold, design: .default))
+
+                Text("윷")
+                    .foregroundColor(.brown1)
+                    .font(.hancom(.hoonmin, size: 236))
                 
                 Spacer()
                 
