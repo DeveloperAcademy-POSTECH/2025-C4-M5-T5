@@ -16,7 +16,7 @@ struct WinnerView: View {
         DecoratedBackground{
             VStack{
                 Text("\(winnerName) 승!")
-                    .font(.system(size: 52, weight: .bold, design: .default))
+                    .font(.system(size: 52, weight: .black, design: .default))
                     .foregroundColor(.brown1)
                     .padding(.top, 24)
                 Group{
