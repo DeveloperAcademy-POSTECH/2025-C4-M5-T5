@@ -1,21 +1,22 @@
 //
 //  PlayerModel.swift
-//  Yut
+//  GameLogic
 //
-//  Created by Seungeun Park on 7/18/25.
+//  Created by Seungeun Park on 7/17/25.
 //
 
 class YutPlayer {
     let name: String
-    var tokens: [YutToken]
+    var tokens: [Piece]
     
     init(name: String){
         self.name = name
         self.tokens = []
         
         for _ in 0..<2{
-            let token = YutToken(owner: self)
+            let token = Piece(owner: self)
             self.tokens.append(token)
         }
     }
 }
+
