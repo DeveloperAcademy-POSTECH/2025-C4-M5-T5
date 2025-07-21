@@ -34,10 +34,8 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Core/Models/.gitkeep,
-				Features/GamePlay/ViewModels/.gitkeep,
-				Features/GamePlay/Views/.gitkeep,
 				Features/Yut/ViewModels/.gitkeep,
-				Resources/Fonts/.gitkeep,
+				Info.plist,
 			);
 			target = 69DF5E332E209A4600CE5E2A /* Yut */;
 		};

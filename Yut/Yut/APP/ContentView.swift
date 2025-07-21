@@ -43,6 +43,7 @@ struct ContentView : View {
                     // 활성화된 [다음] 버튼
                     RoundedBrownButton(title: "다음", isEnabled: true) {
                         arState.currentState = .placeBoard
+                        print("애애")
                     }
                 case .placeBoard:
                     // 버튼 없음
