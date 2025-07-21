@@ -7,20 +7,27 @@
 
 import ARKit
 
-class YutBoardCell {
+class BoardCellModel {
+    weak var board: BoardModel?
     let row: Int
     let col: Int
-    let position: SIMD3<Float>
-    let isActive: Bool
-    let isBranchPoint: Bool
+    var id: String { "\(row),\(col)" }
+    
+    let position: SIMD3<Int>
+    var anchor : ARAnchor?
+    
+    var isActive: Bool {
+        board?.activeCells.contains(where: { $0 === self }) ?? false
+    }
+    var isBranchPoint: Bool {
+        board?.branchPoints.contains(where: { $0 === self }) ?? false
+    }
     var nextCandidates: [(row: Int, col: Int)] = []
     
-    init(row: Int, col: Int, position: SIMD3<Float>, isActive: Bool, isBranchPoint: Bool) {
+    init(row: Int, col: Int, position: SIMD3<Int>, isActive: Bool, isBranchPoint: Bool) {
         self.row = row
         self.col = col
         self.position = position
-        self.isActive = isActive
-        self.isBranchPoint = isBranchPoint
     }
 }
 
