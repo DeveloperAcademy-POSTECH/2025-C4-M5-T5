@@ -22,14 +22,14 @@ struct RoundedBrownButton: View {
 
                 RoundedRectangle(cornerRadius: 34)
                     .fill(
-                        (isEnabled ? Color("white2") : Color.gray)
+                        (isEnabled ? Color("Brown3") : Color.gray)
                             .opacity(0.05)
                     )
                     .blur(radius: 12.5)
                     .overlay(
                         RoundedRectangle(cornerRadius: 34)
                             .stroke(
-                                Color("white2").opacity(0.2),
+                                Color("Brown3").opacity(0.2),
                                 lineWidth: 1
                             )
                     )
