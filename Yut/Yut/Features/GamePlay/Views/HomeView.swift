@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct HomeView: View {
+    @EnvironmentObject private var navigationManager: NavigationManager
+    
     var body: some View {
         ZStack {
             Color("White1")
@@ -45,7 +47,7 @@ struct HomeView: View {
                         isEnabled: true
                     ) {
                         print("방 만들기 클릭")
-                        // 방 만들기 액션
+                        navigationManager.push(.hostNameInput)
                     }
                     
                     RoundedBrownButton(
