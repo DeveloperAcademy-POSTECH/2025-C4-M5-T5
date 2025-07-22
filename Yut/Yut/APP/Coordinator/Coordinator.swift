@@ -16,6 +16,8 @@ import CoreMotion
 class Coordinator: NSObject, ARSessionDelegate {
     weak var arView: ARView?    // 순환 참조 방지 : 소유X 필요할 때만 잠깐 참조
     
+    var planeAnchors: [UUID: AnchorEntity] = [:]
+    
     // CoreMotion 센서 매니저
     private let motionManager = CMMotionManager()
     // 너무 자주 던지지 않도록 타이머 제한
@@ -65,7 +67,7 @@ class Coordinator: NSObject, ARSessionDelegate {
                 case .startMonitoringMotion:
                     self?.startMonitoringMotion()
                 }
-            
+                
             }
             .store(in: &cancellables)           // 구독 관리
     }
@@ -105,7 +107,8 @@ class Coordinator: NSObject, ARSessionDelegate {
                 
                 arView?.scene.addAnchor(anchorEntity)                   // 씬에 앵커 추가 -> 화면에 보임
                 planeEntities[planeAnchor.identifier] = planeEntity     // 평면 - 식별자로 저장
-
+                planeAnchors[planeAnchor.identifier] = anchorEntity
+                
             }
             // 2. 윷판 배치할 앵커라면 판 배치
             else if let anchorName = anchor.name, anchorName == "YutBoardAnchor" {
@@ -154,7 +157,7 @@ class Coordinator: NSObject, ARSessionDelegate {
     }
     
     // MARK: - Gesture Handlers
-
+    
     // 화면 탭했을 때 호출
     @objc func handleTap(_ recognizer: UITapGestureRecognizer) {
         
@@ -265,7 +268,7 @@ class Coordinator: NSObject, ARSessionDelegate {
     // 윷판의 위치를 월드 공간에 고정
     func fixBoardPosition() {
         guard let arView = arView, let boardAnchor = yutBoardAnchor else { return }
-
+        
         // 월드 기준 변환 행렬 추출
         let worldMatrix = boardAnchor.transformMatrix(relativeTo: nil)
         let fixedAnchor = AnchorEntity(world: worldMatrix)
@@ -290,31 +293,31 @@ class Coordinator: NSObject, ARSessionDelegate {
     
     // 물리 효과가 없는 윷 생성
     func createYuts() {
-        // 이전에 있던 윷 제거
-        yutHoldingAnchor?.removeFromParent()
-        yutEntities.removeAll()
-        
-        // 카메라에 고정되는 앵커 생성
-        let holdingAnchor = AnchorEntity(.camera)
-        arView?.scene.addAnchor(holdingAnchor)
-        self.yutHoldingAnchor = holdingAnchor
-        
-        let yutScale: Float = 0.05   // 윷 크기 조절
-        for i in 0..<4 {
-            do {
-                let yutEntity = try ModelEntity.load(named: "Yut.usdz")
-                let rotation = simd_quatf(angle: .pi / 2, axis: [1, 0, 0])
-                yutEntity.orientation = rotation
-                yutEntity.scale = [yutScale, yutScale, yutScale]
-                
-                let xOffset = (Float(i) - 1.5) * (yutScale * 1.2)
-                yutEntity.position = [xOffset, -0.15, -0.4]
-                holdingAnchor.addChild(yutEntity)
-                yutEntities.append(yutEntity)
-            } catch {
-                print("윷 엔티티 오류!")
-            }
-        }
+        //        // 이전에 있던 윷 제거
+        //        yutHoldingAnchor?.removeFromParent()
+        //        yutEntities.removeAll()
+        //
+        //        // 카메라에 고정되는 앵커 생성
+        //        let holdingAnchor = AnchorEntity(.camera)
+        //        arView?.scene.addAnchor(holdingAnchor)
+        //        self.yutHoldingAnchor = holdingAnchor
+        //
+        //        let yutScale: Float = 0.05   // 윷 크기 조절
+        //        for i in 0..<4 {
+        //            do {
+        //                let yutEntity = try ModelEntity.load(named: "Yut.usdz")
+        //                let rotation = simd_quatf(angle: .pi / 2, axis: [1, 0, 0])
+        //                yutEntity.orientation = rotation
+        //                yutEntity.scale = [yutScale, yutScale, yutScale]
+        //
+        //                let xOffset = (Float(i) - 1.5) * (yutScale * 1.2)
+        //                yutEntity.position = [xOffset, -0.15, -0.4]
+        //                holdingAnchor.addChild(yutEntity)
+        //                yutEntities.append(yutEntity)
+        //            } catch {
+        //                print("윷 엔티티 오류!")
+        //            }
+        //        }
     }
     
     /// CoreMotion의 장치 모션 센서를 사용해서
@@ -373,91 +376,240 @@ class Coordinator: NSObject, ARSessionDelegate {
     }
     
     func throwYuts() {
-        // 1. ARView가 존재하는지 확인 (없으면 중단)
-        guard let arView = arView else { return }
-        
-        let count = 4                          // 던질 윷의 개수
-        let spacing: Float = 0.07             // 윷 간격 (x축 상에서의 거리)
-        let impulseStrength: Float = 10.0     // 던지는 힘의 크기 (임펄스 세기)
-        
-        // 2. 윷 모델 불러오기 (Reality Composer에서 만든 Yut.usd 파일)
+        guard let arView = self.arView else { return }
+
+        let spacing: Float = 0.07
+
+        // 1. 윷 모델 불러오기
         guard let yutEntity = try? ModelEntity.loadModel(named: "Yut") else {
             print("⚠️ Failed to load Yut")
             return
         }
-        
-        // 3. 4개의 윷을 반복 생성
-        for i in 0..<count {
-            let yut = yutEntity.clone(recursive: true) // 모델 복제 (개별 객체로 사용)
 
-            
-            // 3-1. 윷 모델의 경계 박스 크기 계산 (충돌 범위로 사용)
-            let bounds = yut.visualBounds(relativeTo: nil)
-            let size = bounds.extents
-            
-            // 3-2. 물리 속성 설정 (중력, 질량, 충돌 적용)
-            yut.physicsBody = PhysicsBodyComponent(
-                massProperties: .default,     // 자동 질량 계산
-                material: .default,          // 마찰력, 반발력 기본값
-                mode: .dynamic               // 중력 및 충돌 반응 가능
+        for i in 0..<4 {
+            let yut = yutEntity.clone(recursive: true)
+
+            // 2. 물리 설정
+            let physMaterial = PhysicsMaterialResource.generate(
+                staticFriction: 1.0,
+                dynamicFriction: 1.0,
+                restitution: 0.0
             )
-            
-            // 3-3. 충돌 감지를 위한 박스 형태의 collision shape 설정
-            yut.collision = CollisionComponent(shapes: [.generateBox(size: size)])
-            
-            // 4. 현재 카메라 위치 가져오기
-            if let camTransform = arView.session.currentFrame?.camera.transform {
-                // 4-1. 기본 단위 행렬 생성
-                var translation = matrix_identity_float4x4
-                
-                // 4-2. Z축 방향으로 -0.3 → 카메라 기준 30cm 앞쪽에 위치
-                translation.columns.3.z = -0.3
-                
-                // 4-3. X축으로 윷끼리 좌우 퍼지도록 위치 계산
-                translation.columns.3.x += (Float(i) - 1.5) * spacing
-                
-                // 4-4. Z축 기준 살짝 회전 (더 자연스러운 효과)
-                let angle: Float = (Float(i) - 1.5) * 0.25
-                let rotation = simd_float4x4(SCNMatrix4MakeRotation(angle, 0, 0, 1))
-                
-                // 4-5. 최종 위치 계산: 카메라 위치 * 이동 * 회전
-                let finalTransform = simd_mul(simd_mul(camTransform, translation), rotation)
-                
-                // 4-6. 윷의 transform 적용
-                yut.transform.matrix = finalTransform
-                
-                // 5. 앵커 생성 및 yut 추가
-                let anchor = AnchorEntity(world: yut.transform.matrix)
-                anchor.addChild(yut)
-                
-                // 윷 크기 줄이기
-//                yut.scale = SIMD3<Float>(repeating: 0.50)
-                arView.scene.anchors.append(anchor)
-                
-                // 6. 던지는 방향 계산
-                // 6-1. 카메라 앞 방향(Z축): RealityKit 기준 뒤로 향하므로 -Z가 앞
-                let forward = -simd_make_float3(camTransform.columns.2.x,
-                                                camTransform.columns.2.y,
-                                                camTransform.columns.2.z)
-                
-                // 6-2. 카메라 좌우 방향(X축): 윷을 살짝 좌우로 흩뿌리기 위해 사용
-                let side = simd_make_float3(camTransform.columns.0.x,
-                                            camTransform.columns.0.y,
-                                            camTransform.columns.0.z)
-                
-                // 6-3. 임펄스(충격력) 계산:
-                //      → 앞쪽으로 밀고, 좌우로 살짝 분산되도록 조합
-//                let downward = SIMD3<Float>(0, -40, 0)  y축 아래로 향하는 벡터
-                let impulse = forward * impulseStrength
-                            + side * (Float(i) - 1.5) * 1.1
-//                            + downward// 💡 아래로 떨어지는 방향의 힘 추가
-                
-                // 7. 물리 속성 재확인 (중복이긴 하나 안전)
-                yut.physicsBody?.mode = .dynamic
-                
-                // 8. 실제로 윷에 임펄스를 가함 (World 기준 좌표계로)
-                yut.applyLinearImpulse(impulse, relativeTo: nil)
+
+            yut.generateCollisionShapes(recursive: true)
+            yut.physicsBody = PhysicsBodyComponent(
+                massProperties: .default,
+                material: physMaterial,
+                mode: .dynamic
+            )
+
+            // 3. 카메라 위치/회전 정보 가져오기
+            guard let camTransform = arView.session.currentFrame?.camera.transform else {
+                print("❌ 카메라 transform 없음")
+                return
             }
+
+            // 4. 위치 설정: 카메라 기준 앞으로 약간 떨어진 위치에 배치
+            var translation = matrix_identity_float4x4
+            translation.columns.3.z = -0.3   // 카메라 앞쪽 30cm
+            translation.columns.3.x = 0.9  // 좌우 간격
+            translation.columns.3.y = 0.6    // 카메라보다 위
+            translation.columns.3.x += (Float(i) - 1.5) * spacing  // 좌우 간격
+
+            // Z축 기준 살짝 회전 (더 자연스러운 퍼짐)
+//            let angle: Float = (Float(i) - 1.5) * 0.25
+//            let rotation = simd_float4x4(SCNMatrix4MakeRotation(angle, 0, 0, 1))
+//            let finalTransform = simd_mul(simd_mul(camTransform, translation), rotation)
+            
+            let finalTransform = simd_mul(camTransform, translation)
+            yut.transform = Transform(matrix: finalTransform)
+            yut.transform.scale = SIMD3<Float>(repeating: 0.1)
+
+            // 5. 던지는 방향 계산
+            // 카메라 앞 방향에서 Y축 제거 (XZ 평면 투영)
+            let cameraForward = -simd_make_float3(camTransform.columns.2)
+            let flatForward = simd_normalize(SIMD3<Float>(cameraForward.x, 0, cameraForward.z))
+
+            // 위로 튀는 방향 추가
+            let upward = SIMD3<Float>(0, 3, 0)
+            let velocity = (flatForward * 2.0) + upward
+
+            yut.components.set(PhysicsMotionComponent(linearVelocity: velocity))
+
+            // 6. 앵커에 붙여 씬에 추가
+            let anchor = AnchorEntity(world: finalTransform)
+            anchor.addChild(yut)
+            arView.scene.addAnchor(anchor)
         }
     }
+    
+//    func throwYuts() {
+//        guard let arView = self.arView else { return }
+//        
+//        let spacing: Float = 0.07
+//        
+//        // 1. 윷 모델 불러오기
+//        guard let yutEntity = try? ModelEntity.loadModel(named: "Yut") else {
+//            print("⚠️ Failed to load Yut")
+//            return
+//        }
+//        
+//        
+//        for i in 0..<4 {
+//            let yut = yutEntity.clone(recursive: true)
+//            
+//            let physMaterial = PhysicsMaterialResource.generate(
+//                staticFriction: 1.0,
+//                dynamicFriction: 1.0,
+//                restitution: 0.0
+//            )
+//            
+//            yut.generateCollisionShapes(recursive: true)
+//            yut.physicsBody = PhysicsBodyComponent(
+//                massProperties: .default,
+//                material: PhysicsMaterialResource.generate(restitution: 0.0),
+//                mode: .dynamic
+//            )
+//            
+//            // 2. 카메라 위치 가져오기
+//            guard let camTransform = arView.session.currentFrame?.camera.transform else {
+//                print("❌ 카메라 transform 없음")
+//                return
+//            }
+//            
+//            
+//            // 4-4. Z축 기준 살짝 회전 (더 자연스러운 효과)
+//            let angle: Float = (Float(i) - 1.5) * 0.25
+//            let rotation = simd_float4x4(SCNMatrix4MakeRotation(angle, 0, 0, 1))
+//            
+//            
+//            // 3. 카메라 기준 위치 계산
+//            var translation = matrix_identity_float4x4
+//            translation.columns.3.z = -0.3   // 카메라 앞쪽으로 30cm
+//            translation.columns.3.x = 0.6   // 카메라 앞쪽으로 30cm
+//            translation.columns.3.y = 0.9    // 카메라보다 30cm 위
+//            
+//            // X축으로 윷끼리 좌우 퍼지도록 위치 계산
+//            //            translation.columns.3.x = -10.0
+//            translation.columns.3.x += (Float(i) - 1.5) * spacing
+//            
+//            
+//            //            let finalTransform = simd_mul(camTransform, translation)
+//            let finalTransform = simd_mul(simd_mul(camTransform, translation), rotation)
+//            
+//            let transform = Transform(matrix: finalTransform)
+//            yut.transform = transform
+//            yut.transform.scale = SIMD3<Float>(repeating: 0.1)
+//            
+//            let forward = -simd_make_float3(camTransform.columns.2) // 카메라 앞 방향
+//            let velocity = (forward * 1.0) + SIMD3<Float>(0, 3, 0) // 앞 + 위 방향 조합
+//            yut.components.set(PhysicsMotionComponent(linearVelocity: velocity))
+//            
+//            // 4. 앵커 및 윷 배치
+//            let anchor = AnchorEntity(world: finalTransform)
+//            anchor.addChild(yut)
+//            arView.scene.addAnchor(anchor)
+//        }
+//    }
+    //    func throwYuts() {
+    //        // 1. ARView가 존재하는지 확인 (없으면 중단)
+    //        guard let arView = arView else { return }
+    //
+    //        guard let planeAnchorEntity = planeAnchors.first?.value else {
+    //            print("❌ 바닥 앵커 없음: 윷 던지기 실패")
+    //            return
+    //        }
+    //
+    //        let count = 4                          // 던질 윷의 개수
+    //        let spacing: Float = 0.07             // 윷 간격 (x축 상에서의 거리)
+    //        let impulseStrength: Float = 5.0     // 던지는 힘의 크기 (임펄스 세기)
+    //
+    //
+    //        // 2. 윷 모델 불러오기 (Reality Composer에서 만든 Yut.usd 파일)
+    //        guard let yutEntity = try? ModelEntity.loadModel(named: "Yut") else {
+    //            print("⚠️ Failed to load Yut")
+    //            return
+    //        }
+    //
+    //
+    //        // 3. 4개의 윷을 반복 생성
+    //        for i in 0..<count {
+    //            let yut = yutEntity.clone(recursive: true) // 모델 복제 (개별 객체로 사용)
+    //
+    //
+    //            // 3-1. 윷 모델의 경계 박스 크기 계산 (충돌 범위로 사용)
+    //            let bounds = yut.visualBounds(relativeTo: nil)
+    //            let size = bounds.extents
+    //
+    //            // 3-2. 물리 속성 설정 (중력, 질량, 충돌 적용)
+    //            yut.physicsBody = PhysicsBodyComponent(
+    //                massProperties: .init(mass: 2000.0),     // 자동 질량 계산
+    //                material: .default,          // 마찰력, 반발력 기본값
+    //                mode: .dynamic               // 중력 및 충돌 반응 가능
+    //            )
+    //
+    //            // 물리 충돌 처리를 위한 충돌 형태(콜리전 셰이프)를 생성
+    //            yut.generateCollisionShapes(recursive: true)
+    //
+    //            // 4. 현재 카메라 위치 가져오기
+    //            if let camTransform = arView.session.currentFrame?.camera.transform {
+    //                // 4-1. 기본 단위 행렬 생성
+    //                var translation = matrix_identity_float4x4
+    //
+    //                // 4-2. Z축 방향으로 -0.3 → 카메라 기준 30cm 앞쪽에 위치
+    //                translation.columns.3.z = -0.3
+    //
+    ////                translation.columns.3.y = 2
+    //
+    //                // 4-3. X축으로 윷끼리 좌우 퍼지도록 위치 계산
+    //                translation.columns.3.x += (Float(i) - 1.5) * spacing
+    //
+    //                // 4-4. Z축 기준 살짝 회전 (더 자연스러운 효과)
+    //                let angle: Float = (Float(i) - 1.5) * 0.25
+    //                let rotation = simd_float4x4(SCNMatrix4MakeRotation(angle, 0, 0, 1))
+    //
+    //                // 4-5. 최종 위치 계산: 카메라 위치 * 이동 * 회전
+    //                let finalTransform = simd_mul(simd_mul(camTransform, translation), rotation)
+    //
+    //                // 4-6. 윷의 transform 적용
+    //                yut.transform.matrix = finalTransform
+    //
+    //                yut.scale = SIMD3<Float>(repeating: 0.3)
+    //
+    //                // 5. 앵커 생성 및 yut 추가
+    //                let anchor = AnchorEntity(world: yut.transform.matrix)
+    //                anchor.addChild(yut)
+    //                arView.scene.addAnchor(anchor)
+    //
+    //                // 윷 크기 줄이기
+    //                yut.scale = SIMD3<Float>(repeating: 0.3)
+    ////                arView.scene.anchors.append(anchor)
+    ////                planeAnchorEntity.addChild(yut)
+    //
+    //                // 6. 던지는 방향 계산
+    //                // 6-1. 카메라 앞 방향(Z축): RealityKit 기준 뒤로 향하므로 -Z가 앞
+    //                let forward = -simd_make_float3(camTransform.columns.2.x,
+    //                                                camTransform.columns.2.y,
+    //                                                camTransform.columns.2.z)
+    //
+    //                // 6-2. 카메라 좌우 방향(X축): 윷을 살짝 좌우로 흩뿌리기 위해 사용
+    //                let side = simd_make_float3(camTransform.columns.0.x,
+    //                                            camTransform.columns.0.y,
+    //                                            camTransform.columns.0.z)
+    //
+    //                // 6-3. 임펄스(충격력) 계산:
+    //                //      → 앞쪽으로 밀고, 좌우로 살짝 분산되도록 조합
+    ////                let downward = SIMD3<Float>(0, -40, 0)  y축 아래로 향하는 벡터
+    //                let impulse = forward * impulseStrength
+    //                            + side * (Float(i) - 1.5) * 1.1
+    ////                            + downward// 💡 아래로 떨어지는 방향의 힘 추가
+    //
+    //                // 7. 물리 속성 재확인 (중복이긴 하나 안전)
+    //                yut.physicsBody?.mode = .dynamic
+    //
+    //                // 8. 실제로 윷에 임펄스를 가함 (World 기준 좌표계로)
+    //                yut.applyLinearImpulse(impulse, relativeTo: nil)
+    //            }
+    //        }
+    //    }
 }
