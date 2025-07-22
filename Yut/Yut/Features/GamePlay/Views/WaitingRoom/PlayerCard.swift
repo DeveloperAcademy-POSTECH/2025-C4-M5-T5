@@ -11,9 +11,11 @@ struct PlayerCard: View {
     let player: Player
     var body: some View {
         VStack {
-            Circle()
-                .fill(player.color)
+            Image(player.imageName)
+                .resizable()
+                .scaledToFill()
                 .frame(width: 135, height: 135)
+                .clipShape(Circle())
                 .padding(.top, 64)
                 .padding(.bottom, 25)
 
@@ -37,5 +39,5 @@ struct PlayerCard: View {
 }
 
 #Preview {
-    PlayerCard(player: Player(name: "sena", color: .red))
+    PlayerCard(player: Player(name: "sena", imageName: "prc1"))
 }

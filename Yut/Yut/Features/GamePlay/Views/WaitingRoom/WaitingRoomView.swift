@@ -10,12 +10,19 @@ import SwiftUI
 struct WaitingRoomView: View {
     let room: Room
     private let maxPlayers = 4
-    
+    let imageNames = ["prc1", "prc2", "prc3", "prc4"]
+ 
     @State private var players: [Player] = [
-        Player(name: "해피제이", color: .yellow),
-        Player(name: "해피제이", color: .blue),
-        Player(name: "해피제이", color: .purple)
+        Player(name: "해피제이", imageName: "prc1"),
+        Player(name: "세나", imageName: "prc2")
     ]
+
+    private func addPlayer(name: String) {
+        let index = players.count
+        let imageNames = ["prc1", "prc2", "prc3", "prc4"]
+        guard index < imageNames.count else { return }
+        players.append(Player(name: name, imageName: imageNames[index]))
+    }
     
     // 2명->둘이서, 3명->셋이서, 4명->넷이서
     private var buttonTitle: String {
@@ -74,7 +81,8 @@ struct WaitingRoomView: View {
             .padding(.bottom, 20)
         }
         .padding(.horizontal, 16)
-        .background(Color.white1.ignoresSafeArea()).navigationBarBackButtonHidden(true)
+        .background(Color.white1.ignoresSafeArea())
+        .navigationBarBackButtonHidden(true)
     }
     
     func startGame() {
@@ -86,7 +94,7 @@ struct WaitingRoomView: View {
 struct Player: Identifiable {
     let id = UUID()
     let name: String
-    let color: Color
+    let imageName: String
 }
 
 #Preview {

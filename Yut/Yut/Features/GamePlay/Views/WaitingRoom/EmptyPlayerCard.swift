@@ -11,7 +11,7 @@ struct EmptyPlayerCard: View {
     var body: some View {
         VStack {
             Circle()
-                .fill(.gray)
+                .fill(.white2)
                 .frame(width: 135, height: 135)
                 .padding(.top, 64)
                 .padding(.bottom, 82)
