@@ -11,7 +11,7 @@ struct HostNameInputView: View {
     @State private var nickname: String = ""
     @FocusState private var isFocused: Bool
     @StateObject private var keyboard = KeyboardObserver()
-
+    @EnvironmentObject private var navigationManager: NavigationManager
     
     var body: some View {
         ZStack {
@@ -65,9 +65,18 @@ struct HostNameInputView: View {
                 
                 if keyboard.isKeyboardVisible {
                     Button(action: {
-                        print("닉네임 입력 완료: \(nickname)")
                         isFocused = false // 키보드 닫기
                         // 버튼 클릭시 Action
+                        
+                        // 새로운 Room 생성
+                        let newRoom = Room(
+                            name: nickname,              // 입력된 닉네임으로 방 이름 설정
+                            currentPlayers: 1,           // 본인 포함 1명
+                            maxPlayers: 4                // 최대 인원
+                        )
+
+                        // WaitingRoomView로 이동
+                        navigationManager.path.append(.waitingRoom(newRoom))
                     }) {
                         Text("입력 완료")
                             .foregroundColor(.white)
