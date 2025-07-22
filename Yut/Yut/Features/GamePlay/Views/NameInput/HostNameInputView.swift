@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct HostNameInputView: View {
-    @State private var nickname: String = ""
+    @State private var host_nickname: String = ""
     @FocusState private var isFocused: Bool
     @StateObject private var keyboard = KeyboardObserver()
     @EnvironmentObject private var navigationManager: NavigationManager
@@ -19,20 +19,22 @@ struct HostNameInputView: View {
                 .ignoresSafeArea()
             VStack {
                 VStack(alignment: .leading, spacing: 32) {
-                    Text("닉네임을 입력해 주세요")
+                    Text("닉네임을 입력해주세요")
                         .font(.system(size: 28, weight: .bold, design: .default))
                         .foregroundColor(.brown1)
+                        .padding(.top, 20)
 
                     // 닉네임 입력창
                     ZStack(alignment: .leading) {
-                        if nickname.isEmpty {
+                        if host_nickname.isEmpty {
                             Text("닉네임")
                                 .font(.system(size: 20, weight: .bold))
-                                .foregroundColor(.gray)
+                                .foregroundColor(.brown5)
+                                .opacity(0.5)
                                 .padding(.leading, 26)
                         }
 
-                        TextField("", text: $nickname)
+                        TextField("", text: $host_nickname)
                             .frame(height: 41)
                             .focused($isFocused)
                             .submitLabel(.done)
@@ -44,17 +46,24 @@ struct HostNameInputView: View {
                             .padding(.horizontal, 26)
                             .padding(.vertical, 17)
                             .background(
-                                RoundedRectangle(cornerRadius: 18)
-                                    .stroke(Color.brown, lineWidth: 1)
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 18)
+                                        .fill(Color.white)
+                                        .opacity(0.14)
+
+                                    RoundedRectangle(cornerRadius: 18)
+                                        .stroke(Color.brown, lineWidth: 1)
+                                }
                             )
                     }
+                    .padding(.bottom, 4)
 
                     HStack {
                         Spacer()
 
                         Text("0/10")
                             .font(.system(size: 16))
-                            .foregroundColor(.gray)
+                            .foregroundColor(.brown5)
                     }
                     .padding(.top, -27)
                     .padding(.trailing, 12)
@@ -63,24 +72,39 @@ struct HostNameInputView: View {
                 .padding(.horizontal, 20)
 
                 if keyboard.isKeyboardVisible {
-                    Button(action: {
-                        isFocused = false // 키보드 닫기
-
-                        // 새로운 Room 생성
+                    Button {
+                        isFocused = false
                         let newRoom = Room(
-                            name: nickname, // 입력된 닉네임으로 방 이름 설정
+                            name: host_nickname, // 입력된 닉네임으로 방 이름 설정
                             currentPlayers: 1, // 본인 포함 1명
                             maxPlayers: 4 // 최대 인원
                         )
                         navigationManager.path.append(.waitingRoom(newRoom))
-                    }) {
-                        Text("입력 완료")
-                            .foregroundColor(.white)
-                            .font(.headline)
+
+                    } label: {
+                        RoundedRectangle(cornerRadius: 34)
+                            .fill(Color("Brown1"))
                             .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.brown)
+                            .frame(height: 64)
+                            .overlay(
+                                Text("입력 완료")
+                                    .foregroundColor(.white1)
+                                    .font(.pretendard(.semiBold, size: 20))
+                            )
                     }
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 12)
+                }
+            }
+        }
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button(action: {
+                    navigationManager.pop()
+                }) {
+                    Image(systemName: "chevron.left")
+                        .foregroundColor(.brown1)
                 }
             }
         }
@@ -88,7 +112,7 @@ struct HostNameInputView: View {
 }
 
 struct FormState {
-    var nickname: String = ""
+    var host_nickname: String = ""
 }
 
 #Preview {

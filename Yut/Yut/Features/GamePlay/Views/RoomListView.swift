@@ -41,9 +41,28 @@ struct RoomListView: View {
 
                 Spacer()
             }
-            .padding(.top, 48)
+            .padding(.top, 40)
             .padding(.horizontal, 16)
         }
+        .navigationBarBackButtonHidden(true)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button(action: {
+                    navigationManager.pop()
+                }) {
+                    Image(systemName: "chevron.left")
+                        .foregroundColor(.brown1)
+                }
+            }
+            
+            ToolbarItem(placement: .principal) {
+                Text("주변 윷놀이방 참여하기")
+                    .font(.pretendard(.bold, size: 24))
+                    .foregroundColor(.brown5)
+            }
+        }
+        
     }
 }
 
