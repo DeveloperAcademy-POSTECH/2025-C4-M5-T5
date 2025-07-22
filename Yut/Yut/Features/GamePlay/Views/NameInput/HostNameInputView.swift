@@ -9,93 +9,25 @@ import SwiftUI
 
 struct HostNameInputView: View {
     @State private var host_nickname: String = ""
-    @FocusState private var isFocused: Bool
-    @StateObject private var keyboard = KeyboardObserver()
     @EnvironmentObject private var navigationManager: NavigationManager
 
     var body: some View {
         ZStack {
             Color("White1")
                 .ignoresSafeArea()
-            VStack {
-                VStack(alignment: .leading, spacing: 32) {
-                    Text("닉네임을 입력해주세요")
-                        .font(.system(size: 28, weight: .bold, design: .default))
-                        .foregroundColor(.brown1)
-                        .padding(.top, 20)
-
-                    // 닉네임 입력창
-                    ZStack(alignment: .leading) {
-                        if host_nickname.isEmpty {
-                            Text("닉네임")
-                                .font(.system(size: 20, weight: .bold))
-                                .foregroundColor(.brown5)
-                                .opacity(0.5)
-                                .padding(.leading, 26)
-                        }
-
-                        TextField("", text: $host_nickname)
-                            .frame(height: 41)
-                            .focused($isFocused)
-                            .submitLabel(.done)
-                            .onAppear {
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                    isFocused = true // 화면 뜨자마자 자동 포커스
-                                }
-                            }
-                            .padding(.horizontal, 26)
-                            .padding(.vertical, 17)
-                            .background(
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 18)
-                                        .fill(Color.white)
-                                        .opacity(0.14)
-
-                                    RoundedRectangle(cornerRadius: 18)
-                                        .stroke(Color.brown, lineWidth: 1)
-                                }
-                            )
-                    }
-                    .padding(.bottom, 4)
-
-                    HStack {
-                        Spacer()
-
-                        Text("0/10")
-                            .font(.system(size: 16))
-                            .foregroundColor(.brown5)
-                    }
-                    .padding(.top, -27)
-                    .padding(.trailing, 12)
-                    Spacer()
-                }
-                .padding(.horizontal, 20)
-
-                if keyboard.isKeyboardVisible {
-                    Button {
-                        isFocused = false
-                        let newRoom = Room(
-                            name: host_nickname, // 입력된 닉네임으로 방 이름 설정
-                            currentPlayers: 1, // 본인 포함 1명
-                            maxPlayers: 4 // 최대 인원
-                        )
-                        navigationManager.path.append(.waitingRoom(newRoom))
-
-                    } label: {
-                        RoundedRectangle(cornerRadius: 34)
-                            .fill(Color("Brown1"))
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 64)
-                            .overlay(
-                                Text("입력 완료")
-                                    .foregroundColor(.white1)
-                                    .font(.pretendard(.semiBold, size: 20))
-                            )
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 12)
-                }
-            }
+            NameInputFormView(
+                title: "닉네임을 입력해주세요",
+                nickname: $host_nickname,
+                onSubmit: {
+                    let newRoom = Room(
+                        name: host_nickname,
+                        currentPlayers: 1,
+                        maxPlayers: 4
+                    )
+                    navigationManager.path.append(.waitingRoom(newRoom))
+                },
+                autoFocus: true
+            )
         }
         .navigationBarBackButtonHidden(true)
         .toolbar {
@@ -109,10 +41,6 @@ struct HostNameInputView: View {
             }
         }
     }
-}
-
-struct FormState {
-    var host_nickname: String = ""
 }
 
 #Preview {
