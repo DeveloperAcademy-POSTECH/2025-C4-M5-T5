@@ -54,11 +54,13 @@ struct RoomRowView: View {
         HStack {
             Text(room.name)
                 .font(.PR.title)
+                .foregroundColor(.brown5)
 
             Spacer()
 
             Text("\(room.currentPlayers)/\(room.maxPlayers)")
                 .font(.pretendard(.medium, size: 18))
+                .foregroundColor(.brown5)
         }
         .padding(.vertical, 32)
         .padding(.horizontal, 24)
