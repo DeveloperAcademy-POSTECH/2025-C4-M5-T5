@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct HomeView: View {
+    @EnvironmentObject private var navigationManager: NavigationManager
+    
     var body: some View {
         ZStack {
             Color("White1")
@@ -29,7 +31,6 @@ struct HomeView: View {
                     .ignoresSafeArea(edges: .bottom)
             }
             
-            
             VStack {
                 Spacer()
 
@@ -44,21 +45,18 @@ struct HomeView: View {
                         title: "방 만들기",
                         isEnabled: true
                     ) {
-                        print("방 만들기 클릭")
-                        // 방 만들기 액션
+                        navigationManager.push(.hostNameInput)
                     }
                     
                     RoundedBrownButton(
                         title: "방 참여하기",
                         isEnabled: true
                     ) {
-                        print("방 참여하기 클릭")
-                        // 방 참여하기 액션
+                        navigationManager.push(.guestNameInput)
                     }
                 }
             }
             .padding(.horizontal, 16)
-            
         }
     }
 }

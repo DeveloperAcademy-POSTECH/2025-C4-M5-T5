@@ -1,18 +1,18 @@
 //
-//  HostNameInputView.swift
+//  GuestNameInputView.swift
 //  Yut
 //
-//  Created by Hwnag Seyeon on 7/17/25.
+//  Created by Hwnag Seyeon on 7/21/25.
 //
 
 import SwiftUI
 
-struct HostNameInputView: View {
-    @State private var nickname: String = ""
+struct GuestNameInputView: View {
+    @State private var guest_nickname: String = ""
     @FocusState private var isFocused: Bool
     @StateObject private var keyboard = KeyboardObserver()
     @EnvironmentObject private var navigationManager: NavigationManager
-
+    
     var body: some View {
         ZStack {
             Color("White1")
@@ -22,17 +22,17 @@ struct HostNameInputView: View {
                     Text("닉네임을 입력해 주세요")
                         .font(.system(size: 28, weight: .bold, design: .default))
                         .foregroundColor(.brown1)
-
+                    
                     // 닉네임 입력창
                     ZStack(alignment: .leading) {
-                        if nickname.isEmpty {
+                        if guest_nickname.isEmpty {
                             Text("닉네임")
                                 .font(.system(size: 20, weight: .bold))
                                 .foregroundColor(.gray)
                                 .padding(.leading, 26)
                         }
-
-                        TextField("", text: $nickname)
+                        
+                        TextField("", text: $guest_nickname)
                             .frame(height: 41)
                             .focused($isFocused)
                             .submitLabel(.done)
@@ -48,10 +48,10 @@ struct HostNameInputView: View {
                                     .stroke(Color.brown, lineWidth: 1)
                             )
                     }
-
+                    
                     HStack {
                         Spacer()
-
+                        
                         Text("0/10")
                             .font(.system(size: 16))
                             .foregroundColor(.gray)
@@ -64,15 +64,12 @@ struct HostNameInputView: View {
 
                 if keyboard.isKeyboardVisible {
                     Button(action: {
-                        isFocused = false // 키보드 닫기
-
-                        // 새로운 Room 생성
-                        let newRoom = Room(
-                            name: nickname, // 입력된 닉네임으로 방 이름 설정
-                            currentPlayers: 1, // 본인 포함 1명
-                            maxPlayers: 4 // 최대 인원
-                        )
-                        navigationManager.path.append(.waitingRoom(newRoom))
+                        isFocused = false
+                        let guestName = guest_nickname.trimmingCharacters(in: .whitespaces)
+                        if !guestName.isEmpty {
+                            navigationManager.path.append(.roomList(guestName))
+                        }
+                        
                     }) {
                         Text("입력 완료")
                             .foregroundColor(.white)
@@ -87,10 +84,6 @@ struct HostNameInputView: View {
     }
 }
 
-struct FormState {
-    var nickname: String = ""
-}
-
 #Preview {
-    HostNameInputView()
+    GuestNameInputView()
 }
