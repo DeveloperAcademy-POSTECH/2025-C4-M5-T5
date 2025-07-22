@@ -2,7 +2,6 @@
 //  UIViewButton.swift
 //  Yut
 //
-//  Created by Hwnag Seyeon on 7/22/25.
 //
 
 import SwiftUI
@@ -23,9 +22,8 @@ struct UIViewButton: View {
                     RoundedRectangle(cornerRadius: 34)
                         .fill(
                             (isEnabled ? Color("White3") : Color.gray)
-//                                .opacity(0.1)
                         )
-                        .blur(radius: 35)
+                        .blur(radius: 28)
                         .clipShape(RoundedRectangle(cornerRadius: 34))
                     
                     RoundedRectangle(cornerRadius: 34)

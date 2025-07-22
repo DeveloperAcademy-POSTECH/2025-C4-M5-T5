@@ -81,7 +81,7 @@ struct RoomRowView: View {
                 .font(.pretendard(.medium, size: 18))
                 .foregroundColor(.brown5)
         }
-        .padding(.vertical, 32)
+        .frame(height: 82)
         .padding(.horizontal, 24)
         .background(
             ZStack {

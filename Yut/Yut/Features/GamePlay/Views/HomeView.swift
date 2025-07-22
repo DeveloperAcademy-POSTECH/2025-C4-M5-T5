@@ -2,7 +2,6 @@
 //  HomeView.swift
 //  Yut
 //
-//  Created by Hwnag Seyeon on 7/17/25.
 //
 
 import SwiftUI
