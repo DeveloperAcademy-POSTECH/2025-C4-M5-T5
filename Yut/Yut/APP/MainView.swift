@@ -19,6 +19,8 @@ struct MainView: View {
                         HomeView()
                     case .hostNameInput:
                         HostNameInputView()
+                    case .guestNameInput:
+                        GuestNameInputView()
                     case .roomList:
                         RoomListView()
                     case .waitingRoom(let room):

@@ -11,6 +11,7 @@ struct WinnerView: View {
     // TODO: - ViewModel 또는 상위 뷰에서 winnerName, winnerImageName 받아오기
     let winnerName: String = "세나"
     let winnerPieceImageName: String = "piece3_blue"
+    @StateObject private var navigationManager = NavigationManager()
     
     var body: some View {
         DecoratedBackground{
@@ -26,7 +27,7 @@ struct WinnerView: View {
                 }
                 .padding(.top, 40)
                 Spacer()
-                BottomButtonRowView()
+                BottomButtonRowView(navigationManager: navigationManager)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
@@ -84,10 +85,12 @@ private struct LoserPiecesView: View {
 }
 
 private struct BottomButtonRowView: View {
+    @ObservedObject var navigationManager: NavigationManager
+    
     var body: some View {
         HStack(spacing: 10){
             Button {
-                // TODO: - 홈뷰로 라우팅
+                navigationManager.path.removeAll()
             } label: {
                 Text("끝내기")
                     .frame(maxWidth: .infinity, maxHeight: 70)

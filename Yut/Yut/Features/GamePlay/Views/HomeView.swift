@@ -46,7 +46,6 @@ struct HomeView: View {
                         title: "방 만들기",
                         isEnabled: true
                     ) {
-                        print("방 만들기 클릭")
                         navigationManager.push(.hostNameInput)
                     }
                     
@@ -54,8 +53,7 @@ struct HomeView: View {
                         title: "방 참여하기",
                         isEnabled: true
                     ) {
-                        print("방 참여하기 클릭")
-                        // 방 참여하기 액션
+                        navigationManager.push(.guestNameInput)
                     }
                 }
             }

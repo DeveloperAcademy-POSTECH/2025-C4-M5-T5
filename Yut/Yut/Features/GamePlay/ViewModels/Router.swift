@@ -8,7 +8,8 @@
 enum Route: Hashable {
     case home
     case hostNameInput
-    case roomList
+    case guestNameInput
+    case roomList(String)
     case waitingRoom(Room)
     case winner
 }
