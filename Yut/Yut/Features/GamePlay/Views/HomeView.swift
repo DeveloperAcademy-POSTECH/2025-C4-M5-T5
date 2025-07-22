@@ -41,14 +41,14 @@ struct HomeView: View {
                 Spacer()
                 
                 VStack(spacing: 12) {
-                    RoundedBrownButton(
+                    UIViewButton(
                         title: "방 만들기",
                         isEnabled: true
                     ) {
                         navigationManager.push(.hostNameInput)
                     }
                     
-                    RoundedBrownButton(
+                    UIViewButton(
                         title: "방 참여하기",
                         isEnabled: true
                     ) {
