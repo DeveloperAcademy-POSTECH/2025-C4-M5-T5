@@ -16,7 +16,7 @@ struct PlayerCard: View {
                 .frame(width: 135, height: 135)
                 .padding(.top, 64)
                 .padding(.bottom, 25)
-            
+
             Text(player.name)
                 .font(.pretendard(.bold, size: 24))
                 .foregroundColor(.brown4)

@@ -62,10 +62,8 @@ struct GuestNameInputView: View {
                 }
                 .padding(.horizontal, 20)
 
-                
                 if keyboard.isKeyboardVisible {
                     Button(action: {
-                        // 닉네임 저장 후 RoomListView로 이동
                         isFocused = false
                         let guestName = guest_nickname.trimmingCharacters(in: .whitespaces)
                         if !guestName.isEmpty {
@@ -85,7 +83,6 @@ struct GuestNameInputView: View {
         }
     }
 }
-
 
 #Preview {
     GuestNameInputView()

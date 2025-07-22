@@ -16,13 +16,13 @@ struct Room: Identifiable, Hashable {
 
 struct RoomListView: View {
     @EnvironmentObject private var navigationManager: NavigationManager
-    
+
     // 예제 데이터
     let rooms: [Room] = [
-        Room(name: "해피제이의 윷놀이방", currentPlayers: 2, maxPlayers: 4),
-        Room(name: "네이선의 윷놀이방", currentPlayers: 1, maxPlayers: 4),
-        Room(name: "엠케이의 윷놀이방", currentPlayers: 3, maxPlayers: 4),
-        Room(name: "사야의 윷놀이방", currentPlayers: 2, maxPlayers: 4)
+        Room(name: "해피제이", currentPlayers: 2, maxPlayers: 4),
+        Room(name: "네이선", currentPlayers: 1, maxPlayers: 4),
+        Room(name: "엠케이", currentPlayers: 3, maxPlayers: 4),
+        Room(name: "사야", currentPlayers: 2, maxPlayers: 4)
     ]
 
     var body: some View {
@@ -32,7 +32,7 @@ struct RoomListView: View {
             VStack {
                 ForEach(rooms) { room in
                     Button {
-                        navigationManager.path.append(.waitingRoom(room)) 
+                        navigationManager.path.append(.waitingRoom(room))
                     } label: {
                         RoomRowView(room: room)
                     }
@@ -52,7 +52,7 @@ struct RoomRowView: View {
 
     var body: some View {
         HStack {
-            Text(room.name)
+            Text("\(room.name)의 윷놀이방")
                 .font(.PR.title)
                 .foregroundColor(.brown5)
 

@@ -13,11 +13,11 @@ struct WaitingRoomView: View {
     
     @State private var players: [Player] = [
         Player(name: "해피제이", color: .yellow),
-//        Player(name: "해피제이", color: .blue),
+        Player(name: "해피제이", color: .blue),
         Player(name: "해피제이", color: .purple)
     ]
     
-    // Button title logic: 2명->둘이서, 3명->셋이서, 4명->넷이서
+    // 2명->둘이서, 3명->셋이서, 4명->넷이서
     private var buttonTitle: String {
         let mapping = [2: "둘이서", 3: "셋이서", 4: "넷이서"]
         return mapping[players.count].map { "\($0) 윷놀이 시작하기" } ?? "인원 기다리는 중..."
@@ -28,14 +28,14 @@ struct WaitingRoomView: View {
     var body: some View {
         VStack {
             ZStack {
-                Text("\(room.name)의 윷놀이방")                    .font(.pretendard(.bold, size: 24))
+                Text("\(room.name)의 윷놀이방").font(.pretendard(.bold, size: 24))
                     .foregroundColor(.brown4)
                 
                 HStack {
                     Spacer()
                     
                     Button(action: {
-                        dismiss() // 이전 View로 돌아감
+                        dismiss()
                     }) {
                         Image(systemName: "xmark")
                             .font(.pretendard(.bold, size: 24))
@@ -56,7 +56,6 @@ struct WaitingRoomView: View {
                     EmptyPlayerCard()
                 }
             }
-//            .padding(.horizontal, 32)
             
             Spacer()
             
@@ -72,10 +71,7 @@ struct WaitingRoomView: View {
                     .foregroundColor(players.count < 2 ? .gray : .white)
             }
             .disabled(players.count < 2)
-//               .padding(.horizontal, 32)
             .padding(.bottom, 20)
-            
-//            Spacer()
         }
         .padding(.horizontal, 16)
         .background(Color.white1.ignoresSafeArea()).navigationBarBackButtonHidden(true)

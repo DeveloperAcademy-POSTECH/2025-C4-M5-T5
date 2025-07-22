@@ -12,7 +12,7 @@ struct HostNameInputView: View {
     @FocusState private var isFocused: Bool
     @StateObject private var keyboard = KeyboardObserver()
     @EnvironmentObject private var navigationManager: NavigationManager
-    
+
     var body: some View {
         ZStack {
             Color("White1")
@@ -21,8 +21,8 @@ struct HostNameInputView: View {
                 VStack(alignment: .leading, spacing: 32) {
                     Text("닉네임을 입력해 주세요")
                         .font(.system(size: 28, weight: .bold, design: .default))
-//                        .foregroundColor(.brown1)
-                    
+                        .foregroundColor(.brown1)
+
                     // 닉네임 입력창
                     ZStack(alignment: .leading) {
                         if nickname.isEmpty {
@@ -31,7 +31,7 @@ struct HostNameInputView: View {
                                 .foregroundColor(.gray)
                                 .padding(.leading, 26)
                         }
-                        
+
                         TextField("", text: $nickname)
                             .frame(height: 41)
                             .focused($isFocused)
@@ -48,10 +48,10 @@ struct HostNameInputView: View {
                                     .stroke(Color.brown, lineWidth: 1)
                             )
                     }
-                    
+
                     HStack {
                         Spacer()
-                        
+
                         Text("0/10")
                             .font(.system(size: 16))
                             .foregroundColor(.gray)
@@ -62,20 +62,16 @@ struct HostNameInputView: View {
                 }
                 .padding(.horizontal, 20)
 
-                
                 if keyboard.isKeyboardVisible {
                     Button(action: {
                         isFocused = false // 키보드 닫기
-                        // 버튼 클릭시 Action
-                        
+
                         // 새로운 Room 생성
                         let newRoom = Room(
-                            name: nickname,              // 입력된 닉네임으로 방 이름 설정
-                            currentPlayers: 1,           // 본인 포함 1명
-                            maxPlayers: 4                // 최대 인원
+                            name: nickname, // 입력된 닉네임으로 방 이름 설정
+                            currentPlayers: 1, // 본인 포함 1명
+                            maxPlayers: 4 // 최대 인원
                         )
-
-                        // WaitingRoomView로 이동
                         navigationManager.path.append(.waitingRoom(newRoom))
                     }) {
                         Text("입력 완료")

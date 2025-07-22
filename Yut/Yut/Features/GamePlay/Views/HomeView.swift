@@ -31,7 +31,6 @@ struct HomeView: View {
                     .ignoresSafeArea(edges: .bottom)
             }
             
-            
             VStack {
                 Spacer()
 
@@ -58,7 +57,6 @@ struct HomeView: View {
                 }
             }
             .padding(.horizontal, 16)
-            
         }
     }
 }
