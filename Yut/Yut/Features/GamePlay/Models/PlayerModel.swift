@@ -16,7 +16,7 @@ class PlayerModel {
         self.sequence = sequence
         
         for _ in 0..<2{
-            let piece = PieceModel(owner: self, firstStart: true)
+            let piece = PieceModel(owner: self)
             self.pieces.append(piece)
         }
     }

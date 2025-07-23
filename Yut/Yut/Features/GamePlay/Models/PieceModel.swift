@@ -5,27 +5,32 @@
 //  Created by Seungeun Park on 7/17/25.
 //
 
-import ARKit
+import Foundation
 
 class PieceModel {
     var id : UUID = UUID()
     var currentCell: BoardCellModel?
-    var anchor: ARAnchor?
     var isSeleted: Bool = false
-    var firstStart: Bool
     var owner: PlayerModel
-    var carriedPiece: PieceModel?
-    var isGoalReached: Bool = false
     
-    init(owner: PlayerModel, firstStart: Bool){
+    init(owner: PlayerModel){
         self.owner = owner
-        self.firstStart = firstStart
     }
     
-    var isCarrying: Bool {
-            return carriedPiece != nil
+    func leaveCell(captured: Bool) {
+        currentCell?.leave(self)
+        currentCell = nil
+
+        if captured {
+            // 말이 잡혔을 경우 _6_6으로 이동
+            if let startCell = GameManager.shared.board.cell(withID: "_6_6") {
+                startCell.enter(self)
+                currentCell = startCell
+            }
+
         }
-    
+    }
+
 }
 
 
