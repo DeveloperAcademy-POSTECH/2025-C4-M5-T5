@@ -9,6 +9,7 @@
 import SwiftUI
 import RealityKit
 import ARKit
+import Combine
 
 class ARContentManager {
     
@@ -23,6 +24,14 @@ class ARContentManager {
     var yutEntities: [Entity] = []
     var yutHoldingAnchor: AnchorEntity?
     
+    // 하이라이트된 엔티티들의 기존값 저장
+    var originalMaterials: [String: RealityFoundation.Material] = [:]
+    
+    // 생성된 말들을 관리하기 위한 배열
+    var pieceEntities: [Entity] = []
+    
+    private var animationSubscriptions = Set<AnyCancellable>()
+    
     init(coordinator: ARCoordinator) {
         self.coordinator = coordinator
     }
@@ -34,9 +43,10 @@ class ARContentManager {
         // 이미 생성되었다면 중복 생성 방지
         guard let arView = coordinator?.arView, let arState = coordinator?.arState else { return }
         if self.yutBoardAnchor != nil { return }
-
+        
         do {
             let boardEntity = try ModelEntity.load(named: "Board.usdz")
+            boardEntity.generateCollisionShapes(recursive: true)
             // boardEntity.scale = [2.0, 2.0, 2.0]
             
             let anchorEntity = AnchorEntity(anchor: anchor)
@@ -76,35 +86,63 @@ class ARContentManager {
     
     // MARK: - Yut Management
     
-    func createYuts() {
-        guard let arView = coordinator?.arView else { return }
+    // 말을 지정된 타일 위에 배치
+    // TODO: 어떤 말을 배치할 것인지 인자로 넘기자.
+    func placeNewPiece(on tileName: String) {
+        guard let boardEntity = yutBoardAnchor?.children.first,
+              let tileEntity = boardEntity.findEntity(named: tileName) else {
+            print("오류: \(tileName) 타일을 찾을 수 없습니다.")
+            return
+        }
         
-        // 이전에 있던 윷 제거
-        yutHoldingAnchor?.removeFromParent()
-        yutEntities.removeAll()
-        
-        // 카메라에 고정되는 앵커 생성
-        let holdingAnchor = AnchorEntity(.camera)
-        arView.scene.addAnchor(holdingAnchor)
-        self.yutHoldingAnchor = holdingAnchor
-        
-        let yutScale: Float = 0.05   // 윷 크기 조절
-        for i in 0..<4 {
-            do {
-                let yutEntity = try ModelEntity.load(named: "Yut.usdz")
-                let rotation = simd_quatf(angle: .pi / 2, axis: [1, 0, 0])
-                yutEntity.orientation = rotation
-                yutEntity.scale = [yutScale, yutScale, yutScale]
-                
-                let xOffset = (Float(i) - 1.5) * (yutScale * 1.2)
-                yutEntity.position = [xOffset, -0.15, -0.4]
-                holdingAnchor.addChild(yutEntity)
-                yutEntities.append(yutEntity)
-            } catch {
-                print("윷 엔티티 오류!")
-            }
+        do {
+            let pieceEntity = try ModelEntity.load(named: "Piece1_yellow.usdz")
+            pieceEntity.generateCollisionShapes(recursive: true)
+            pieceEntity.scale = [0.3, 8.0, 0.3]
+            
+            // 로드한 '말' 엔티티에 고유한 이름을 부여
+            pieceEntity.name = "yut_piece_\(pieceEntities.count)"
+            
+            pieceEntity.position = [0, 0.2, 0]
+            tileEntity.addChild(pieceEntity)
+            pieceEntities.append(pieceEntity)
+            print("\(tileName)에 새로운 말을 배치했습니다.")
+            
+        } catch {
+            print("오류: 말 모델(Piece.usdz) 로딩에 실패했습니다: \(error)")
         }
     }
+    
+    func movePiece(piece: Entity, to tileName: String) {
+            guard let boardEntity = yutBoardAnchor?.children.first,
+                  let destinationTile = boardEntity.findEntity(named: tileName) else {
+                print("오류: 목적지 \(tileName) 타일을 찾을 수 없습니다.")
+                return
+            }
+
+
+            var destinationPosition = destinationTile.position(relativeTo: nil)
+            destinationPosition.y += 0.02
+
+            var destinationTransform = Transform(matrix: piece.transformMatrix(relativeTo: nil))
+            destinationTransform.translation = destinationPosition
+
+            piece.move(
+                to: destinationTransform,
+                relativeTo: nil,
+                duration: 0.5,
+                timingFunction: .easeInOut
+            )
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                print("\(piece.name)의 이동 애니메이션 완료. 부모를 \(tileName)으로 변경합니다.")
+            
+                piece.setParent(destinationTile)
+                piece.setPosition([0, 0.02, 0], relativeTo: destinationTile)
+            }
+            
+            print("\(piece.name) 말을 \(tileName)으로 이동 시작.")
+        }
     
     // MARK: - Plane Management
     
@@ -163,6 +201,55 @@ class ARContentManager {
         for (_, entity) in planeEntities {
             entity.model?.materials = [SimpleMaterial(color: .clear, isMetallic: false)]
         }
+    }
+    
+    // MARK: - Highlight Management
+    func highlightPositions(names: [String]) {
+        
+        guard let boardEntity = yutBoardAnchor?.children.first else {
+            print("오류: 윷판 엔티티를 찾을 수 없습니다.")
+            return
+        }
+        
+        clearHighlights()
+        
+        for name in names {
+            if let tileEntity = boardEntity.findEntity(named: name) as? ModelEntity {
+                // 현재 머티리얼 저장
+                if let material = tileEntity.model?.materials.first {
+                    originalMaterials[name] = material
+                }
+                
+                var emissiveMaterial = UnlitMaterial()
+                emissiveMaterial.color = .init(tint: .yellow.withAlphaComponent(0.8))
+                
+                
+                // 모델의 머티리얼을 발광 머티리얼로 교체
+                if var model = tileEntity.model {
+                    model.materials = [emissiveMaterial]
+                    tileEntity.model = model
+                    
+                    print("\(name) 위치를 하이라이트했습니다.")
+                } else {
+                    print("오류: \(name) 위치에는 Model 컴포넌트가 없습니다.")
+                }
+            } else {
+                print("오류: \(name) 이라는 이름의 타일을 찾지 못했습니다.")
+            }
+        }
+    }
+    
+    func clearHighlights() {
+        guard let boardEntity = yutBoardAnchor?.children.first else { return }
+        
+        for (name, originalMaterial) in originalMaterials {
+            if let tileEntity = boardEntity.findEntity(named: name) as? ModelEntity,
+               var model = tileEntity.model {
+                model.materials = [originalMaterial]
+                tileEntity.model = model
+            }
+        }
+        originalMaterials.removeAll()
     }
     
 }
