@@ -210,21 +210,16 @@ class ARContentManager {
                 yut.components.set(PhysicsMotionComponent(linearVelocity: velocity))
             }
             
-            
-            
             // 7. 앵커에 추가
             let anchor = AnchorEntity(world: finalTransform)
             anchor.addChild(yut)
             arView.scene.addAnchor(anchor)
-            
 
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-//            self.evaluateYuts()
             self.waitUntilAllYutsStopAndEvaluate()
 
         }
-//                    waitUntilAllYutsStopAndEvaluate()
     }
     
     func evaluateYuts() {
