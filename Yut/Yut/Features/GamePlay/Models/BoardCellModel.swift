@@ -11,9 +11,9 @@ class BoardCellModel {
     weak var board: BoardModel?
     let row: Int
     let col: Int
-    var id: String { "\(row),\(col)" }
+    var id: String { "_\(row)_\(col)" }
     
-    let position: SIMD3<Int>
+    let position: SIMD2<Int>
     var anchor : ARAnchor?
     
     var isActive: Bool {
@@ -24,10 +24,15 @@ class BoardCellModel {
     }
     var nextCandidates: [(row: Int, col: Int)] = []
     
-    init(row: Int, col: Int, position: SIMD3<Int>, isActive: Bool, isBranchPoint: Bool) {
+    var isGoal: Bool {
+            return row == 6 && col == 6
+        }
+    
+    init(row: Int, col: Int, position: SIMD2<Int>, isActive: Bool, isBranchPoint: Bool) {
         self.row = row
         self.col = col
         self.position = position
     }
+    
 }
 
