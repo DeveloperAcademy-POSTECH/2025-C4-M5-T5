@@ -29,8 +29,12 @@ struct ContentView : View {
                     InstructionView(text: "핀치와 드래그로\n보드의 크기와 위치를 조정하세요.")
                 case .boardConfirmed:
                     EmptyView()
-                case .readyToThrow:
-                    InstructionView(text: "핸드폰을 앞으로 흔들어\n윷을 던지세요!")
+                    //                case .readyToThrow:
+                    //                    InstructionView(text: "핸드폰을 앞으로 흔들어\n윷을 던지세요!")
+                case .selectingPieceToMove:
+                    InstructionView(text: "움직일 말을 선택하세요.")
+                case .selectingDestination:
+                    InstructionView(text: "말을 옮길 곳을 선택하세요.")
                 }
                 Spacer()
                 
@@ -43,7 +47,6 @@ struct ContentView : View {
                     // 활성화된 [다음] 버튼
                     RoundedBrownButton(title: "다음", isEnabled: true) {
                         arState.currentState = .placeBoard
-                        print("애애")
                     }
                 case .placeBoard:
                     // 버튼 없음
@@ -58,11 +61,26 @@ struct ContentView : View {
                 case .boardConfirmed:
                     // [윷놀이 시작!] 버튼 -> 객체 생성
                     RoundedBrownButton(title: "윷놀이 시작!", isEnabled: true) {
-                        arState.actionStream.send(.createYuts)
-                        arState.currentState = .readyToThrow
+                        arState.currentState = .selectingPieceToMove
                     }
-                case .readyToThrow:
-                    // 윷 던지는 버튼
+                case .selectingPieceToMove:
+                    VStack {
+                        InstructionView(text: "움직일 말을 탭하세요.")
+                        HStack {
+                            // "도, 개, 걸, 윷, 모" 버튼
+                            ForEach(1 ..< 6) { i in
+                                Button("\(i)칸") { arState.yutResult = i }
+                                    .padding()
+                                    .background(arState.yutResult == i ? Color.yellow : Color.brown)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(8)
+                            }
+                        }
+                        RoundedBrownButton(title: "새 말 놓기", isEnabled: true) {
+                            arState.actionStream.send(.showDestinationsForNewPiece)
+                        }
+                    }
+                case .selectingDestination:
                     EmptyView()
                     
                 }

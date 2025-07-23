@@ -25,23 +25,142 @@ class GestureHandler {
     
     // 화면 탭했을 때 호출
     @objc func handleTap(_ recognizer: UITapGestureRecognizer) {
-        
         // 변경: Coordinator 를 통해 필요한 정보 접근
         guard let arView = self.arView,
               let arState = coordinator?.arState,
               let contentManager = coordinator?.contentManager else { return }
-
-        // 윷판 배치 상태에만
-        guard arState.currentState == .placeBoard,
-              contentManager.yutBoardAnchor == nil else { return }
         
         let tapLocation = recognizer.location(in: arView)
-        let results = arView.raycast(from: tapLocation, allowing: .existingPlaneGeometry, alignment: .horizontal)
-        
-        // raycast 결과 가장 먼저 맞닿는 평면에 앵커 찍기
-        if let firstResult = results.first {
-            let anchor = ARAnchor(name: "YutBoardAnchor", transform: firstResult.worldTransform)
-            arView.session.add(anchor: anchor)      // didAdd 델리게이트 호출됨
+        // 현재 앱 상태에 따라 다른 동작 수헹
+        switch arState.currentState {
+        case .placeBoard:
+            guard contentManager.yutBoardAnchor == nil else { return }
+            let results = arView.raycast(
+                from: tapLocation,
+                allowing: .existingPlaneGeometry,
+                alignment: .horizontal
+            )
+            
+            // raycast 결과 가장 먼저 맞닿는 평면에 앵커 찍기
+            if let firstResult = results.first {
+                let anchor = ARAnchor(
+                    name: "YutBoardAnchor",
+                    transform: firstResult.worldTransform
+                )
+                arView.session.add(anchor: anchor)      // didAdd 델리게이트 호출됨
+            }
+            
+        case .selectingPieceToMove:
+            //            guard let tappedEntity = arView.entity(at: tapLocation),
+            //                  // 탭한 것이 '말' 엔티티인지 확인 (관리 배열에 포함되어 있는지)
+            //                  let piece = contentManager.pieceEntities.first(where: { $0 == tappedEntity })
+            //            else { return }
+            //
+            //            arState.selectedPiece = piece
+            //            arState.actionStream.send(.showDestinationsForExistingPiece)
+            // --- 디버깅을 위해 로그를 추가한 '기존 말 선택' 로직 ---
+            
+            //            // 1. 탭한 위치에 어떤 엔티티가 있는지 확인합니다.
+            //            if let tappedEntity = arView.entity(at: tapLocation) {
+            //                print("--- 탭 감지 ---")
+            //                print("감지된 엔티티 이름: \(tappedEntity.name)")
+            //
+            //                // 2. 감지된 엔티티가 우리가 관리하는 '말' 중 하나인지 확인합니다.
+            //                // 탭 된 엔티티의 이름이 "yut_piece_"로 시작하는지 확인합니다.
+            //                let pieceName = tappedEntity.name
+            //                if pieceName
+            //                    .starts(with: "yut_piece_") {
+            //
+            //                    // 이름으로 관리 배열에서 해당 말을 찾습니다.
+            //                    if let piece = contentManager.pieceEntities.first(
+            //                        where: { $0.name == pieceName
+            //                        }) {
+            //                        print("성공: \(pieceName) 말을 탭했습니다.")
+            //
+            //                        // 기존 로직 실행
+            //                        arState.selectedPiece = piece
+            //                        arState.actionStream
+            //                            .send(.showDestinationsForExistingPiece)
+            //                    }
+            //                } else {
+            //                    print("탭한 엔티티(\(tappedEntity.name))는 말이 아닙니다.")
+            //                }
+            //
+            //            } else {
+            //                print("--- 탭 실패: 아무것도 감지되지 않았습니다. ---")
+            //                print("Collision Shape이 없거나, 너무 작거나, 다른 객체에 가려졌을 수 있습니다.")
+            //            }
+            guard let tappedEntity = arView.entity(at: tapLocation) else {
+                print("탭 실패: 아무것도 감지되지 않았습니다.")
+                return
+            }
+            
+            // --- 탭한 엔티티부터 부모로 거슬러 올라가며 '말'을 찾는 최종 로직 ---
+            var currentEntity: Entity? = tappedEntity
+            var foundPiece: Entity?
+            
+            while currentEntity != nil {
+                // 현재 엔티티의 이름이 "yut_piece_"로 시작하는지 확인합니다.
+                if let name = currentEntity?.name, name.starts(with: "yut_piece_") {
+                    
+                    // 이름이 일치하는 엔티티가 우리가 관리하는 배열에 있는지 최종 확인합니다.
+                    if let piece = contentManager.pieceEntities.first(where: { $0.name == name }) {
+                        foundPiece = piece
+                        break // 찾았으므로 루프를 중단합니다.
+                    }
+                }
+                currentEntity = currentEntity?.parent // 부모 엔티티로 이동해서 계속 찾습니다.
+            }
+            
+            // 최종적으로 말을 찾았다면, 다음 단계를 진행합니다.
+            if let piece = foundPiece {
+                print("성공: \(piece.name) 말을 탭했습니다.")
+                
+                // 기존 로직 실행
+                arState.selectedPiece = piece
+                arState.actionStream.send(.showDestinationsForExistingPiece)
+                
+            } else {
+                print("실패: 탭한 엔티티(\(tappedEntity.name)) 또는 그 부모 중에 관리 중인 말이 없습니다.")
+            }
+            
+        case .selectingDestination:
+            
+            guard let tappedEntity = arView.entity(at: tapLocation) else {
+                return
+            }
+            var currentEntity: Entity? = tappedEntity
+            var tileName: String?
+            
+            // 부모 엔티티 찾음 (_row_col)
+            while currentEntity != nil {
+                if let name = currentEntity?.name, name.starts(with: "_") {
+                    tileName = name
+                    break
+                }
+                currentEntity = currentEntity?.parent
+            }
+            
+            
+            if let name = tileName, arState.possibleDestinations
+                .contains(name) {
+                
+                // 만약 선택된 말이 있다면 '이동', 없다면 '새로 배치'
+                if let selectedPiece = arState.selectedPiece {
+                    // <<-- 이동 로직 -->>
+                    contentManager.movePiece(piece: selectedPiece, to: name)
+                } else {
+                    // <<-- 기존의 새 말 배치 로직 -->>
+                    contentManager.placeNewPiece(on: name)
+                }
+                
+                // 마무리 작업
+                contentManager.clearHighlights()
+                arState.selectedPiece = nil // 선택된 말 초기화
+                arState.currentState = .selectingPieceToMove
+            }
+        default:
+            break
         }
     }
     
@@ -50,7 +169,9 @@ class GestureHandler {
         
         // 변경: Coordinator 를 통해 필요한 정보 접근
         guard let arState = coordinator?.arState,
-              let boardAnchor = coordinator?.contentManager.yutBoardAnchor else { return }
+              let boardAnchor = coordinator?.contentManager.yutBoardAnchor else {
+            return
+        }
         
         // 윷판을 조정하는 상태인지 확인
         guard arState.currentState == .adjustingBoard else { return }
@@ -73,13 +194,17 @@ class GestureHandler {
         // 변경: Coordinator 를 통해 필요한 정보 접근
         guard let arView = self.arView,
               let arState = coordinator?.arState,
-              let boardAnchor = coordinator?.contentManager.yutBoardAnchor else { return }
+              let boardAnchor = coordinator?.contentManager.yutBoardAnchor else {
+            return
+        }
         
         guard arState.currentState == .adjustingBoard else { return }
-                      
+        
         // 수평면 위의 3D 좌표 얻기
         let panLocaton = recognizer.location(in: arView)
-        guard let result = arView.raycast(from: panLocaton, allowing: .existingPlaneGeometry, alignment: .horizontal).first else { return }
+        guard let result = arView.raycast(from: panLocaton, allowing: .existingPlaneGeometry, alignment: .horizontal).first else {
+            return
+        }
         let hitPosition = Transform(matrix: result.worldTransform).translation
         
         switch recognizer.state {
@@ -97,7 +222,9 @@ class GestureHandler {
     @objc func handleRotation(_ recognizer: UIRotationGestureRecognizer) {
         // 변경: Coordinator 를 통해 필요한 정보 접근
         guard let arState = coordinator?.arState,
-              let boardAnchor = coordinator?.contentManager.yutBoardAnchor else { return }
+              let boardAnchor = coordinator?.contentManager.yutBoardAnchor else {
+            return
+        }
         
         guard arState.currentState == .adjustingBoard else { return }
         
@@ -106,7 +233,10 @@ class GestureHandler {
             initialBoardRotation = boardAnchor.orientation
         case .changed:      // 제스쳐 중: 제스쳐의 회전 값 -> 회전 쿼터니언 생성
             // Y축 기준 회전
-            let rotation = simd_quatf(angle: -Float(recognizer.rotation), axis: [0, 1, 0])
+            let rotation = simd_quatf(
+                angle: -Float(recognizer.rotation),
+                axis: [0, 1, 0]
+            )
             if let initialRotation = initialBoardRotation {
                 boardAnchor.orientation = initialRotation * rotation
             }

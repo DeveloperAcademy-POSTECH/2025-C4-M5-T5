@@ -28,8 +28,8 @@ class ARCoordinator: NSObject, ARSessionDelegate {
         }
     }
     
-    // 환경 세팅 시 최소 요구 면적 (15㎡ - 일단은 5로 ... )
-    let minRequiredArea: Float = 5
+    // 환경 세팅 시 최소 요구 면적 (15㎡ - 일단은 1로 ... )
+    let minRequiredArea: Float = 1
     
     // MARK: - Initializer
     override init() {
@@ -59,10 +59,24 @@ class ARCoordinator: NSObject, ARSessionDelegate {
                     self?.contentManager.fixBoardPosition()
                 case .disablePlaneVisualization:
                     self?.contentManager.disablePlaneVisualization()
-                case .createYuts:
-                    self?.contentManager.createYuts()
-                    self?.startShakeDetection()
-                    
+                case .showDestinationsForNewPiece:
+                    self?.arState?.selectedPiece = nil
+                    if let positions = self?.gameLogicManager.getPossibleDestinations(for: nil, yutResult: 0) {
+                        self?.arState?.possibleDestinations = positions // 1. 논리적 상태(데이터)를 업데이트합니다.
+                        self?.contentManager.highlightPositions(names: positions) // 2. 시각적 상태(화면)를 업데이트합니다.
+                    }
+                    DispatchQueue.main.async {
+                        self?.arState?.currentState = .selectingDestination
+                    }
+                case .showDestinationsForExistingPiece:
+                    guard let piece = self?.arState?.selectedPiece, let yutResult = self?.arState?.yutResult else { return }
+                    if let positions = self?.gameLogicManager.getPossibleDestinations(for: piece, yutResult: yutResult) {
+                        self?.arState?.possibleDestinations = positions // 1. 논리적 상태(데이터)를 업데이트합니다.
+                        self?.contentManager.highlightPositions(names: positions) // 2. 시각적 상태(화면)를 업데이트합니다.
+                    }
+                    DispatchQueue.main.async {
+                        self?.arState?.currentState = .selectingDestination
+                    }
                 }
             }
             .store(in: &cancellables)           // 구독 관리
@@ -108,9 +122,4 @@ class ARCoordinator: NSObject, ARSessionDelegate {
     }
 
     // MARK: - Other Logic
-
-    // 흔들림 감지 시작, 감지 시 윷을 던지도록 설정
-    func startShakeDetection() {
-        // 흠
-    }
 }
