@@ -1,0 +1,47 @@
+//
+//  GuestNameInputView.swift
+//  Yut
+//
+//  Created by Hwnag Seyeon on 7/21/25.
+//
+
+import SwiftUI
+
+struct GuestNameInputView: View {
+    @State private var guest_nickname: String = ""
+    @EnvironmentObject private var navigationManager: NavigationManager
+
+    var body: some View {
+        ZStack {
+            Color("White1")
+                .ignoresSafeArea()
+
+            NameInputFormView(
+                title: "닉네임을 입력해주세요",
+                nickname: $guest_nickname,
+                onSubmit: {
+                    let guestName = guest_nickname.trimmingCharacters(in: .whitespaces)
+                    if !guestName.isEmpty {
+                        navigationManager.path.append(.roomList(guestName))
+                    }
+                },
+                autoFocus: true
+            )
+        }
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button {
+                    navigationManager.pop()
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .foregroundColor(.brown1)
+                }
+            }
+        }
+    }
+}
+
+#Preview {
+    GuestNameInputView()
+}

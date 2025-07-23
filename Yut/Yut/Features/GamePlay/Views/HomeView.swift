@@ -2,15 +2,16 @@
 //  HomeView.swift
 //  Yut
 //
-//  Created by Hwnag Seyeon on 7/17/25.
 //
 
 import SwiftUI
 
 struct HomeView: View {
+    @EnvironmentObject private var navigationManager: NavigationManager
+    
     var body: some View {
         ZStack {
-            Color("white1")
+            Color("White1")
                 .ignoresSafeArea()
             
             VStack(spacing: 0) {
@@ -29,41 +30,32 @@ struct HomeView: View {
                     .ignoresSafeArea(edges: .bottom)
             }
             
-            
             VStack {
                 Spacer()
-                
-                Image("Yut_light")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 200, height: 200)
-//
-//                Text("윷")
-//                    .foregroundColor(.brown1)
-//                    .font(.system(size: 236, weight: .bold, design: .default))
+
+                Text("윷")
+                    .foregroundColor(.brown1)
+                    .font(.hancom(.hoonmin, size: 236))
                 
                 Spacer()
                 
                 VStack(spacing: 12) {
-                    RoundedBrownButton(
+                    UIViewButton(
                         title: "방 만들기",
                         isEnabled: true
                     ) {
-                        print("방 만들기 클릭")
-                        // 방 만들기 액션
+                        navigationManager.push(.hostNameInput)
                     }
                     
-                    RoundedBrownButton(
+                    UIViewButton(
                         title: "방 참여하기",
                         isEnabled: true
                     ) {
-                        print("방 참여하기 클릭")
-                        // 방 참여하기 액션
+                        navigationManager.push(.guestNameInput)
                     }
                 }
             }
             .padding(.horizontal, 16)
-            
         }
     }
 }
