@@ -77,6 +77,11 @@ class ARCoordinator: NSObject, ARSessionDelegate {
                     DispatchQueue.main.async {
                         self?.arState?.currentState = .selectingDestination
                     }
+                case .startMonitoringMotion:
+                    self?.contentManager.startMonitoringMotion()
+                    DispatchQueue.main.async {
+                        self?.arState?.currentState = .selectingPieceToMove
+                    }
                 }
             }
             .store(in: &cancellables)           // 구독 관리

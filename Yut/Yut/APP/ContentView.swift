@@ -35,6 +35,8 @@ struct ContentView : View {
                     InstructionView(text: "움직일 말을 선택하세요.")
                 case .selectingDestination:
                     InstructionView(text: "말을 옮길 곳을 선택하세요.")
+                case .readyToThrow:
+                    InstructionView(text: "버튼을 눌러 윷을 던져랏")
                 }
                 Spacer()
                 
@@ -59,9 +61,12 @@ struct ContentView : View {
                         arState.currentState = .boardConfirmed
                     }
                 case .boardConfirmed:
-                    // [윷놀이 시작!] 버튼 -> 객체 생성
                     RoundedBrownButton(title: "윷놀이 시작!", isEnabled: true) {
-                        arState.currentState = .selectingPieceToMove
+                        arState.currentState = .readyToThrow
+                    }
+                case .readyToThrow:
+                    RoundedBrownButton(title: "윷 던지기 활성화!", isEnabled: true) {
+                        arState.actionStream.send(.startMonitoringMotion)
                     }
                 case .selectingPieceToMove:
                     VStack {
