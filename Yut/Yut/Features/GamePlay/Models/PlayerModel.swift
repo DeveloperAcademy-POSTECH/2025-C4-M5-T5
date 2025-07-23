@@ -7,17 +7,17 @@
 
 class PlayerModel {
     let name: String
-    var tokens: [PieceModel]
+    var pieces: [PieceModel]
     var sequence: Int
     
     init(name: String, sequence: Int){
         self.name = name
-        self.tokens = []
+        self.pieces = []
         self.sequence = sequence
         
         for _ in 0..<2{
-            let token = PieceModel(owner: self)
-            self.tokens.append(token)
+            let piece = PieceModel(owner: self, firstStart: true)
+            self.pieces.append(piece)
         }
     }
 }
