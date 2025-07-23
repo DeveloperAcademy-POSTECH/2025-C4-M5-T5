@@ -22,14 +22,6 @@ class ARContentManager {
     var yutBoardAnchor: AnchorEntity?
     var planeEntities: [UUID: ModelEntity] = [:]
     
-    // 윷 관련 변수
-    var yutEntities: [ModelEntity] = [
-        try! ModelEntity.loadModel(named: "Yut1"),
-        try! ModelEntity.loadModel(named: "Yut2"),
-        try! ModelEntity.loadModel(named: "Yut3"),
-        try! ModelEntity.loadModel(named: "Yut4_back"),
-    ]
-    
     var yutHoldingAnchor: AnchorEntity?
     
     
@@ -153,84 +145,21 @@ class ARContentManager {
             }
         }
     }
-//        func throwYuts() {
-//            guard let arView = coordinator?.arView else { return }
-//    
-//            
-//            let spacing: Float = 0.07
-//    
-//            for i in 0..<4 {
-//                
-//    
-//                guard let yut = try? ModelEntity.loadModel(named: "Yut") else {
-//                    print("⚠️ Failed to load \("Yut")")
-//                    continue
-//                }
-//    
-//                // 2. 물리 컴포넌트 및 충돌 설정
-//                let physMaterial = PhysicsMaterialResource.generate(
-//                    staticFriction: 1.0,
-//                    dynamicFriction: 1.0,
-//                    restitution: 0.0
-//                )
-//    
-//                yut.generateCollisionShapes(recursive: true)
-//                yut.physicsBody = PhysicsBodyComponent(
-//                    massProperties: .default,
-//                    material: physMaterial,
-//                    mode: .dynamic
-//                )
-//    
-//                // 3. 카메라 위치 가져오기
-//                guard let camTransform = arView.session.currentFrame?.camera.transform else {
-//                    print("❌ 카메라 transform 없음")
-//                    return
-//                }
-//    
-//                // 4. 카메라 기준 위치 계산 (회전 제거됨)
-//                var translation = matrix_identity_float4x4
-//                translation.columns.3.z = -0.1       // 카메라 앞
-//                translation.columns.3.x = 0.6  // 좌우 퍼짐
-//                translation.columns.3.x += (Float(i) - 1.5) * spacing  // 좌우 퍼짐
-//                translation.columns.3.y = 0.6         // 카메라보다 위
-//    
-//                let finalTransform = simd_mul(camTransform, translation)
-//    
-//                // 5. 윷의 위치 및 크기 설정
-//                let transform = Transform(matrix: finalTransform)
-//                yut.transform = transform
-//                yut.transform.scale = SIMD3<Float>(repeating: 0.1)
-//    
-//                // 6. 던지는 방향 (XZ 평면 + 위로)
-//                let forwardZ = -simd_make_float3(camTransform.columns.2)
-//                let flatForward = simd_normalize(SIMD3<Float>(forwardZ.x, 0, forwardZ.z))
-//                let upward = SIMD3<Float>(0, 3, 0)
-//                let velocity = (flatForward * 1.0) + upward
-//    
-//                yut.components.set(PhysicsMotionComponent(linearVelocity: velocity))
-//    
-//                // 7. 앵커에 추가
-//                let anchor = AnchorEntity(world: finalTransform)
-//                anchor.addChild(yut)
-//                arView.scene.addAnchor(anchor)
-//            }
-//        }
 
-    
-    
     func throwYuts() {
         guard let arView = coordinator?.arView else { return }
         
+        let yutNames = ["Yut1", "Yut2", "Yut3", "Yut4_back"]
         let spacing: Float = 0.07
         
-        for i in 0..<yutEntities.count {
-//            let modelName = yutNames[i]
-            let yut = yutEntities[i].clone(recursive: true)
+        for i in 0..<4 {
+            let name = yutNames[i]
             
-//            guard let yut = try? ModelEntity.loadModel(named: modelName) else {
-//                print("⚠️ Failed to load \(modelName)")
-//                continue
-//            }
+            // ⭐️ 매번 새로운 인스턴스를 로드
+            guard let yut = try? ModelEntity.loadModel(named: name) else {
+                print("⚠️ Failed to load \(name)")
+                continue
+            }
             
             // 2. 물리 컴포넌트 및 충돌 설정
             let physMaterial = PhysicsMaterialResource.generate(
@@ -270,9 +199,11 @@ class ARContentManager {
             let forwardZ = -simd_make_float3(camTransform.columns.2)
             let flatForward = simd_normalize(SIMD3<Float>(forwardZ.x, 0, forwardZ.z))
             let upward = SIMD3<Float>(0, 3, 0)
-            let velocity = (flatForward * 1.0) + upward
+            let velocity = (flatForward * 2.0) + upward
             
-            yut.components.set(PhysicsMotionComponent(linearVelocity: velocity))
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+                yut.components.set(PhysicsMotionComponent(linearVelocity: velocity))
+            }
             
             // 7. 앵커에 추가
             let anchor = AnchorEntity(world: finalTransform)
@@ -450,3 +381,4 @@ class ARContentManager {
     }
     
 }
+
