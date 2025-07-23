@@ -2,7 +2,12 @@ import RealityKit
 import Foundation
 
 struct YutModel {
-    let id: UUID = UUID()     // 식별용
-    let entity: ModelEntity   // 실제 RealityKit 상의 윷
-    var isFrontUp: Bool?      // 결과 판단 후 저장
+    let entity: ModelEntity
+        var isFrontUp: Bool? = nil
+
+        var isSettled: Bool {
+            guard let motion = entity.components[PhysicsMotionComponent.self] else { return false }
+            return length(motion.linearVelocity) < 0.01 && length(motion.angularVelocity) < 0.01 
+        }
 }
+

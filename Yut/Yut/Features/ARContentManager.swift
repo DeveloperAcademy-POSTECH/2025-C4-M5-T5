@@ -22,6 +22,8 @@ class ARContentManager {
     var yutBoardAnchor: AnchorEntity?
     var planeEntities: [UUID: ModelEntity] = [:]
     
+    var thrownYuts: [YutModel] = []
+    
     var yutHoldingAnchor: AnchorEntity?
     
     
@@ -161,6 +163,9 @@ class ARContentManager {
                 continue
             }
             
+            let yutModel = YutModel(entity: yut, isFrontUp: nil)
+            thrownYuts.append(yutModel)
+            
             // 2. 물리 컴포넌트 및 충돌 설정
             let physMaterial = PhysicsMaterialResource.generate(
                 staticFriction: 1.0,
@@ -205,12 +210,56 @@ class ARContentManager {
                 yut.components.set(PhysicsMotionComponent(linearVelocity: velocity))
             }
             
+            
+            
             // 7. 앵커에 추가
             let anchor = AnchorEntity(world: finalTransform)
             anchor.addChild(yut)
             arView.scene.addAnchor(anchor)
+            
+
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+//            self.evaluateYuts()
+            self.waitUntilAllYutsStopAndEvaluate()
+
+        }
+//                    waitUntilAllYutsStopAndEvaluate()
+    }
+    
+    func evaluateYuts() {
+        for i in 0..<thrownYuts.count {
+            let entity = thrownYuts[i].entity
+            
+            // 1. 윷의 로컬 위 방향을 회전에 따라 실제 방향으로 회전
+            let up = entity.transform.rotation.act(SIMD3<Float>(1, 0, 0))
+            
+            // 2. 월드 Y축과 얼마나 같은 방향인지 확인 (1 = 위, -1 = 아래)
+            let dot = simd_dot(up, SIMD3<Float>(0, 1, 0))
+            
+            // 3. 무조건 앞/뒤로 판단
+            let isFront = dot >= 0  // 0 이상이면 앞, 음수면 뒤
+            print("🎯 앞뒤 결과: \(isFront)")
+            
+            // 4. 결과 저장
+            thrownYuts[i].isFrontUp = isFront
+        }
+        
+        let resultCount = thrownYuts.filter { $0.isFrontUp == true }.count
+        print("🎯 윷 결과: \(resultCount)개 앞면")
+    }
+    
+    func waitUntilAllYutsStopAndEvaluate() {
+        Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { timer in
+            let allStopped = self.thrownYuts.allSatisfy { $0.isSettled }
+            
+            if allStopped {
+                timer.invalidate()
+                self.evaluateYuts()
+            }
         }
     }
+    
     
     // MARK: - Token Management
     
