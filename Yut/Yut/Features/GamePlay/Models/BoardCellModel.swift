@@ -5,34 +5,31 @@
 //  Created by Seungeun Park on 7/18/25.
 //
 
-import ARKit
-
 class BoardCellModel {
-    weak var board: BoardModel?
-    let row: Int
-    let col: Int
-    var id: String { "_\(row)_\(col)" }
-    
-    let position: SIMD2<Int>
-    var anchor : ARAnchor?
-    
-    var isActive: Bool {
-        board?.activeCells.contains(where: { $0 === self }) ?? false
-    }
-    var isBranchPoint: Bool {
-        board?.branchPoints.contains(where: { $0 === self }) ?? false
-    }
-    var nextCandidates: [(row: Int, col: Int)] = []
-    
-    var isGoal: Bool {
-            return row == 6 && col == 6
-        }
-    
-    init(row: Int, col: Int, position: SIMD2<Int>, isActive: Bool, isBranchPoint: Bool) {
-        self.row = row
-        self.col = col
-        self.position = position
-    }
-    
-}
+    let id: String
+    private(set) var pieces: [PieceModel] = []
 
+    init(id: String) {
+        self.id = id
+    }
+
+    func enter(_ newPiece: PieceModel) {
+        let sameOwner = pieces.allSatisfy { $0.owner.name == newPiece.owner.name }
+
+        if sameOwner {
+            pieces.append(newPiece)
+        } else {
+            for piece in pieces {
+                piece.leaveCell(captured: true) // piece가 알아서 boardCell.leave(self)를 호출
+            }
+            pieces.removeAll()
+            pieces.append(newPiece)
+        }
+    }
+
+    func leave(_ piece: PieceModel) {
+        if let index = pieces.firstIndex(where: { $0 === piece }) {
+            pieces.remove(at: index)
+        }
+    }
+}
