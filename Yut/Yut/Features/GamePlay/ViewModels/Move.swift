@@ -17,19 +17,19 @@ struct MoveResult {
 }
 
 extension BoardModel {
-    func move(from cell: BoardCellModel, steps: Int) -> BoardCellModel? {
-        var current = cell
-        for _ in 0..<steps {
-            guard let nextCoords = current.nextCandidates.first,
-                  let nextCell = cellAt(row: nextCoords.row, col: nextCoords.col) else {
-                return nil
-            }
-            current = nextCell
-        }
-        return current
-    }
-
-    func cellAt(row: Int, col: Int) -> BoardCellModel? {
-        return cells.first { $0.row == row && $0.col == col }
-    }
+//    func move(from cell: BoardCellModel, steps: Int) -> BoardCellModel? {
+//        var current = cell
+//        for _ in 0..<steps {
+//            guard let nextCoords = current.nextCandidates.first,
+//                  let nextCell = cellAt(row: nextCoords.row, col: nextCoords.col) else {
+//                return nil
+//            }
+//            current = nextCell
+//        }
+//        return current
+//    }
+//
+//    func cellAt(row: Int, col: Int) -> BoardCellModel? {
+//        return cells.first { $0.row == row && $0.col == col }
+//    }
 }

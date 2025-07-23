@@ -151,19 +151,27 @@ class ARContentManager {
         // 1. ARView가 존재하는지 확인 (없으면 중단)
         guard let arView = coordinator?.arView else { return }
         
-        let count = 4                          // 던질 윷의 개수
+//        let count = 4                          // 던질 윷의 개수
+        let yutNames = ["Yut1", "Yut2", "Yut3", "Yut4_back"] // 다른 모델명 사용
         let spacing: Float = 0.07             // 윷 간격 (x축 상에서의 거리)
         let impulseStrength: Float = 10.0     // 던지는 힘의 크기 (임펄스 세기)
         
-        // 2. 윷 모델 불러오기 (Reality Composer에서 만든 Yut.usd 파일)
-        guard let yutEntity = try? ModelEntity.loadModel(named: "Yut") else {
-            print("⚠️ Failed to load Yut")
-            return
-        }
+//        // 2. 윷 모델 불러오기 (Reality Composer에서 만든 Yut.usd 파일)
+//        guard let yutEntity = try? ModelEntity.loadModel(named: "Yut") else {
+//            print("⚠️ Failed to load Yut")
+//            return
+//        }
         
         // 3. 4개의 윷을 반복 생성
-        for i in 0..<count {
-            let yut = yutEntity.clone(recursive: true) // 모델 복제 (개별 객체로 사용)
+        for i in 0..<yutNames.count {
+            let modelName = yutNames[i]
+            
+            guard let yut = try? ModelEntity.loadModel(named: modelName) else {
+                        print("⚠️ Failed to load \(modelName)")
+                        continue
+                    }
+            
+//            let yut = yutEntity.clone(recursive: true) // 모델 복제 (개별 객체로 사용)
             
             
             // 3-1. 윷 모델의 경계 박스 크기 계산 (충돌 범위로 사용)
@@ -206,7 +214,7 @@ class ARContentManager {
                 anchor.addChild(yut)
                 
                 // 윷 크기 줄이기
-                //                yut.scale = SIMD3<Float>(repeating: 0.50)
+                                yut.scale = SIMD3<Float>(repeating: 0.1)
                 arView.scene.anchors.append(anchor)
                 
                 // 6. 던지는 방향 계산
@@ -235,12 +243,6 @@ class ARContentManager {
             }
         }
     }
-    
-    
-    
-    
-    
-    
     
     // MARK: - Token Management
     
