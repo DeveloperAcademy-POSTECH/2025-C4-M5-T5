@@ -16,6 +16,7 @@ enum ARAction {
     // case showPossibleDestinations
     case showDestinationsForNewPiece
     case showDestinationsForExistingPiece
+    case startMonitoringMotion
 }
 
 // 앱의 현재 단계 정의
@@ -28,7 +29,7 @@ enum AppState {
     case boardConfirmed         // 5. 윷판 확정, 게임 시작 준비
     
     // -- 실제 게임 플레이 루프 단계 --
-//    case readyToThrow           // 1. 윷을 던질 준비
+    case readyToThrow           // 1. 윷을 던질 준비
     case selectingPieceToMove   // 2. 보드 위 움직일 말 선택
     case selectingDestination   // 3. 이동할 위치 선택 (경로 하이라이트)
 //    case pieceMoved             // 4. 말 이동 후 턴 종료 or 다음 행동 결정
