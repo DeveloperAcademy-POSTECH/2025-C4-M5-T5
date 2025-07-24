@@ -40,8 +40,13 @@ enum AppState {
 class ARState: ObservableObject {
     @Published var currentState: AppState = .searchingForSurface
     
+    
     // 명령 전달 통로 (Coordinator 구독 -> 처리)
     let actionStream = PassthroughSubject<ARAction, Never>()
+    
+    // 바닥 인식 면적 계산
+    let minRequiredArea: Float = 15.0
+    @Published var recognizedArea: Float = 0.0
     
     @Published var selectedPiece: Entity? = nil
     @Published var possibleDestinations: [String] = []
