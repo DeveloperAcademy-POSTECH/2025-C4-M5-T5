@@ -53,33 +53,34 @@ class ARCoordinator: NSObject, ARSessionDelegate {
         
         arState.actionStream
             .sink { [weak self] action in       // 메모리 누수 방지
+                guard let self = self else { return }
                 switch action {
                 case .fixBoardPosition:
-                    self?.contentManager.fixBoardPosition()
+                    self.contentManager.fixBoardPosition()
                 case .disablePlaneVisualization:
-                    self?.contentManager.disablePlaneVisualization()
+                    self.contentManager.disablePlaneVisualization()
                 case .showDestinationsForNewPiece:
-                    self?.arState?.selectedPiece = nil
-                    if let positions = self?.gameLogicManager.getPossibleDestinations(for: nil, yutResult: 0) {
-                        self?.arState?.possibleDestinations = positions // 1. 논리적 상태(데이터)를 업데이트합니다.
-                        self?.contentManager.highlightPositions(names: positions) // 2. 시각적 상태(화면)를 업데이트합니다.
-                    }
+                    self.arState?.selectedPiece = nil
+                    let positions = self.gameLogicManager.getPossibleDestinations(for: nil, yutResult: 0)
+                    self.arState?.possibleDestinations = positions // 1. 논리적 상태(데이터)를 업데이트합니다.
+                    self.contentManager.highlightPositions(names: positions) // 2. 시각적 상태(화면)를 업데이트합니다.
+                    
                     DispatchQueue.main.async {
-                        self?.arState?.currentState = .selectingDestination
+                        self.arState?.currentState = .selectingDestination
                     }
                 case .showDestinationsForExistingPiece:
-                    guard let piece = self?.arState?.selectedPiece, let yutResult = self?.arState?.yutResult else { return }
-                    if let positions = self?.gameLogicManager.getPossibleDestinations(for: piece, yutResult: yutResult) {
-                        self?.arState?.possibleDestinations = positions // 1. 논리적 상태(데이터)를 업데이트합니다.
-                        self?.contentManager.highlightPositions(names: positions) // 2. 시각적 상태(화면)를 업데이트합니다.
-                    }
+                    guard let piece = self.arState?.selectedPiece, let yutResult = self.arState?.yutResult else { return }
+                    let positions = self.gameLogicManager.getPossibleDestinations(for: piece, yutResult: yutResult)
+                    self.arState?.possibleDestinations = positions // 1. 논리적 상태(데이터)를 업데이트합니다.
+                    self.contentManager.highlightPositions(names: positions) // 2. 시각적 상태(화면)를 업데이트합니다.
+                    
                     DispatchQueue.main.async {
-                        self?.arState?.currentState = .selectingDestination
+                        self.arState?.currentState = .selectingDestination
                     }
                 case .startMonitoringMotion:
-                    self?.contentManager.startMonitoringMotion()
+                    self.contentManager.startMonitoringMotion()
                     DispatchQueue.main.async {
-                        self?.arState?.currentState = .selectingPieceToMove
+                        self.arState?.currentState = .selectingPieceToMove
                     }
                 }
             }
