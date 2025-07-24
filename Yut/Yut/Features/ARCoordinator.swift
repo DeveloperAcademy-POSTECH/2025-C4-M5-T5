@@ -28,8 +28,9 @@ class ARCoordinator: NSObject, ARSessionDelegate {
         }
     }
     
-    // 환경 세팅 시 최소 요구 면적 (15㎡ - 일단은 1로 ... )
-    let minRequiredArea: Float = 1
+    // 환경 세팅 시 최소 요구 면적 (15㎡)
+    let minRequiredArea: Float = 15.0
+    var recognizedArea: Float = 0.0      // 인식된 면적의 총 합
     
     // MARK: - Initializer
     override init() {
@@ -43,9 +44,11 @@ class ARCoordinator: NSObject, ARSessionDelegate {
     // MARK: - Combine 세팅
     var arState: ARState? {
         didSet {
+            arState?.minRequiredArea = self.minRequiredArea
             subscribeToActionStream()
         }
     }
+    
     private var cancellables = Set<AnyCancellable>()
  
     // ARState 의 actionStream 구독 -> 명령 처리
@@ -105,7 +108,7 @@ class ARCoordinator: NSObject, ARSessionDelegate {
     }
     
     func session(_ session: ARSession, didUpdate anchors: [ARAnchor]) {
-        var recognizedArea: Float = 0.0      // 인식된 면적의 총 합
+        var recognizedArea: Float = 0.0
         
         // 업데이트 된 앵커들의 시각적/물리적 메시 갱신
         for anchor in anchors {
@@ -119,8 +122,9 @@ class ARCoordinator: NSObject, ARSessionDelegate {
         // print("인식된 평면의 실제 면적: \(recognizedArea)㎡")
         
         // 전체 면적이 최소 요구 면적을 넘으면 상태 변경
-        if arState?.currentState == .searchingForSurface && recognizedArea >= minRequiredArea {
-            DispatchQueue.main.async {
+        DispatchQueue.main.async {
+            self.arState?.recognizedArea = recognizedArea
+            if self.arState?.currentState == .searchingForSurface && recognizedArea >= self.minRequiredArea {
                 self.arState?.currentState = .completedSearching
             }
         }

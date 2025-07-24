@@ -20,9 +20,14 @@ struct ContentView : View {
             VStack {
                 switch arState.currentState {
                 case .searchingForSurface:
-                    InstructionView(text: "주변 바닥을 충분히 색칠해 주세요.")
+                    //InstructionView(text: "주변 바닥을 충분히 색칠해 주세요.")
+                    ProgressBar(text: "바닥을 충분히 색칠해 주세요.",
+                                currentProgress: arState.recognizedArea,
+                                minRequiredArea: arState.minRequiredArea)
                 case .completedSearching:
-                    InstructionView(text: "주변 바닥을 충분히 색칠해 주세요.")    // 여기 다른 문구를 넣어야할까
+                    ProgressBar(text: "바닥을 충분히 색칠해 주세요.",
+                                currentProgress: arState.recognizedArea,
+                                minRequiredArea: arState.minRequiredArea)
                 case .placeBoard:
                     InstructionView(text: "탭해서 말판을 배치하세요.")
                 case .adjustingBoard:
