@@ -5,31 +5,50 @@
 //  Created by Seungeun Park on 7/21/25.
 //
 
-import simd
-
 struct MoveResult {
     let piece: PieceModel
     let cell: BoardCellModel
     let id: String
-    var didCapture: Bool = false
-    var didCarry: Bool = false
-    var didGoal: Bool = false
+    var cellresult : Result?
+    var didGoal: Bool
 }
 
 extension BoardModel {
-//    func move(from cell: BoardCellModel, steps: Int) -> BoardCellModel? {
-//        var current = cell
-//        for _ in 0..<steps {
-//            guard let nextCoords = current.nextCandidates.first,
-//                  let nextCell = cellAt(row: nextCoords.row, col: nextCoords.col) else {
-//                return nil
-//            }
-//            current = nextCell
-//        }
-//        return current
-//    }
-//
-//    func cellAt(row: Int, col: Int) -> BoardCellModel? {
-//        return cells.first { $0.row == row && $0.col == col }
-//    }
+    func move(piece: PieceModel, steps: Int, routeIndex: Int) -> MoveResult? {
+        let route = routes[routeIndex]
+
+        let currentID = piece.currentCell?.id ?? route.first!
+        guard let currentIndex = route.firstIndex(of: currentID) else { return nil }
+
+        let nextIndex = currentIndex + steps
+
+        if nextIndex >= route.count || route[nextIndex] == "end" {
+            let emptyResult = Result(cellID: currentID, didCapture: false, didCarry: false)
+            return MoveResult(
+                piece: piece,
+                cell: piece.currentCell ?? BoardCellModel(id: currentID),
+                id: currentID,
+                cellresult: emptyResult,
+                didGoal: true
+            )
+        }
+
+
+        let nextID = route[nextIndex]
+        guard let nextCell = cells.first(where: { $0.id == nextID }) else { return nil }
+
+        piece.currentCell?.leave(piece)
+
+        let result = nextCell.enter(piece)
+        piece.currentCell = nextCell
+
+        return MoveResult(
+            piece: piece,
+            cell: nextCell,
+            id: nextID,
+            cellresult: result,
+            didGoal: false
+        )
+    }
 }
+

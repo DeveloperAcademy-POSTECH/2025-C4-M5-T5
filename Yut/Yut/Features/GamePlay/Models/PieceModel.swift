@@ -23,10 +23,10 @@ class PieceModel {
 
         if captured {
             // 말이 잡혔을 경우 _6_6으로 이동
-//            if let startCell = GameManager.shared.board.cell(withID: "_6_6") {
-//                startCell.enter(self)
-//                currentCell = startCell
-//            }
+            if let startCell = GameManager.shared.board.cells.first(where: { $0.id == "_6_6" }) {
+
+                currentCell = startCell
+            }
 
         }
     }

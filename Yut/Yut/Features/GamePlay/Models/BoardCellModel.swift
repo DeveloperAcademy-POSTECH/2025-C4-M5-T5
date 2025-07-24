@@ -5,6 +5,12 @@
 //  Created by Seungeun Park on 7/18/25.
 //
 
+struct Result {
+    var cellID: String       // 말이 들어간 셀의 ID
+    var didCapture: Bool     // 잡았는지 여부
+    var didCarry: Bool       // 업었는지 여부
+}
+
 class BoardCellModel {
     let id: String
     private(set) var pieces: [PieceModel] = []
@@ -13,17 +19,29 @@ class BoardCellModel {
         self.id = id
     }
 
-    func enter(_ newPiece: PieceModel) {
-        let sameOwner = pieces.allSatisfy { $0.owner.name == newPiece.owner.name }
+    @discardableResult
+    func enter(_ newPiece: PieceModel) -> Result {
+        let cellID = self.id
 
-        if sameOwner {
+        if pieces.isEmpty {
             pieces.append(newPiece)
+            return Result(cellID: cellID, didCapture: false, didCarry: false)
+        }
+
+        let existingOwner = pieces.first!.owner.name
+
+        if existingOwner == newPiece.owner.name {
+            // 업기
+            pieces.append(newPiece)
+            return Result(cellID: cellID, didCapture: false, didCarry: true)
         } else {
+            // 잡기
             for piece in pieces {
-                piece.leaveCell(captured: true) // piece가 알아서 boardCell.leave(self)를 호출
+                piece.leaveCell(captured: true)
             }
             pieces.removeAll()
             pieces.append(newPiece)
+            return Result(cellID: cellID, didCapture: true, didCarry: false)
         }
     }
 
