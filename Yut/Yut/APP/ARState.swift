@@ -39,11 +39,14 @@ enum AppState {
 // 앱의 상태 관리, 뷰와 공유
 class ARState: ObservableObject {
     @Published var currentState: AppState = .searchingForSurface
-    @Published var minRequiredArea: Float = 1.0
-    @Published var recognizedArea: Float = 0.0
+    
     
     // 명령 전달 통로 (Coordinator 구독 -> 처리)
     let actionStream = PassthroughSubject<ARAction, Never>()
+    
+    // 바닥 인식 면적 계산
+    let minRequiredArea: Float = 15.0
+    @Published var recognizedArea: Float = 0.0
     
     @Published var selectedPiece: Entity? = nil
     @Published var possibleDestinations: [String] = []

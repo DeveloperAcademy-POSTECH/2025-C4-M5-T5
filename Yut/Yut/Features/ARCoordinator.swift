@@ -28,9 +28,6 @@ class ARCoordinator: NSObject, ARSessionDelegate {
         }
     }
     
-    // 환경 세팅 시 최소 요구 면적 (15㎡)
-    let minRequiredArea: Float = 15.0
-    var recognizedArea: Float = 0.0      // 인식된 면적의 총 합
     
     // MARK: - Initializer
     override init() {
@@ -44,7 +41,6 @@ class ARCoordinator: NSObject, ARSessionDelegate {
     // MARK: - Combine 세팅
     var arState: ARState? {
         didSet {
-            arState?.minRequiredArea = self.minRequiredArea
             subscribeToActionStream()
         }
     }
@@ -124,8 +120,9 @@ class ARCoordinator: NSObject, ARSessionDelegate {
         // 전체 면적이 최소 요구 면적을 넘으면 상태 변경
         DispatchQueue.main.async {
             self.arState?.recognizedArea = recognizedArea
-            if self.arState?.currentState == .searchingForSurface && recognizedArea >= self.minRequiredArea {
-                self.arState?.currentState = .completedSearching
+            guard let arState = self.arState else { return }
+            if arState.currentState == .searchingForSurface && recognizedArea >= arState.minRequiredArea {
+                arState.currentState = .completedSearching
             }
         }
     }
