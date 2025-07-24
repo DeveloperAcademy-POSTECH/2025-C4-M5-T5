@@ -36,6 +36,7 @@ class GameManager: ObservableObject {
         players[currentPlayerIndex]
     }
 
+
     func nextTurn() {
         currentPlayerIndex = (currentPlayerIndex + 1) % players.count
     }
