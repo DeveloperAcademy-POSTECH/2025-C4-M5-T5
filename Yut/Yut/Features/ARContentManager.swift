@@ -210,6 +210,19 @@ class ARContentManager {
                 yut.components.set(PhysicsMotionComponent(linearVelocity: velocity))
             }
             
+            let x = ModelEntity(mesh: .generateBox(size: 0.02), materials: [SimpleMaterial(color: .red, isMetallic: false)])
+            x.position = SIMD3<Float>(0.1, 0, 0)  // X축
+
+            let y = ModelEntity(mesh: .generateBox(size: 0.02), materials: [SimpleMaterial(color: .green, isMetallic: false)])
+            y.position = SIMD3<Float>(0, 0.1, 0)  // Y축
+
+            let z = ModelEntity(mesh: .generateBox(size: 0.02), materials: [SimpleMaterial(color: .blue, isMetallic: false)])
+            z.position = SIMD3<Float>(0, 0, 0.1)  // Z축
+
+            yut.addChild(x)
+            yut.addChild(y)
+            yut.addChild(z)
+            
             // 7. 앵커에 추가
             let anchor = AnchorEntity(world: finalTransform)
             anchor.addChild(yut)
@@ -223,25 +236,56 @@ class ARContentManager {
     }
     
     func evaluateYuts() {
+        // 앞뒤 판단 먼저 수행
         for i in 0..<thrownYuts.count {
             let entity = thrownYuts[i].entity
+//            let up = entity.transform.rotation.act(SIMD3<Float>(0, 1, 0))
+//            let dot = simd_dot(up, SIMD3<Float>(0, 1, 0))
+//            let isFront = dot >= 0
             
-            // 1. 윷의 로컬 위 방향을 회전에 따라 실제 방향으로 회전
-            let up = entity.transform.rotation.act(SIMD3<Float>(1, 0, 0))
+//            let upVector = entity.transform.rotation.act(SIMD3<Float>(0, 1, 0))
+//            let isFront = upVector.y > 0.5
             
-            // 2. 월드 Y축과 얼마나 같은 방향인지 확인 (1 = 위, -1 = 아래)
-            let dot = simd_dot(up, SIMD3<Float>(0, 1, 0))
+            let frontAxis = SIMD3<Float>(1, 0, 0) // 모델링에서 앞면이 향한 축으로 변경 필요
+            let worldUp = SIMD3<Float>(0, 1, 0)
+
+            let rotated = entity.transform.rotation.act(frontAxis)
+            let dot = simd_dot(rotated, worldUp)
+            let isFront = dot > 0
             
-            // 3. 무조건 앞/뒤로 판단
-            let isFront = dot >= 0  // 0 이상이면 앞, 음수면 뒤
-            print("🎯 앞뒤 결과: \(isFront)")
+            print("rotated: \(rotated)")
+            print("dot: \(dot)")
             
-            // 4. 결과 저장
             thrownYuts[i].isFrontUp = isFront
+            print("윷 \(entity.name) → 앞면: \(isFront)")
         }
         
-        let resultCount = thrownYuts.filter { $0.isFrontUp == true }.count
-        print("🎯 윷 결과: \(resultCount)개 앞면")
+        // 백도 예외 케이스 확인
+        let frontCount = thrownYuts.filter { $0.isFrontUp == true }.count
+        let backYut = thrownYuts.first(where: {
+            $0.entity.name == "Yut4_back" && $0.isFrontUp == false
+        })
+        
+        let result: YutResult
+        if frontCount == 3, backYut != nil {
+            result = .backdho
+        } else {
+            switch frontCount {
+            case 0: result = .mo
+            case 1: result = .dho
+            case 2: result = .gae
+            case 3: result = .geol
+            case 4: result = .yut
+            default:
+                print("⚠️ 유효하지 않은 윷 결과")
+                return
+            }
+        }
+
+        print("🎯 윷 결과: \(result) (\(result.steps)칸 이동)")
+        if result.isExtraTurn {
+            print("🎁 추가 턴!")
+        }
     }
     
     func waitUntilAllYutsStopAndEvaluate() {
@@ -254,7 +298,6 @@ class ARContentManager {
             }
         }
     }
-    
     
     // MARK: - Token Management
     
