@@ -13,13 +13,12 @@ struct InstructionView: View {
         Text(text)
             .font(.system(size: 20))
             .fontWeight(.medium)
-            .padding(.vertical, 12)
-            .padding(.horizontal,)
             .foregroundColor(.black)
+            .padding(.vertical, 12)
             .frame(maxWidth: .infinity)
             .frame(height: 72)
             .background(.ultraThinMaterial.opacity(0.8))
-            .cornerRadius(28)
-            .padding(.horizontal, 16)
+            .cornerRadius(12)
+            .padding(.horizontal, 20)
     }
 }
