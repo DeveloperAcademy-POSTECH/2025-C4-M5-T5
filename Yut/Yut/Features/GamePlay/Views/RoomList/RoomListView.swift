@@ -6,31 +6,18 @@
 //
 
 import SwiftUI
-
-struct Room: Identifiable, Hashable {
-    let id = UUID()
-    let name: String
-    let currentPlayers: Int
-    let maxPlayers: Int
-}
+import MultipeerConnectivity
 
 struct RoomListView: View {
     @EnvironmentObject private var navigationManager: NavigationManager
-
-    // 예제 데이터
-    let rooms: [Room] = [
-        Room(name: "해피제이", currentPlayers: 2, maxPlayers: 4),
-        Room(name: "네이선", currentPlayers: 1, maxPlayers: 4),
-        Room(name: "엠케이", currentPlayers: 3, maxPlayers: 4),
-        Room(name: "사야", currentPlayers: 2, maxPlayers: 4)
-    ]
+    @ObservedObject private var mpcManager = MPCManager.shared
 
     var body: some View {
         ZStack {
             Color.white1
                 .edgesIgnoringSafeArea(.all)
             VStack {
-                ForEach(rooms) { room in
+                ForEach(mpcManager.availableRooms) { room in
                     Button {
                         navigationManager.path.append(.waitingRoom(room))
                     } label: {

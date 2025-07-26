@@ -8,10 +8,11 @@
 import SwiftUI
 
 struct PlayerCard: View {
-    let player: Player
+    let player: PlayerModel
+    
     var body: some View {
         VStack {
-            Image(player.imageName)
+            Image(player.profile)
                 .resizable()
                 .scaledToFill()
                 .frame(width: 135, height: 135)
@@ -38,6 +39,6 @@ struct PlayerCard: View {
     }
 }
 
-#Preview {
-    PlayerCard(player: Player(name: "sena", imageName: "prc1"))
-}
+//#Preview {
+//    PlayerCard(player: PlayerModel(name: "sena", sequence: 1, peerID: MCPeerID(displayName: "sena")))
+//}

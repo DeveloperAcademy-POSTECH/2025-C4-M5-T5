@@ -8,11 +8,11 @@
 import SwiftUI
 
 struct RoomRowView: View {
-    let room: Room
+    let room: RoomModel
 
     var body: some View {
         HStack {
-            Text("\(room.name)의 윷놀이방")
+            Text("\(room.hostName)의 윷놀이방")
                 .font(.PR.title)
                 .foregroundColor(.brown5)
 

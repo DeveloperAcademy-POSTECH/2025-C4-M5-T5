@@ -5,29 +5,52 @@
 //  Created by Hwnag Seyeon on 7/21/25.
 //
 
+import MultipeerConnectivity
 import SwiftUI
 
 struct WaitingRoomView: View {
-    let room: Room
+    let room: RoomModel
+    
     private let maxPlayers = 4
     let imageNames = ["prc1", "prc2", "prc3", "prc4"]
  
-    @State private var players: [Player] = [
-        Player(name: "해피제이", imageName: "prc1"),
-        Player(name: "세나", imageName: "prc2")
-    ]
+    //    @State private var players: [Player] = [
+    //        Player(
+    //            name: "해피제이",
+    //            imageName: "prc1",
+    //            sequence: 1,
+    //            peerID: MCPeerID(displayName: "해피제이")
+    //        ),
+    //        Player(
+    //            name: "세나",
+    //            imageName: "prc2",
+    //            sequence: 2,
+    //            peerID: MCPeerID(displayName: "세나")
+    //        )
+    //    ]
+    
+    @ObservedObject private var mpcManager = MPCManager.shared
+    // MPCManager의 전역 players 배열을 그대로 참조
 
     private func addPlayer(name: String) {
-        let index = players.count
-        let imageNames = ["prc1", "prc2", "prc3", "prc4"]
+        let index = mpcManager.players.count
         guard index < imageNames.count else { return }
-        players.append(Player(name: name, imageName: imageNames[index]))
+
+        let newPlayer = PlayerModel(
+            name: name,
+            sequence: index + 1,
+            peerID: MCPeerID(displayName: name)
+        )
+        mpcManager.players.append(newPlayer)
+        if mpcManager.isHost {
+            mpcManager.sendPlayersUpdate()
+        }
     }
     
     // 2명->둘이서, 3명->셋이서, 4명->넷이서
     private var buttonTitle: String {
         let mapping = [2: "둘이서", 3: "셋이서", 4: "넷이서"]
-        return mapping[players.count].map { "\($0) 윷놀이 시작하기" } ?? "인원 기다리는 중..."
+        return mapping[mpcManager.players.count].map { "\($0) 윷놀이 시작하기" } ?? "인원 기다리는 중..."
     }
     
     @Environment(\.dismiss) private var dismiss
@@ -35,7 +58,8 @@ struct WaitingRoomView: View {
     var body: some View {
         VStack {
             ZStack {
-                Text("\(room.name)의 윷놀이방").font(.pretendard(.bold, size: 24))
+                Text("\(room.hostName)의 윷놀이방")
+                    .font(.pretendard(.bold, size: 24))
                     .foregroundColor(.brown4)
                 
                 HStack {
@@ -56,10 +80,10 @@ struct WaitingRoomView: View {
             
             // Player grid
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: 2), spacing: 16) {
-                ForEach(players) { player in
+                ForEach(mpcManager.players) { player in
                     PlayerCard(player: player)
                 }
-                ForEach(players.count ..< room.maxPlayers, id: \.self) { _ in
+                ForEach(mpcManager.players.count ..< room.maxPlayers, id: \.self) { _ in
                     EmptyPlayerCard()
                 }
             }
@@ -73,11 +97,11 @@ struct WaitingRoomView: View {
                     .padding(.vertical, 20)
                     .background(
                         RoundedRectangle(cornerRadius: 34)
-                            .fill(players.count < 2 ? Color.gray.opacity(0.2) : Color.brown4)
+                            .fill(mpcManager.players.count < 2 ? Color.gray.opacity(0.2) : Color.brown4)
                     )
-                    .foregroundColor(players.count < 2 ? .gray : .white)
+                    .foregroundColor(mpcManager.players.count < 2 ? .gray : .white)
             }
-            .disabled(players.count < 2)
+            .disabled(mpcManager.players.count < 2)
             .padding(.bottom, 20)
         }
         .padding(.horizontal, 16)
@@ -91,12 +115,12 @@ struct WaitingRoomView: View {
     }
 }
 
-struct Player: Identifiable {
-    let id = UUID()
-    let name: String
-    let imageName: String
-}
+//struct Player: Identifiable {
+//    let id = UUID()
+//    let name: String
+//    let imageName: String
+//}
 
 #Preview {
-    WaitingRoomView(room: Room(name: "해피제이", currentPlayers: 2, maxPlayers: 4))
+    WaitingRoomView(room: RoomModel(roomName: "해피제이의 윷놀이방", hostName: "해피제이", players: []))
 }
