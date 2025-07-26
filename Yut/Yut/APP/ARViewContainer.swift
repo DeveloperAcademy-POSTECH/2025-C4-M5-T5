@@ -27,6 +27,8 @@ struct ARViewContainer: UIViewRepresentable {
         context.coordinator.arState = arState
         arView.session.delegate = context.coordinator       // AR 이벤트 수신
         
+        arView.debugOptions.insert(.showPhysics)
+        
         // MARK: - Gesture Recognizers 설정
         let gestureHandler = context.coordinator.gestureHandler!
         let tapGesture = UITapGestureRecognizer(target: gestureHandler, action: #selector(GestureHandler.handleTap))

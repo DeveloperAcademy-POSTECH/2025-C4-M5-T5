@@ -174,14 +174,18 @@ class ARContentManager {
             )
 
             Task { @MainActor in
-                if let modelComponent = yut.components[ModelComponent.self] {
-                    do {
-                        let shape = try await ShapeResource.generateConvex(from: modelComponent.mesh)
-                        yut.components.set(CollisionComponent(shapes: [shape]))
-                    } catch {
-                        print("⚠️ Convex shape 생성 실패: \(error)")
-                        yut.generateCollisionShapes(recursive: true) // fallback
-                    }
+                guard let modelComponent = yut.components[ModelComponent.self] else {
+                    print("❌ ModelComponent 없음")
+                    yut.generateCollisionShapes(recursive: true) // fallback
+                    return
+                }
+
+                do {
+                    let shape = try await ShapeResource.generateConvex(from: modelComponent.mesh)
+                    yut.components.set(CollisionComponent(shapes: [shape]))
+                } catch {
+                    print("⚠️ Convex shape 생성 실패: \(error)")
+                    yut.generateCollisionShapes(recursive: true) // fallback
                 }
             }
 
