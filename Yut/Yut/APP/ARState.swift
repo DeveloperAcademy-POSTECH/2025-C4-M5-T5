@@ -1,56 +1,48 @@
-//
-//  ARState.swift
-//  Yut
-//
-//  Created by yunsly on 7/17/25.
-//
-
 import SwiftUI
 import Combine
 import RealityKit
 
-// Coordinator 에게 전달할 명령 정의
+// MARK: - Coordinator에게 전달할 명령 정의
 enum ARAction {
     case fixBoardPosition
     case disablePlaneVisualization
-    // case showPossibleDestinations
     case showDestinationsForNewPiece
     case showDestinationsForExistingPiece
     case startMonitoringMotion
 }
 
-// 앱의 현재 단계 정의
-enum AppState {
-    // -- 초기 설정 단계 --
-    case searchingForSurface    // 1. 평면을 찾고 있는 단계
-    case completedSearching     // 2. 최소 넓이의 평면 인식이 완료된 단계
-    case placeBoard             // 3. 탭으로 윷판을 배치하는 단계
-    case adjustingBoard         // 4. 윷판의 위치와 크기를 조절하는 단계
-    case boardConfirmed         // 5. 윷판 확정, 게임 시작 준비
+// MARK: - 게임 상태(단계) 정의
+enum GamePhase {
+    // 초기 설정 단계
+    case searchingForSurface        // 1. 평면을 찾는 중
+    case completedSearching         // 2. 충분한 평면 인식 완료
+    case placeBoard                 // 3. 탭으로 윷판 배치
+    case adjustingBoard             // 4. 위치 및 크기 조절
+    case boardConfirmed             // 5. 윷판 확정, 시작 대기
     
-    // -- 실제 게임 플레이 루프 단계 --
-    case readyToThrow           // 1. 윷을 던질 준비
-    case selectingPieceToMove   // 2. 보드 위 움직일 말 선택
-    case selectingDestination   // 3. 이동할 위치 선택 (경로 하이라이트)
-//    case pieceMoved             // 4. 말 이동 후 턴 종료 or 다음 행동 결정
-    
+    // 게임 진행 단계
+    case readyToThrow               // 6. 윷 던지기 준비
+    case selectingPieceToMove       // 7. 말을 선택
+    case selectingDestination       // 8. 이동할 위치 선택
+    // case pieceMoved              // (예정) 말 이동 완료
 }
 
-// 앱의 상태 관리, 뷰와 공유
+// MARK: - AR 상태 관리 클래스
 class ARState: ObservableObject {
-    @Published var currentState: AppState = .searchingForSurface
-    
-    
-    // 명령 전달 통로 (Coordinator 구독 -> 처리)
+    // 현재 앱 상태 (초기값: 평면 탐색)
+    @Published var currentState: GamePhase = .searchingForSurface
+
+    // Coordinator와 통신할 명령 스트림
     let actionStream = PassthroughSubject<ARAction, Never>()
-    
-    // 바닥 인식 면적 계산
-    let minRequiredArea: Float = 15.0
+
+    // 바닥 인식 면적 관련
     @Published var recognizedArea: Float = 0.0
-    
+    let minRequiredArea: Float = 15.0
+
+    // 말 선택 및 이동 후보 위치
     @Published var selectedPiece: Entity? = nil
     @Published var possibleDestinations: [String] = []
-    
+
+    // 윷 결과 (도:1 ~ 모:5)
     @Published var yutResult: Int = 1
 }
-

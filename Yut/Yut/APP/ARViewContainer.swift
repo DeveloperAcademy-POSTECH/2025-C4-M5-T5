@@ -24,7 +24,7 @@ struct ARViewContainer: UIViewRepresentable {
         arView.debugOptions.insert(.showPhysics)
         
         // MARK: - Coordinator 설정
-        context.coordinator.arView = arView
+        context.coordinator.arView = arView // makeCoordinator에서 만든 ARCoordinator 인스턴스
         context.coordinator.arState = arState
         arView.session.delegate = context.coordinator       // AR 이벤트 수신
         
@@ -43,7 +43,7 @@ struct ARViewContainer: UIViewRepresentable {
         
         // MARK: - AR 환경설정 (Configuration)
         let config = ARWorldTrackingConfiguration()
-        config.planeDetection = [.horizontal]
+        config.planeDetection = [.horizontal,.vertical]
         arView.addCoachig()
         arView.session.run(config)
         

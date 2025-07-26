@@ -26,7 +26,6 @@ class ARContentManager {
     
     var yutHoldingAnchor: AnchorEntity?
     
-    
     // 하이라이트된 엔티티들의 기존값 저장
     var originalMaterials: [String: RealityFoundation.Material] = [:]
     
@@ -394,22 +393,31 @@ class ARContentManager {
     
     func updatePlane(for anchor: ARPlaneAnchor) {
         guard let planeEntity = self.planeEntities[anchor.identifier] else { return }
-        
-        var updatedMesh: MeshResource
+
         do {
+            // 1. 평면 앵커의 메시 정보로 MeshResource 생성
             let vertices = anchor.geometry.vertices.map { SIMD3<Float>($0) }
             let faceIndices = anchor.geometry.triangleIndices
+
             var descriptor = MeshDescriptor()
             descriptor.positions = MeshBuffers.Positions(vertices)
             descriptor.primitives = .triangles(faceIndices.map { UInt32($0) })
-            updatedMesh = try .generate(from: [descriptor])
+
+            let updatedMesh = try MeshResource.generate(from: [descriptor])
+            planeEntity.model?.mesh = updatedMesh
+
+            // 2. 정밀 충돌면 생성 및 적용 (비동기 처리)
+            Task { @MainActor in
+                do {
+                    let shape = try await ShapeResource.generateStaticMesh(from: updatedMesh)
+                    planeEntity.components.set(CollisionComponent(shapes: [shape]))
+                } catch {
+                    print("❌ 정밀 충돌면 생성 실패: \(error)")
+                }
+            }
         } catch {
-            print("평면 앵커용 메시 업데이트 오류: \(error)")
-            return
+            print("❌ 평면 메시 업데이트 실패: \(error)")
         }
-        
-        planeEntity.model?.mesh = updatedMesh
-        planeEntity.generateCollisionShapes(recursive: false)
     }
     
     func disablePlaneVisualization() {
