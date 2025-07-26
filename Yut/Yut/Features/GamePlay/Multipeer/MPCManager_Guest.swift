@@ -2,13 +2,13 @@
 //  MPCManager+Guest.swift
 //  Yut
 //
-// Guest 전용 기능 (joinGame, browser delegate)
+// Guest 전용 기능 (startBrowsing, browser delegate)
 //
 
 import MultipeerConnectivity
 
 extension MPCManager: MCNearbyServiceBrowserDelegate {
-    func joinGame() {
+    func startBrowsing() {
         isHost = false
         browser = MCNearbyServiceBrowser(peer: myPeerID, serviceType: serviceType)
         browser?.delegate = self
@@ -16,7 +16,18 @@ extension MPCManager: MCNearbyServiceBrowserDelegate {
     }
     
     func browser(_ browser: MCNearbyServiceBrowser, foundPeer peerID: MCPeerID, withDiscoveryInfo info: [String: String]?) {
-        browser.invitePeer(peerID, to: session, withContext: nil, timeout: 10)
+        print("🔍 Found Host: \(peerID.displayName)")
+        
+        let room = RoomModel(
+            roomName: "\(peerID.displayName)의 윷놀이방",
+            hostName: peerID.displayName,
+            players: []
+        )
+        if !availableRooms.contains(where: { $0.hostName == peerID.displayName }) {
+            DispatchQueue.main.async {
+                self.availableRooms.append(room)
+            }
+        }
     }
     
     func browser(_ browser: MCNearbyServiceBrowser, lostPeer peerID: MCPeerID) {
