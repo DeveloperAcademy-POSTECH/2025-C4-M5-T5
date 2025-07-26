@@ -17,7 +17,12 @@ struct InstructionView: View {
             .padding(.vertical, 12)
             .frame(maxWidth: .infinity)
             .frame(height: 72)
-            .background(.ultraThinMaterial.opacity(0.8))
+            .background(.ultraThinMaterial.opacity(0.6))
+            .background(.white.opacity(0.8))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(.white, lineWidth: 2)
+            )
             .cornerRadius(12)
             .padding(.horizontal, 20)
     }
