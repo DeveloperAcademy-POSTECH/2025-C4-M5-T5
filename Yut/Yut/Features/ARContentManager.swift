@@ -154,7 +154,7 @@ class ARContentManager {
         let yutNames = ["Yut1", "Yut2", "Yut3", "Yut4_back"]
         let spacing: Float = 0.07
         
-        for i in 0..<4 {
+        for i in 0..<yutNames.count {
             let name = yutNames[i]
             
             // ⭐️ 매번 새로운 인스턴스를 로드
@@ -172,8 +172,23 @@ class ARContentManager {
                 dynamicFriction: 1.0,
                 restitution: 0.0
             )
-            
-            yut.generateCollisionShapes(recursive: true)
+
+            Task { @MainActor in
+                guard let modelComponent = yut.components[ModelComponent.self] else {
+                    print("❌ ModelComponent 없음")
+                    yut.generateCollisionShapes(recursive: true) // fallback
+                    return
+                }
+
+                do {
+                    let shape = try await ShapeResource.generateConvex(from: modelComponent.mesh)
+                    yut.components.set(CollisionComponent(shapes: [shape]))
+                } catch {
+                    print("⚠️ Convex shape 생성 실패: \(error)")
+                    yut.generateCollisionShapes(recursive: true) // fallback
+                }
+            }
+
             yut.physicsBody = PhysicsBodyComponent(
                 massProperties: .default,
                 material: physMaterial,
@@ -188,40 +203,27 @@ class ARContentManager {
             
             // 4. 카메라 기준 위치 계산 (회전 제거됨)
             var translation = matrix_identity_float4x4
-            translation.columns.3.z = -0.3       // 카메라 앞
-            translation.columns.3.x = 0.6  // 좌우 퍼짐
-            translation.columns.3.x += (Float(i) - 1.5) * spacing  // 좌우 퍼짐
-            translation.columns.3.y = 0.6         // 카메라보다 위
+//            translation.columns.3.z = -0.3
+//            translation.columns.3.x = 0.6
+//            translation.columns.3.y = 0.3
+            translation.columns.3.y += (Float(i) - 0.5) * spacing  // 앞뒤 퍼짐
             
             let finalTransform = simd_mul(camTransform, translation)
             
             // 5. 윷의 위치 및 크기 설정
             let transform = Transform(matrix: finalTransform)
             yut.transform = transform
-            yut.transform.scale = SIMD3<Float>(repeating: 0.1)
+
             
             // 6. 던지는 방향 (XZ 평면 + 위로)
             let forwardZ = -simd_make_float3(camTransform.columns.2)
             let flatForward = simd_normalize(SIMD3<Float>(forwardZ.x, 0, forwardZ.z))
             let upward = SIMD3<Float>(0, 3, 0)
-            let velocity = (flatForward * 2.0) + upward
+            let velocity = (flatForward * 1.0) + upward
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
                 yut.components.set(PhysicsMotionComponent(linearVelocity: velocity))
             }
-            
-            let x = ModelEntity(mesh: .generateBox(size: 0.02), materials: [SimpleMaterial(color: .red, isMetallic: false)])
-            x.position = SIMD3<Float>(0.1, 0, 0)  // X축
-
-            let y = ModelEntity(mesh: .generateBox(size: 0.02), materials: [SimpleMaterial(color: .green, isMetallic: false)])
-            y.position = SIMD3<Float>(0, 0.1, 0)  // Y축
-
-            let z = ModelEntity(mesh: .generateBox(size: 0.02), materials: [SimpleMaterial(color: .blue, isMetallic: false)])
-            z.position = SIMD3<Float>(0, 0, 0.1)  // Z축
-
-            yut.addChild(x)
-            yut.addChild(y)
-            yut.addChild(z)
             
             // 7. 앵커에 추가
             let anchor = AnchorEntity(world: finalTransform)
@@ -277,7 +279,7 @@ class ARContentManager {
             case 3: result = .geol
             case 4: result = .yut
             default:
-                print("⚠️ 유효하지 않은 윷 결과")
+                print("⚠️ 유효하지 않은 윷 결과 - 다시 던지기")
                 return
             }
         }

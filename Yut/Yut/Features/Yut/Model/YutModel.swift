@@ -7,7 +7,6 @@ struct YutModel {
     
     var isSettled: Bool {
         guard let motion = entity.components[PhysicsMotionComponent.self] else { return false }
-        return length(motion.linearVelocity) < 0.001 && length(motion.angularVelocity) < 0.001
+        return length(motion.linearVelocity) < 0.01 && length(motion.angularVelocity) < 0.01
     }
 }
-
