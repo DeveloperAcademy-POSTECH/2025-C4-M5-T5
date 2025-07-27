@@ -7,6 +7,8 @@
 
 import Foundation
 import RealityKit
+import Foundation
+import SwiftUI
 
 enum YutResult: Int {
     case backdho = -1
@@ -46,7 +48,7 @@ class GameManager :ObservableObject {
     var yutResult: YutResult? // 해피한테 윷 결과 받아오기
     var board : BoardModel = BoardModel()
     var cellStates: [String: [PieceModel]] = [:] // 각 칸 별 말 상태 저장
-    
+    @State private var userChooseToCarry: Bool = false
     @Published var result: GameResult? // 게임 최종 결과 반환
     
     func startGame() {
