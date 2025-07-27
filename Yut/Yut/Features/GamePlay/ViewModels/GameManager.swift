@@ -50,7 +50,7 @@ class GameManager :ObservableObject {
     var board : BoardModel = BoardModel()
     var cellStates: [String: [PieceModel]] = [:] // 각 칸 별 말 상태 저장
     @Published var result: GameResult? // 게임 최종 결과 반환
-    @State private var userChooseToCarry: Bool = false
+    @State private var userChooseToCarry: Bool = false // 업을지 말지 여부 상태 변수
     
     func startGame() {
         currentPlayerIndex = 0
@@ -93,7 +93,7 @@ class GameManager :ObservableObject {
     }
     
     @discardableResult
-    func applyMoveResult(piece: PieceModel, to targetCellID: String) -> GameResult {
+    func applyMoveResult(piece: PieceModel, to targetCellID: String, userChooseToCarry: Bool) -> GameResult {
         if targetCellID == "end" || targetCellID == "start" {
             return GameResult(
                 piece: piece,
@@ -118,7 +118,7 @@ class GameManager :ObservableObject {
         }
 
         let existingOwner = existingPieces.first!.owner
-        if existingOwner === piece.owner {
+        if existingOwner === piece.owner && userChooseToCarry == true {
             // 업기
             cellStates[targetCellID]?.append(piece)
             return GameResult(
@@ -126,6 +126,16 @@ class GameManager :ObservableObject {
                 cell: targetCellID,
                 didCapture: false,
                 didCarry: true,
+                gameEnded: false
+            )
+        } else if (existingOwner === piece.owner && userChooseToCarry == false){
+            // 업진 않지만 셀에 두 말 추가
+            cellStates[targetCellID]?.append(piece)
+            return GameResult(
+                piece: piece,
+                cell: targetCellID,
+                didCapture: false,
+                didCarry: false,
                 gameEnded: false
             )
         } else {
