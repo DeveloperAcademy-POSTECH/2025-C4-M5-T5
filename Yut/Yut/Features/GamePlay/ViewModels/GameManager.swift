@@ -9,6 +9,7 @@ import Foundation
 import RealityKit
 import Foundation
 import SwiftUI
+import MultipeerConnectivity
 
 enum YutResult: Int {
     case backdho = -1
@@ -161,9 +162,19 @@ class GameManager :ObservableObject {
         let dummyEntity1 = Entity()
         let dummyEntity2 = Entity()
 
-        let player1 = PlayerModel(name: "Player 1", sequence: 0, entities: [dummyEntity1, dummyEntity2])
-        let player2 = PlayerModel(name: "Player 2", sequence: 1, entities: [dummyEntity1, dummyEntity2])
+        let player1 = PlayerModel(
+            name: "Player 1",
+            sequence: 0,
+            peerID: MCPeerID(displayName: UUID().uuidString),
+            entities: [dummyEntity1, dummyEntity2]
+        )
 
+        let player2 = PlayerModel(
+            name: "Player 2",
+            sequence: 1,
+            peerID: MCPeerID(displayName: UUID().uuidString),
+            entities: [dummyEntity1, dummyEntity2]
+        )
         self.players = [player1, player2]
         self.board = BoardModel()
         self.cellStates = [:]
