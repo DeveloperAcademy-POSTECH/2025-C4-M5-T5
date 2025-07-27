@@ -10,6 +10,6 @@ enum Route: Hashable {
     case hostNameInput
     case guestNameInput
     case roomList(String)
-    case waitingRoom(Room)
+    case waitingRoom(RoomModel)
     case winner
 }
