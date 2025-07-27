@@ -154,7 +154,7 @@ class ARContentManager {
         let yutNames = ["Yut1", "Yut2", "Yut3", "Yut4_back"]
         let spacing: Float = 0.07
         
-        for i in 0..<4 {
+        for i in 0..<yutNames.count {
             let name = yutNames[i]
             
             // ⭐️ 매번 새로운 인스턴스를 로드
@@ -172,8 +172,23 @@ class ARContentManager {
                 dynamicFriction: 1.0,
                 restitution: 0.0
             )
-            
-            yut.generateCollisionShapes(recursive: true)
+
+            Task { @MainActor in
+                guard let modelComponent = yut.components[ModelComponent.self] else {
+                    print("❌ ModelComponent 없음")
+                    yut.generateCollisionShapes(recursive: true) // fallback
+                    return
+                }
+
+                do {
+                    let shape = try await ShapeResource.generateConvex(from: modelComponent.mesh)
+                    yut.components.set(CollisionComponent(shapes: [shape]))
+                } catch {
+                    print("⚠️ Convex shape 생성 실패: \(error)")
+                    yut.generateCollisionShapes(recursive: true) // fallback
+                }
+            }
+
             yut.physicsBody = PhysicsBodyComponent(
                 massProperties: .default,
                 material: physMaterial,
@@ -188,23 +203,23 @@ class ARContentManager {
             
             // 4. 카메라 기준 위치 계산 (회전 제거됨)
             var translation = matrix_identity_float4x4
-            translation.columns.3.z = -0.3       // 카메라 앞
-            translation.columns.3.x = 0.6  // 좌우 퍼짐
-            translation.columns.3.x += (Float(i) - 1.5) * spacing  // 좌우 퍼짐
-            translation.columns.3.y = 0.6         // 카메라보다 위
+//            translation.columns.3.z = -0.3
+//            translation.columns.3.x = 0.6
+//            translation.columns.3.y = 0.3
+            translation.columns.3.y += (Float(i) - 0.5) * spacing  // 앞뒤 퍼짐
             
             let finalTransform = simd_mul(camTransform, translation)
             
             // 5. 윷의 위치 및 크기 설정
             let transform = Transform(matrix: finalTransform)
             yut.transform = transform
-            yut.transform.scale = SIMD3<Float>(repeating: 0.1)
+
             
             // 6. 던지는 방향 (XZ 평면 + 위로)
             let forwardZ = -simd_make_float3(camTransform.columns.2)
             let flatForward = simd_normalize(SIMD3<Float>(forwardZ.x, 0, forwardZ.z))
             let upward = SIMD3<Float>(0, 3, 0)
-            let velocity = (flatForward * 2.0) + upward
+            let velocity = (flatForward * 1.0) + upward
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
                 yut.components.set(PhysicsMotionComponent(linearVelocity: velocity))
@@ -223,25 +238,56 @@ class ARContentManager {
     }
     
     func evaluateYuts() {
+        // 앞뒤 판단 먼저 수행
         for i in 0..<thrownYuts.count {
             let entity = thrownYuts[i].entity
+//            let up = entity.transform.rotation.act(SIMD3<Float>(0, 1, 0))
+//            let dot = simd_dot(up, SIMD3<Float>(0, 1, 0))
+//            let isFront = dot >= 0
             
-            // 1. 윷의 로컬 위 방향을 회전에 따라 실제 방향으로 회전
-            let up = entity.transform.rotation.act(SIMD3<Float>(1, 0, 0))
+//            let upVector = entity.transform.rotation.act(SIMD3<Float>(0, 1, 0))
+//            let isFront = upVector.y > 0.5
             
-            // 2. 월드 Y축과 얼마나 같은 방향인지 확인 (1 = 위, -1 = 아래)
-            let dot = simd_dot(up, SIMD3<Float>(0, 1, 0))
+            let frontAxis = SIMD3<Float>(1, 0, 0) // 모델링에서 앞면이 향한 축으로 변경 필요
+            let worldUp = SIMD3<Float>(0, 1, 0)
+
+            let rotated = entity.transform.rotation.act(frontAxis)
+            let dot = simd_dot(rotated, worldUp)
+            let isFront = dot > 0
             
-            // 3. 무조건 앞/뒤로 판단
-            let isFront = dot >= 0  // 0 이상이면 앞, 음수면 뒤
-            print("🎯 앞뒤 결과: \(isFront)")
+            print("rotated: \(rotated)")
+            print("dot: \(dot)")
             
-            // 4. 결과 저장
             thrownYuts[i].isFrontUp = isFront
+            print("윷 \(entity.name) → 앞면: \(isFront)")
         }
         
-        let resultCount = thrownYuts.filter { $0.isFrontUp == true }.count
-        print("🎯 윷 결과: \(resultCount)개 앞면")
+        // 백도 예외 케이스 확인
+        let frontCount = thrownYuts.filter { $0.isFrontUp == true }.count
+        let backYut = thrownYuts.first(where: {
+            $0.entity.name == "Yut4_back" && $0.isFrontUp == false
+        })
+        
+        let result: YutResult
+        if frontCount == 3, backYut != nil {
+            result = .backdho
+        } else {
+            switch frontCount {
+            case 0: result = .mo
+            case 1: result = .dho
+            case 2: result = .gae
+            case 3: result = .geol
+            case 4: result = .yut
+            default:
+                print("⚠️ 유효하지 않은 윷 결과 - 다시 던지기")
+                return
+            }
+        }
+
+        print("🎯 윷 결과: \(result) (\(result.steps)칸 이동)")
+        if result.isExtraTurn {
+            print("🎁 추가 턴!")
+        }
     }
     
     func waitUntilAllYutsStopAndEvaluate() {
@@ -254,7 +300,6 @@ class ARContentManager {
             }
         }
     }
-    
     
     // MARK: - Token Management
     

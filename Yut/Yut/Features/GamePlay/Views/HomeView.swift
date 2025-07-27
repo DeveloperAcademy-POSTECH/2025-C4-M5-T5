@@ -16,6 +16,7 @@ struct HomeView: View {
                 Text("윷")
                     .foregroundColor(.brown1)
                     .font(.hancom(.hoonmin, size: 236))
+                    .padding(.top, 50)
                 Spacer()
                 
                 VStack(spacing: 12) {
