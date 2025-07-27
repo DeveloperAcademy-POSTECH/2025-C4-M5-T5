@@ -21,6 +21,7 @@ extension MPCManager: MCSessionDelegate {
                             name: peerID.displayName,
                             sequence: self.players.count + 1,
                             peerID: peerID,
+                            entities: [],
                             isHost: false
                         )
                         self.players.append(guestPlayer)
