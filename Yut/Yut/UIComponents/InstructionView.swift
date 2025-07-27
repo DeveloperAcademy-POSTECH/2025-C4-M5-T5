@@ -25,5 +25,6 @@ struct InstructionView: View {
             )
             .cornerRadius(12)
             .padding(.horizontal, 20)
+            .shadow(color: .black.opacity(0.16), radius: 8)
     }
 }
