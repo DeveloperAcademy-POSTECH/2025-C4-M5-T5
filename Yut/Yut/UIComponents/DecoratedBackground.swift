@@ -28,7 +28,6 @@ struct DecoratedBackground<Content: View>: View {
             .background(
                 ZStack{
                     Color(.white1)
-                        .ignoresSafeArea()
                     VStack {
                         animatedImage(name: "top_long", offset: topOffset)
                         
@@ -36,7 +35,6 @@ struct DecoratedBackground<Content: View>: View {
                         
                         animatedImage(name: "bottom_long", offset: bottomOffset)
                     }
-                    .ignoresSafeArea()
                 }
             )
             .onAppear {
@@ -45,6 +43,7 @@ struct DecoratedBackground<Content: View>: View {
                     bottomOffset = bottomOffsetValue
                 }
             }
+            .ignoresSafeArea()
     }
     
     private func animatedImage(name: String, offset: CGSize) -> some View {
