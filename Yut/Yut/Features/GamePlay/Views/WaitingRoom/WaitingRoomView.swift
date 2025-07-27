@@ -36,14 +36,20 @@ struct WaitingRoomView: View {
         let index = mpcManager.players.count
         guard index < imageNames.count else { return }
 
-        let newPlayer = PlayerModel(
-            name: name,
-            sequence: index + 1,
-            peerID: MCPeerID(displayName: name)
-        )
-        mpcManager.players.append(newPlayer)
-        if mpcManager.isHost {
-            mpcManager.sendPlayersUpdate()
+        Task {  // 새로운 비동기 컨텍스트 시작
+            let newPlayer = await PlayerModel.load(
+                name: name,
+                sequence: index + 1,
+                peerID: MCPeerID(displayName: name),
+                isHost: false
+            )
+
+            DispatchQueue.main.async {
+                mpcManager.players.append(newPlayer)
+                if mpcManager.isHost {
+                    mpcManager.sendPlayersUpdate()
+                }
+            }
         }
     }
     
