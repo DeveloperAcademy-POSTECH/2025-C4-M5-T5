@@ -65,8 +65,18 @@ class ARCoordinator: NSObject, ARSessionDelegate {
             recognizedArea += planeAnchor.meshArea
         }
 
+        
+        let roundedArea = round(recognizedArea * 10) / 10.0
+        
         Task { @MainActor in
-                self.arState?.recognizedArea = recognizedArea
+            guard let arState = self.arState else { return }
+
+            // 🔥 값이 감소한 경우 무시
+            if roundedArea < arState.recognizedArea { return }
+
+            if arState.recognizedArea != roundedArea {
+                arState.recognizedArea = roundedArea
             }
+        }
     }
 }
