@@ -64,7 +64,6 @@ class ARCoordinator: NSObject, ARSessionDelegate {
             planeManager.updatePlane(for: planeAnchor)
             recognizedArea += planeAnchor.meshArea
         }
-
         
         let roundedArea = round(recognizedArea * 10) / 10.0
         

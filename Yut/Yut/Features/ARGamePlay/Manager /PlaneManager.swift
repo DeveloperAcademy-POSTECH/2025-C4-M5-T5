@@ -37,7 +37,6 @@ final class PlaneManager {
         let planeMaterial = SimpleMaterial(color: .green.withAlphaComponent(0.2), isMetallic: false)
         let planeEntity = ModelEntity(mesh: planeMesh, materials: [planeMaterial])
 
-        planeEntity.generateCollisionShapes(recursive: false)
         planeEntity.components.set(PhysicsBodyComponent(mode: .static))
 
         let anchorEntity = AnchorEntity(anchor: anchor)
