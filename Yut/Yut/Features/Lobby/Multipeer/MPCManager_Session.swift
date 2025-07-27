@@ -37,6 +37,12 @@ extension MPCManager: MCSessionDelegate {
                 self.connectedPeers.removeAll { $0 == peerID }
                 if self.isHost {
                     self.broadcastPlayerList()
+                } else {
+                    // Host가 방 폭파한 경우 (모든 게스트 HomeView로 이동)
+                    if peerID.displayName == self.players.first?.name {
+                        self.players.removeAll()
+                        NotificationCenter.default.post(name: .roomClosed, object: nil)
+                    }
                 }
             }
         }
@@ -76,4 +82,8 @@ extension MPCManager: MCSessionDelegate {
             try? session.send(data, toPeers: session.connectedPeers, with: .reliable)
         }
     }
+}
+
+extension Notification.Name {
+    static let roomClosed = Notification.Name("roomClosed")
 }

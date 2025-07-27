@@ -63,6 +63,12 @@ class MPCManager: NSObject, ObservableObject {
         players.append(guestPlayer)
         print("✅ Guest added: \(guestPlayer.name), sequence: \(guestPlayer.sequence), profile: \(guestPlayer.profile)")
     }
+    
+    func disconnect() {
+        session.disconnect()
+        players.removeAll()
+        print("🔌 Disconnected and players reset")
+    }
 }
 
 extension MPCManager {
