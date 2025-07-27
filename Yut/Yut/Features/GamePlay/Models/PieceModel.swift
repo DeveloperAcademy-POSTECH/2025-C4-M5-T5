@@ -4,33 +4,22 @@
 //
 //  Created by Seungeun Park on 7/17/25.
 //
-
 import Foundation
+import RealityKit
 
 class PieceModel {
-    var id : UUID = UUID()
-    var currentCell: BoardCellModel?
-    var isSeleted: Bool = false
+    var id: UUID = UUID()
     var owner: PlayerModel
-    
-    init(owner: PlayerModel){
+    var entity: Entity
+    var position: String
+    var routeIndex: Int = 0
+    var isSelected: Bool = false
+
+    init(owner: PlayerModel, entity: Entity, position: String = "_6_6") {
         self.owner = owner
+        self.entity = entity
+        self.position = position
     }
-    
-    func leaveCell(captured: Bool) {
-        currentCell?.leave(self)
-        currentCell = nil
-
-        if captured {
-            // 말이 잡혔을 경우 _6_6으로 이동
-            if let startCell = GameManager.shared.board.cells.first(where: { $0.id == "_6_6" }) {
-
-                currentCell = startCell
-            }
-
-        }
-    }
-
 }
 
 
