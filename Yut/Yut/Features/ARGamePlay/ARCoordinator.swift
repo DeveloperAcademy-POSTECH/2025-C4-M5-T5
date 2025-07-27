@@ -28,7 +28,6 @@ class ARCoordinator: NSObject, ARSessionDelegate {
     var planeManager: PlaneManager!
     var pieceManager: PieceManager!
     var yutManager: YutManager!
-    var gameLogicManager: GameLogicManager!
     var actionStreamHandler: ActionStreamHandler!
     
     // MARK: - 초기화
@@ -39,7 +38,6 @@ class ARCoordinator: NSObject, ARSessionDelegate {
         self.planeManager = PlaneManager(coordinator: self)
         self.pieceManager = PieceManager()
         self.yutManager = YutManager(coordinator: self)
-        self.gameLogicManager = GameLogicManager()
         self.gestureHandler = GestureHandler(coordinator: self)
         self.actionStreamHandler = ActionStreamHandler(coordinator: self)
     }

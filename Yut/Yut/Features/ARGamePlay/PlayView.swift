@@ -53,7 +53,7 @@ struct PlayView : View {
                     EmptyView() // 상단 안내 없음
                     Spacer()
                     RoundedBrownButton(title: "윷놀이 시작!", isEnabled: true) {
-                        arState.gamePhase = .readyToThrow
+                        arState.actionStream.send(.setupNewGame)
                     }
 
                 // 5. 윷 던지기 준비 단계
@@ -85,9 +85,9 @@ struct PlayView : View {
                         }
 
                         // 새 말 놓기 버튼
-                        RoundedBrownButton(title: "새 말 놓기", isEnabled: true) {
-                            arState.actionStream.send(.showDestinationsForNewPiece)
-                        }
+//                        RoundedBrownButton(title: "새 말 놓기", isEnabled: true) {
+//                            arState.actionStream.send(.showDestinationsForNewPiece)
+//                        }
                     }
 
                 // 7. 말의 이동 목적지 선택 단계

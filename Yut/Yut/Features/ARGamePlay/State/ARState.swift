@@ -10,6 +10,9 @@ class ARState: ObservableObject {
 
     // Coordinator와 통신할 명령 스트림
     let actionStream = PassthroughSubject<ARAction, Never>()
+    
+    // GameManager 싱글톤 인스턴스
+    @ObservedObject var gameManager = GameManager.shared
 
     // 바닥 인식 면적 관련
     @Published var recognizedArea: Float = 0.0
@@ -21,4 +24,5 @@ class ARState: ObservableObject {
 
     // 윷 결과 (도:1 ~ 모:5)
     @Published var yutResult: Int = 1
+
 }

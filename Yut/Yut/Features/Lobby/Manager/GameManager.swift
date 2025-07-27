@@ -36,7 +36,7 @@ class GameManager :ObservableObject {
     static let shared = GameManager() // singleton
     
     // 플레이어 프로퍼티
-    let players: [PlayerModel] // 플레이어 받아오기
+    @Published var players: [PlayerModel] = [] // 플레이어 받아오기
     var currentPlayerIndex: Int = 0 // 현재 플레이어 인덱스
     var currentPlayer: PlayerModel { // 현재 플레이어
         players[currentPlayerIndex]
@@ -52,7 +52,8 @@ class GameManager :ObservableObject {
     @Published var result: GameResult? // 게임 최종 결과 반환
     @State private var userChooseToCarry: Bool = false // 업을지 말지 여부 상태 변수
     
-    func startGame() {
+    func startGame(with players: [PlayerModel]) {
+        self.players = players
         currentPlayerIndex = 0
         yutResult = nil
         cellStates = [:] // 모든 칸에 있는 말 비우기

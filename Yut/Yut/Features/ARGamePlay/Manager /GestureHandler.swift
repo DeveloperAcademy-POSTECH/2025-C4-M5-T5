@@ -51,45 +51,7 @@ class GestureHandler {
             }
             
         case .selectingPieceToMove:
-            //            guard let tappedEntity = arView.entity(at: tapLocation),
-            //                  // 탭한 것이 '말' 엔티티인지 확인 (관리 배열에 포함되어 있는지)
-            //                  let piece = contentManager.pieceEntities.first(where: { $0 == tappedEntity })
-            //            else { return }
-            //
-            //            arState.selectedPiece = piece
-            //            arState.actionStream.send(.showDestinationsForExistingPiece)
-            // --- 디버깅을 위해 로그를 추가한 '기존 말 선택' 로직 ---
-            
-            //            // 1. 탭한 위치에 어떤 엔티티가 있는지 확인합니다.
-            //            if let tappedEntity = arView.entity(at: tapLocation) {
-            //                print("--- 탭 감지 ---")
-            //                print("감지된 엔티티 이름: \(tappedEntity.name)")
-            //
-            //                // 2. 감지된 엔티티가 우리가 관리하는 '말' 중 하나인지 확인합니다.
-            //                // 탭 된 엔티티의 이름이 "yut_piece_"로 시작하는지 확인합니다.
-            //                let pieceName = tappedEntity.name
-            //                if pieceName
-            //                    .starts(with: "yut_piece_") {
-            //
-            //                    // 이름으로 관리 배열에서 해당 말을 찾습니다.
-            //                    if let piece = contentManager.pieceEntities.first(
-            //                        where: { $0.name == pieceName
-            //                        }) {
-            //                        print("성공: \(pieceName) 말을 탭했습니다.")
-            //
-            //                        // 기존 로직 실행
-            //                        arState.selectedPiece = piece
-            //                        arState.actionStream
-            //                            .send(.showDestinationsForExistingPiece)
-            //                    }
-            //                } else {
-            //                    print("탭한 엔티티(\(tappedEntity.name))는 말이 아닙니다.")
-            //                }
-            //
-            //            } else {
-            //                print("--- 탭 실패: 아무것도 감지되지 않았습니다. ---")
-            //                print("Collision Shape이 없거나, 너무 작거나, 다른 객체에 가려졌을 수 있습니다.")
-            //            }
+
             guard let tappedEntity = arView.entity(at: tapLocation) else {
                 print("탭 실패: 아무것도 감지되지 않았습니다.")
                 return
@@ -118,7 +80,7 @@ class GestureHandler {
                 
                 // 기존 로직 실행
                 arState.selectedPiece = piece
-                arState.actionStream.send(.showDestinationsForExistingPiece)
+                //mmarState.actionStream.send(.showDestinationsForExistingPiece)
                 
             } else {
                 print("실패: 탭한 엔티티(\(tappedEntity.name)) 또는 그 부모 중에 관리 중인 말이 없습니다.")
