@@ -7,6 +7,9 @@
 
 import Foundation
 import RealityKit
+import Foundation
+import SwiftUI
+import MultipeerConnectivity
 
 enum YutResult: Int {
     case backdho = -1
@@ -46,8 +49,8 @@ class GameManager :ObservableObject {
     var yutResult: YutResult? // 해피한테 윷 결과 받아오기
     var board : BoardModel = BoardModel()
     var cellStates: [String: [PieceModel]] = [:] // 각 칸 별 말 상태 저장
-    
     @Published var result: GameResult? // 게임 최종 결과 반환
+    @State private var userChooseToCarry: Bool = false // 업을지 말지 여부 상태 변수
     
     func startGame() {
         currentPlayerIndex = 0
@@ -90,7 +93,7 @@ class GameManager :ObservableObject {
     }
     
     @discardableResult
-    func applyMoveResult(piece: PieceModel, to targetCellID: String) -> GameResult {
+    func applyMoveResult(piece: PieceModel, to targetCellID: String, userChooseToCarry: Bool) -> GameResult {
         if targetCellID == "end" || targetCellID == "start" {
             return GameResult(
                 piece: piece,
@@ -115,7 +118,7 @@ class GameManager :ObservableObject {
         }
 
         let existingOwner = existingPieces.first!.owner
-        if existingOwner === piece.owner {
+        if existingOwner === piece.owner && userChooseToCarry == true {
             // 업기
             cellStates[targetCellID]?.append(piece)
             return GameResult(
@@ -123,6 +126,16 @@ class GameManager :ObservableObject {
                 cell: targetCellID,
                 didCapture: false,
                 didCarry: true,
+                gameEnded: false
+            )
+        } else if (existingOwner === piece.owner && userChooseToCarry == false){
+            // 업진 않지만 셀에 두 말 추가
+            cellStates[targetCellID]?.append(piece)
+            return GameResult(
+                piece: piece,
+                cell: targetCellID,
+                didCapture: false,
+                didCarry: false,
                 gameEnded: false
             )
         } else {
@@ -159,9 +172,19 @@ class GameManager :ObservableObject {
         let dummyEntity1 = Entity()
         let dummyEntity2 = Entity()
 
-        let player1 = PlayerModel(name: "Player 1", sequence: 0, entities: [dummyEntity1, dummyEntity2])
-        let player2 = PlayerModel(name: "Player 2", sequence: 1, entities: [dummyEntity1, dummyEntity2])
+        let player1 = PlayerModel(
+            name: "Player 1",
+            sequence: 0,
+            peerID: MCPeerID(displayName: UUID().uuidString),
+            entities: [dummyEntity1, dummyEntity2]
+        )
 
+        let player2 = PlayerModel(
+            name: "Player 2",
+            sequence: 1,
+            peerID: MCPeerID(displayName: UUID().uuidString),
+            entities: [dummyEntity1, dummyEntity2]
+        )
         self.players = [player1, player2]
         self.board = BoardModel()
         self.cellStates = [:]
