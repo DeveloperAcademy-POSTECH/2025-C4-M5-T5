@@ -1,0 +1,24 @@
+import SwiftUI
+import Combine
+import RealityKit
+
+// MARK: - AR 상태 관리 클래스
+
+class ARState: ObservableObject {
+    // 현재 앱 상태 (초기값: 평면 탐색)
+    @Published var gamePhase: GamePhase = .searchingForSurface
+
+    // Coordinator와 통신할 명령 스트림
+    let actionStream = PassthroughSubject<ARAction, Never>()
+
+    // 바닥 인식 면적 관련
+    @Published var recognizedArea: Float = 0.0
+    let minRequiredArea: Float = 15.0
+
+    // 말 선택 및 이동 후보 위치
+    @Published var selectedPiece: Entity? = nil
+    @Published var possibleDestinations: [String] = []
+
+    // 윷 결과 (도:1 ~ 모:5)
+    @Published var yutResult: Int = 1
+}

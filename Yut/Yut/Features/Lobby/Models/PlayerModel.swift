@@ -35,10 +35,15 @@ class PlayerModel: Identifiable, ObservableObject, Codable, Equatable, Hashable 
         self.sequence = sequence
         self.peerID = peerID
         self.isHost = isHost
-        self.pieceEntities = entities
+        //        self.pieceEntities = entities
+
+                let dummyEntities = Array(repeating: Entity(), count: 4)
+                self.pieceEntities = dummyEntities
+                
 
         for i in 0..<2 {
-            let piece = PieceModel(owner: self, entity: entities[i])
+            //            let piece = PieceModel(owner: self, entity: entities[i])
+            let piece = PieceModel(owner: self, entity: dummyEntities[i])
             pieces.append(piece)
         }
     }

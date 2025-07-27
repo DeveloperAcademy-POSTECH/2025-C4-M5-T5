@@ -60,6 +60,7 @@ struct WaitingRoomView: View {
     }
     
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var navigationManager: NavigationManager
     
     var body: some View {
         VStack {
@@ -116,6 +117,7 @@ struct WaitingRoomView: View {
     }
     
     func startGame() {
+        navigationManager.push(.playView)
         print("게임 시작!")
         // Start game logic here
     }
