@@ -8,11 +8,12 @@
 import MultipeerConnectivity
 
 extension MPCManager: MCNearbyServiceAdvertiserDelegate {
-    func startHosting() {
+    func startAdvertising() {
         isHost = true
         advertiser = MCNearbyServiceAdvertiser(peer: myPeerID, discoveryInfo: nil, serviceType: serviceType)
         advertiser?.delegate = self
         advertiser?.startAdvertisingPeer()
+        print("📡 Advertising started as \(myPeerID.displayName)")
     }
 
     func advertiser(_ advertiser: MCNearbyServiceAdvertiser, didReceiveInvitationFromPeer peerID: MCPeerID, withContext context: Data?, invitationHandler: @escaping (Bool, MCSession?) -> Void) {

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import MultipeerConnectivity
 
 struct GuestNameInputView: View {
     @State private var guest_nickname: String = ""
@@ -22,6 +23,9 @@ struct GuestNameInputView: View {
                 onSubmit: {
                     let guestName = guest_nickname.trimmingCharacters(in: .whitespaces)
                     if !guestName.isEmpty {
+                        MPCManager.shared.isHost = false
+                        MPCManager.shared.addGuestPlayer(peerID: MCPeerID(displayName: guestName))
+                        MPCManager.shared.startBrowsing()
                         navigationManager.path.append(.roomList(guestName))
                     }
                 },
