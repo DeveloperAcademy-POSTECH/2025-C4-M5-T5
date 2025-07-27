@@ -27,6 +27,8 @@ struct RootView: View {
                         WaitingRoomView(room: room)
                     case .winner:
                         WinnerView()
+                    case .playView:
+                        PlayView()
                     }
                 }
         }

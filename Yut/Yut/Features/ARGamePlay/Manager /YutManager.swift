@@ -70,7 +70,22 @@ final class YutManager {
                 restitution: 0.0
             )
             
-            yut.generateCollisionShapes(recursive: true)
+            Task { @MainActor in
+                 guard let modelComponent = yut.components[ModelComponent.self] else {
+                     print("❌ ModelComponent 없음")
+                     yut.generateCollisionShapes(recursive: true) // fallback
+                     return
+                 }
+
+                 do {
+                     let shape = try await ShapeResource.generateConvex(from: modelComponent.mesh)
+                     yut.components.set(CollisionComponent(shapes: [shape]))
+                 } catch {
+                     print("⚠️ Convex shape 생성 실패: \(error)")
+                     yut.generateCollisionShapes(recursive: true) // fallback
+                 }
+             }
+            
             yut.physicsBody = PhysicsBodyComponent(
                 massProperties: .default,
                 material: physMaterial,
@@ -81,17 +96,17 @@ final class YutManager {
             
             var translation = matrix_identity_float4x4
             translation.columns.3.z = -0.3
-            translation.columns.3.x = 0.6 + (Float(i) - 1.5) * spacing
-            translation.columns.3.y = 0.6
+            //            translation.columns.3.x = 0.6
+            //            translation.columns.3.y = 0.3
+                        translation.columns.3.y += (Float(i) - 0.5) * spacing  // 앞뒤 퍼짐
             
             let finalTransform = simd_mul(camTransform, translation)
             yut.transform = Transform(matrix: finalTransform)
-            yut.transform.scale = SIMD3<Float>(repeating: 0.1)
             
             let forward = -simd_make_float3(camTransform.columns.2)
             let flatForward = simd_normalize(SIMD3<Float>(forward.x, 0, forward.z))
             let upward = SIMD3<Float>(0, 3, 0)
-            let velocity = flatForward * 2.0 + upward
+            let velocity = flatForward * 1.0 + upward
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
                 yut.components.set(PhysicsMotionComponent(linearVelocity: velocity))
@@ -122,7 +137,7 @@ final class YutManager {
     private func evaluateYuts() {
         for i in 0..<thrownYuts.count {
             let entity = thrownYuts[i].entity
-            let frontAxis = SIMD3<Float>(1, 0, 0)
+            let frontAxis = SIMD3<Float>(0, 1, 0)
             let worldUp = SIMD3<Float>(0, 1, 0)
             let rotated = entity.transform.rotation.act(frontAxis)
             let dot = simd_dot(rotated, worldUp)
