@@ -1,11 +1,9 @@
 //
-//  Player.swift
+//  PieceType.swift
 //  Yut
 //
 //  Created by soyeonsoo on 7/27/25.
 //
-
-// PieceType.swift
 
 import SwiftUI
 
