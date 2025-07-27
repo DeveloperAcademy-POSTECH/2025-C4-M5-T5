@@ -7,12 +7,7 @@
 
 import SwiftUI
 
-struct Room: Identifiable, Hashable {
-    let id = UUID()
-    let name: String
-    let currentPlayers: Int
-    let maxPlayers: Int
-}
+
 
 struct RoomListView: View {
     @EnvironmentObject private var navigationManager: NavigationManager

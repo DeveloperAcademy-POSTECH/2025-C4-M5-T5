@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct MainView: View {
+struct RootView: View {
     @StateObject private var navigationManager = NavigationManager()
 
     var body: some View {
@@ -35,5 +35,5 @@ struct MainView: View {
 }
 
 #Preview {
-    MainView()
+    RootView()
 }

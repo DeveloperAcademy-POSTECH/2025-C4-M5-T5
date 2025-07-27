@@ -28,13 +28,13 @@ class GestureHandler {
         // 변경: Coordinator 를 통해 필요한 정보 접근
         guard let arView = self.arView,
               let arState = coordinator?.arState,
-              let contentManager = coordinator?.contentManager else { return }
+              let boardManager = coordinator?.boardManager, let pieceManager = coordinator?.pieceManager else { return }
         
         let tapLocation = recognizer.location(in: arView)
         // 현재 앱 상태에 따라 다른 동작 수헹
-        switch arState.currentState {
+        switch arState.gamePhase {
         case .placeBoard:
-            guard contentManager.yutBoardAnchor == nil else { return }
+            guard boardManager.yutBoardAnchor == nil else { return }
             let results = arView.raycast(
                 from: tapLocation,
                 allowing: .existingPlaneGeometry,
@@ -104,7 +104,7 @@ class GestureHandler {
                 if let name = currentEntity?.name, name.starts(with: "yut_piece_") {
                     
                     // 이름이 일치하는 엔티티가 우리가 관리하는 배열에 있는지 최종 확인합니다.
-                    if let piece = contentManager.pieceEntities.first(where: { $0.name == name }) {
+                    if let piece = pieceManager.pieceEntities.first(where: { $0.name == name }) {
                         foundPiece = piece
                         break // 찾았으므로 루프를 중단합니다.
                     }
@@ -148,16 +148,16 @@ class GestureHandler {
                 // 만약 선택된 말이 있다면 '이동', 없다면 '새로 배치'
                 if let selectedPiece = arState.selectedPiece {
                     // <<-- 이동 로직 -->>
-                    contentManager.movePiece(piece: selectedPiece, to: name)
+                    pieceManager.movePiece(piece: selectedPiece, to: name)
                 } else {
                     // <<-- 기존의 새 말 배치 로직 -->>
-                    contentManager.placeNewPiece(on: name)
+                    pieceManager.placeNewPiece(on: name)
                 }
                 
                 // 마무리 작업
-                contentManager.clearHighlights()
+                pieceManager.clearHighlights()
                 arState.selectedPiece = nil // 선택된 말 초기화
-                arState.currentState = .selectingPieceToMove
+                arState.gamePhase = .selectingPieceToMove
             }
         default:
             break
@@ -169,12 +169,12 @@ class GestureHandler {
         
         // 변경: Coordinator 를 통해 필요한 정보 접근
         guard let arState = coordinator?.arState,
-              let boardAnchor = coordinator?.contentManager.yutBoardAnchor else {
+              let boardAnchor = coordinator?.boardManager.yutBoardAnchor else {
             return
         }
         
         // 윷판을 조정하는 상태인지 확인
-        guard arState.currentState == .adjustingBoard else { return }
+        guard arState.gamePhase == .adjustingBoard else { return }
         
         switch recognizer.state {
         case .began:    // 제스쳐 시작: 현재 크기 저장
@@ -194,11 +194,11 @@ class GestureHandler {
         // 변경: Coordinator 를 통해 필요한 정보 접근
         guard let arView = self.arView,
               let arState = coordinator?.arState,
-              let boardAnchor = coordinator?.contentManager.yutBoardAnchor else {
+              let boardAnchor = coordinator?.boardManager.yutBoardAnchor else {
             return
         }
         
-        guard arState.currentState == .adjustingBoard else { return }
+        guard arState.gamePhase == .adjustingBoard else { return }
         
         // 수평면 위의 3D 좌표 얻기
         let panLocaton = recognizer.location(in: arView)
@@ -222,11 +222,11 @@ class GestureHandler {
     @objc func handleRotation(_ recognizer: UIRotationGestureRecognizer) {
         // 변경: Coordinator 를 통해 필요한 정보 접근
         guard let arState = coordinator?.arState,
-              let boardAnchor = coordinator?.contentManager.yutBoardAnchor else {
+              let boardAnchor = coordinator?.boardManager.yutBoardAnchor else {
             return
         }
         
-        guard arState.currentState == .adjustingBoard else { return }
+        guard arState.gamePhase == .adjustingBoard else { return }
         
         switch recognizer.state {
         case .began:        // 제스쳐 시작: 현재 회전 값을 저장

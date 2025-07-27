@@ -33,8 +33,6 @@
 		277D74AD2E28887900DE2A2E /* Exceptions for "Yut" folder in "Yut" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Core/Models/.gitkeep,
-				Features/Yut/ViewModels/.gitkeep,
 				Info.plist,
 			);
 			target = 69DF5E332E209A4600CE5E2A /* Yut */;
