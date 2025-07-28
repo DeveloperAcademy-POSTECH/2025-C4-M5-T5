@@ -16,6 +16,10 @@ struct HostNameInputView: View {
         ZStack {
             Color("White1")
                 .ignoresSafeArea()
+                .onTapGesture {
+                    self.endTextEditing()
+                }
+
             NameInputFormView(
                 title: "닉네임을 입력해주세요",
                 nickname: $host_nickname,
@@ -27,7 +31,7 @@ struct HostNameInputView: View {
                     MPCManager.shared.configurePeerAndSession(with: host_nickname)
                     MPCManager.shared.startAdvertising()
                     MPCManager.shared.sendPlayersUpdate()
-                   
+
                     if let newRoom = MPCManager.shared.availableRooms.first(where: { $0.hostName == host_nickname }) {
                         navigationManager.path.append(.waitingRoom(newRoom))
                     }
