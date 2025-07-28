@@ -28,7 +28,7 @@ struct RoomRowView: View {
             ZStack {
                 Color.white.opacity(0.15)
 
-                RoundedRectangle(cornerRadius: 34)
+                RoundedRectangle(cornerRadius: 12)
                     .stroke(
                         Color("Brown5").opacity(0.2),
                         lineWidth: 1
