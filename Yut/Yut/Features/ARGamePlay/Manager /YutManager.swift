@@ -71,6 +71,17 @@ final class YutManager {
     
     func throwYuts() {
         guard let arView = arView else { return }
+        // 기존 윷 제거
+            
+            // 1. 씬(Scene)에서 이전에 던져진 윷 엔티티들을 제거합니다.
+            for yutModel in thrownYuts {
+                // 각 윷(ModelEntity)은 AnchorEntity의 자식으로 추가되었으므로,
+                // 부모 앵커를 찾아서 씬에서 제거해야 합니다.
+                yutModel.entity.parent?.removeFromParent()
+            }
+            
+            // 2. 다음 계산을 위해 윷 모델을 추적하는 배열을 비웁니다.
+            thrownYuts.removeAll()
         
         let yutNames = ["Yut1", "Yut2", "Yut3", "Yut4_back"]
         let spacing: Float = 0.07
@@ -151,6 +162,7 @@ final class YutManager {
             if allStopped {
                 timer.invalidate()
                 self.evaluateYuts()
+
             }
         }
     }
@@ -191,5 +203,8 @@ final class YutManager {
         if result.isExtraTurn {
             print("🎁 추가 턴!")
         }
+        
+        // Coordinator 연결
+        coordinator.yutThrowCompleted(with: result)
     }
 }
