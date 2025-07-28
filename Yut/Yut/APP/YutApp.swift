@@ -11,8 +11,8 @@ import SwiftUI
 struct YutApp: App {
     var body: some Scene {
         WindowGroup {
-            PlayView()
-//            RootView()
+//            PlayView()
+            RootView()
         }
     }
 }
