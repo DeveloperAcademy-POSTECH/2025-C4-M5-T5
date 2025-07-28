@@ -118,7 +118,7 @@ final class YutManager {
              }
             
             yut.physicsBody = PhysicsBodyComponent(
-                massProperties: .default,
+                massProperties: .init(mass: 10),
                 material: physMaterial,
                 mode: .dynamic
             )
@@ -152,18 +152,18 @@ final class YutManager {
                 yut.components.set(PhysicsMotionComponent(linearVelocity: velocity))
             }
             
-            let x = ModelEntity(mesh: .generateBox(size: 0.02), materials: [SimpleMaterial(color: .red, isMetallic: false)])
-             x.position = SIMD3<Float>(0.1, 0, 0)  // X축
-
-             let y = ModelEntity(mesh: .generateBox(size: 0.02), materials: [SimpleMaterial(color: .green, isMetallic: false)])
-             y.position = SIMD3<Float>(0, 0.1, 0)  // Y축
-
-             let z = ModelEntity(mesh: .generateBox(size: 0.02), materials: [SimpleMaterial(color: .blue, isMetallic: false)])
-             z.position = SIMD3<Float>(0, 0, 0.1)  // Z축
-
-             yut.addChild(x)
-             yut.addChild(y)
-             yut.addChild(z)
+//            let x = ModelEntity(mesh: .generateBox(size: 0.02), materials: [SimpleMaterial(color: .red, isMetallic: false)])
+//             x.position = SIMD3<Float>(0.1, 0, 0)  // X축
+//
+//             let y = ModelEntity(mesh: .generateBox(size: 0.02), materials: [SimpleMaterial(color: .green, isMetallic: false)])
+//             y.position = SIMD3<Float>(0, 0.1, 0)  // Y축
+//
+//             let z = ModelEntity(mesh: .generateBox(size: 0.02), materials: [SimpleMaterial(color: .blue, isMetallic: false)])
+//             z.position = SIMD3<Float>(0, 0, 0.1)  // Z축
+//
+//             yut.addChild(x)
+//             yut.addChild(y)
+//             yut.addChild(z)
             
             
             let anchor = AnchorEntity(world: finalTransform)
@@ -188,20 +188,37 @@ final class YutManager {
         }
     }
     
-    private func evaluateYuts() {
+    func evaluateYuts() {
+        // 앞뒤 판단 먼저 수행
         for i in 0..<thrownYuts.count {
             let entity = thrownYuts[i].entity
-            let frontAxis = SIMD3<Float>(1, 0, 0)
+//            let up = entity.transform.rotation.act(SIMD3<Float>(0, 1, 0))
+//            let dot = simd_dot(up, SIMD3<Float>(0, 1, 0))
+//            let isFront = dot >= 0
+            
+//            let upVector = entity.transform.rotation.act(SIMD3<Float>(0, 1, 0))
+//            let isFront = upVector.y > 0.5
+            
+            let frontAxis = SIMD3<Float>(0, 1, 0) // 모델링에서 앞면이 향한 축으로 변경 필요
             let worldUp = SIMD3<Float>(1, 0, 0)
+            
             let rotated = entity.transform.rotation.act(frontAxis)
             let dot = simd_dot(rotated, worldUp)
-            let isFront = dot > 0
+            let isFront = dot < 0
+            
             thrownYuts[i].isFrontUp = isFront
+            
+            print("rotated: \(rotated)")
+            print("dot: \(dot)")
+            
+            thrownYuts[i].isFrontUp = isFront
+            print("윷 \(entity.name) → 앞면: \(isFront)")
         }
         
+        // 백도 예외 케이스 확인
         let frontCount = thrownYuts.filter { $0.isFrontUp == true }.count
         let backYut = thrownYuts.first(where: {
-            $0.entity.name == "Yut4_back" && $0.isFrontUp == false
+            $0.entity.name == "Yut_4_back" && $0.isFrontUp == false
         })
         
         let result: YutResult
@@ -209,22 +226,60 @@ final class YutManager {
             result = .backdho
         } else {
             switch frontCount {
-            case 0: result = .mo      // 모두 뒷면 → 모
-            case 1: result = .dho     // 도
-            case 2: result = .gae     // 개
-            case 3: result = .geol    // 걸
-            case 4: result = .yut     // 모두 앞면 → 윷
+            case 0: result = .yut
+            case 1: result = .geol
+            case 2: result = .gae
+            case 3: result = .dho
+            case 4: result = .mo
             default:
-                print("⚠️ 유효하지 않은 윷 결과")
+                print("⚠️ 유효하지 않은 윷 결과 - 다시 던지기")
                 return
             }
         }
-        
+
         print("🎯 윷 결과: \(result) (\(result.steps)칸 이동)")
         if result.isExtraTurn {
             print("🎁 추가 턴!")
         }
     }
+    
+//    private func evaluateYuts() {
+//        for i in 0..<thrownYuts.count {
+//            let entity = thrownYuts[i].entity
+//            let frontAxis = SIMD3<Float>(1, 0, 0)
+//            let worldUp = SIMD3<Float>(1, 0, 0)
+//            let rotated = entity.transform.rotation.act(frontAxis)
+//            let dot = simd_dot(rotated, worldUp)
+//            let isFront = dot > 0
+//            thrownYuts[i].isFrontUp = isFront
+//        }
+//        
+//        let frontCount = thrownYuts.filter { $0.isFrontUp == true }.count
+//        let backYut = thrownYuts.first(where: {
+//            $0.entity.name == "Yut4_back" && $0.isFrontUp == false
+//        })
+//        
+//        let result: YutResult
+//        if frontCount == 3, backYut != nil {
+//            result = .backdho
+//        } else {
+//            switch frontCount {
+//            case 0: result = .mo      // 모두 뒷면 → 모
+//            case 1: result = .dho     // 도
+//            case 2: result = .gae     // 개
+//            case 3: result = .geol    // 걸
+//            case 4: result = .yut     // 모두 앞면 → 윷
+//            default:
+//                print("⚠️ 유효하지 않은 윷 결과")
+//                return
+//            }
+//        }
+//        
+//        print("🎯 윷 결과: \(result) (\(result.steps)칸 이동)")
+//        if result.isExtraTurn {
+//            print("🎁 추가 턴!")
+//        }
+//    }
 }
 func addDirectionAxes(to entity: Entity) {
     let axisLength: Float = 0.03
