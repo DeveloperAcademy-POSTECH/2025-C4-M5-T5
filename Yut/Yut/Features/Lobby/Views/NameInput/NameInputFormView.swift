@@ -47,6 +47,11 @@ struct NameInputFormView: View {
                                     .stroke(Color.brown, lineWidth: 1)
                             }
                         )
+                        .onChange(of: nickname) { newValue in
+                            if newValue.count > 10 {
+                                nickname = String(newValue.prefix(10))
+                            }
+                        }
                 }
             }
             .padding(.bottom, 12)
