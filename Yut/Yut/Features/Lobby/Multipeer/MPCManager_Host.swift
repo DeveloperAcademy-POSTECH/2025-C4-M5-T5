@@ -14,6 +14,7 @@ extension MPCManager: MCNearbyServiceAdvertiserDelegate {
         advertiser?.delegate = self
         advertiser?.startAdvertisingPeer()
         print("📡 Advertising started as \(myPeerID.displayName)")
+        print("📡 advertiser.delegate: \(advertiser?.delegate != nil)")
     }
 
     func advertiser(_ advertiser: MCNearbyServiceAdvertiser, didReceiveInvitationFromPeer peerID: MCPeerID, withContext context: Data?, invitationHandler: @escaping (Bool, MCSession?) -> Void) {

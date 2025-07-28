@@ -24,7 +24,10 @@ struct GuestNameInputView: View {
                     let guestName = guest_nickname.trimmingCharacters(in: .whitespaces)
                     if !guestName.isEmpty {
                         MPCManager.shared.isHost = false
-                        MPCManager.shared.addGuestPlayer(peerID: MCPeerID(displayName: guestName))
+                        MPCManager.shared.updatePeerIDAndSession(with: guestName)
+//                        MPCManager.shared.addGuestPlayer(peerID: MCPeerID(displayName: guestName))
+                        MPCManager.shared.myPeerID = MCPeerID(displayName: guestName)
+                        MPCManager.shared.configurePeerAndSession(with: guestName)
                         MPCManager.shared.startBrowsing()
                         navigationManager.path.append(.roomList(guestName))
                     }
@@ -32,6 +35,13 @@ struct GuestNameInputView: View {
                 autoFocus: true
             )
         }
+        .gesture(
+            DragGesture().onEnded { value in
+                if value.translation.width > 80 {
+                    navigationManager.pop()
+                }
+            }
+        )
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
