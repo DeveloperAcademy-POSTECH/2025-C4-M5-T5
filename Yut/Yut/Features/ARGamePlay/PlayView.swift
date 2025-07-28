@@ -25,12 +25,12 @@ struct PlayView : View {
                 .zIndex(999)
             }
             
-            if showGatheringVideo {
-                YutGatheringVideoView()
-                    .ignoresSafeArea()
-                    .transition(.opacity)
-                    .zIndex(10)
-            }
+//            if showGatheringVideo {
+//                YutGatheringVideoView()
+//                    .ignoresSafeArea()
+//                    .transition(.opacity)
+//                    .zIndex(10)
+//            }
             
             VStack {
                 // 게임 상태에 따라 상단 안내 뷰 + 하단 인터랙션 UI를 함께 표시
