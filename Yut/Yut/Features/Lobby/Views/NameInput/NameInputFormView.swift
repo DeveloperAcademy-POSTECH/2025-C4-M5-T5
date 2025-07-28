@@ -41,9 +41,9 @@ struct NameInputFormView: View {
                         .padding(.vertical, 17)
                         .background(
                             ZStack {
-                                RoundedRectangle(cornerRadius: 18)
+                                RoundedRectangle(cornerRadius: 12)
                                     .fill(Color.white.opacity(0.14))
-                                RoundedRectangle(cornerRadius: 18)
+                                RoundedRectangle(cornerRadius: 12)
                                     .stroke(Color.brown, lineWidth: 1)
                             }
                         )
