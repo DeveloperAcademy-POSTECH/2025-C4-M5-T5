@@ -33,7 +33,7 @@ class MPCManager: NSObject, ObservableObject {
             name: name,
             sequence: 1,
             peerID: myPeerID,
-            entities: [],
+//            entities: [],
             isHost: true
         )
         players.append(hostPlayer)
@@ -57,8 +57,8 @@ class MPCManager: NSObject, ObservableObject {
         let guestPlayer = PlayerModel(
             name: peerID.displayName,
             sequence: players.count + 1,
-            peerID: peerID,
-            entities: []
+            peerID: peerID
+//            entities: []
         )
         players.append(guestPlayer)
         print("✅ Guest added: \(guestPlayer.name), sequence: \(guestPlayer.sequence), profile: \(guestPlayer.profile)")

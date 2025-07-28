@@ -1,9 +1,11 @@
 // MARK: - Coordinator에게 전달할 명령 정의
 
 enum ARAction {
-    case fixBoardPosition                // 윷판을 평면 위에 고정
-    case disablePlaneVisualization      // 평면 시각화 비활성화
-    case showDestinationsForNewPiece    // 새 말 놓을 위치 하이라이트
-    case showDestinationsForExistingPiece // 기존 말 이동 가능 위치 하이라이트
-    case startMonitoringMotion          // 윷 던지기 감지 시작 (CoreMotion)
+    case fixBoardPosition                   // 윷판을 평면 위에 고정
+    case disablePlaneVisualization          // 평면 시각화 비활성화
+    case showDestinationsForNewPiece        // 새 말 놓을 위치 하이라이트
+    case setupNewGame                       // 새 게임 시작
+    case preloadYutModels                   // 윷 미리 선언
+    case startMonitoringMotion              // 윷 던지기 감지 시작 (CoreMotion)
+
 }

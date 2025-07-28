@@ -9,6 +9,7 @@ import SwiftUI
 
 struct DecoratedBackground<Content: View>: View {
     let content: Content
+    let backgroundColor: Color
     
     @State private var topOffset: CGSize = .zero
     @State private var bottomOffset: CGSize = .zero
@@ -17,9 +18,10 @@ struct DecoratedBackground<Content: View>: View {
     private let imageHeight: CGFloat = 50
     private let topOffsetValue = CGSize(width: 276, height: -160)
     private let bottomOffsetValue = CGSize(width: -276, height: 160)
-    
-    init(@ViewBuilder content: () -> Content) {
+        
+    init(backgroundColor: Color = .white1, @ViewBuilder content: () -> Content) {
         self.content = content()
+        self.backgroundColor = backgroundColor
     }
     
     var body: some View {
@@ -27,7 +29,7 @@ struct DecoratedBackground<Content: View>: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(
                 ZStack{
-                    Color(.white1)
+                    Color(backgroundColor)
                         .ignoresSafeArea()
                     VStack {
                         animatedImage(name: "top_long", offset: topOffset)
@@ -57,5 +59,5 @@ struct DecoratedBackground<Content: View>: View {
 }
 
 //#Preview {
-//    DecoratedBackground { Text("Hello World!") }
+//    DecoratedBackground{ Text("Hello World!") }
 //}

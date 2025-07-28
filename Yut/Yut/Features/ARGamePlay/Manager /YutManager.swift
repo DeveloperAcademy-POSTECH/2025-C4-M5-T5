@@ -11,6 +11,7 @@ final class YutManager {
     private var arView: ARView? { coordinator.arView }
     private var arState: ARState? { coordinator.arState }
     
+    private var preloadedModels: [String: ModelEntity] = [:]
     private let motionManager = CMMotionManager()
     private var lastThrowTime = Date(timeIntervalSince1970: 0)
     
@@ -21,6 +22,22 @@ final class YutManager {
         self.coordinator = coordinator
     }
     
+    func preloadYutModels() {
+        let yutNames = ["Yut1", "Yut2", "Yut3", "Yut4_back"]
+        
+        for name in yutNames {
+            // 이미 로드되어 있다면 건너뜀
+            if preloadedModels[name] != nil { continue }
+            
+            do {
+                let model = try ModelEntity.loadModel(named: name)
+                preloadedModels[name] = model
+            } catch {
+                print("⚠️ \(name) 미리 로딩 실패: \(error)")
+            }
+        }
+    }
+
     // MARK: - Motion Detection
     
     func startMonitoringMotion() {
@@ -54,13 +71,28 @@ final class YutManager {
     
     func throwYuts() {
         guard let arView = arView else { return }
+        // 기존 윷 제거
+            
+            // 1. 씬(Scene)에서 이전에 던져진 윷 엔티티들을 제거합니다.
+            for yutModel in thrownYuts {
+                // 각 윷(ModelEntity)은 AnchorEntity의 자식으로 추가되었으므로,
+                // 부모 앵커를 찾아서 씬에서 제거해야 합니다.
+                yutModel.entity.parent?.removeFromParent()
+            }
+            
+            // 2. 다음 계산을 위해 윷 모델을 추적하는 배열을 비웁니다.
+            thrownYuts.removeAll()
         
         let yutNames = ["Yut1", "Yut2", "Yut3", "Yut4_back"]
         let spacing: Float = 0.07
         
-        for i in 0..<yutNames.count {
-            guard let yut = try? ModelEntity.loadModel(named: yutNames[i]) else { continue }
+        for i in 0..<4 {
+            guard let original = preloadedModels[yutNames[i]] else {
+                print("❌ 사전 로딩되지 않은 모델: \(yutNames[i])")
+                continue
+            }
             
+            let yut = original.clone(recursive: true)
             let yutModel = YutModel(entity: yut, isFrontUp: nil)
             thrownYuts.append(yutModel)
             
@@ -130,6 +162,7 @@ final class YutManager {
             if allStopped {
                 timer.invalidate()
                 self.evaluateYuts()
+
             }
         }
     }
@@ -170,5 +203,8 @@ final class YutManager {
         if result.isExtraTurn {
             print("🎁 추가 턴!")
         }
+        
+        // Coordinator 연결
+        coordinator.yutThrowCompleted(with: result)
     }
 }
