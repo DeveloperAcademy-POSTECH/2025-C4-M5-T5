@@ -29,4 +29,11 @@ extension MPCManager: MCNearbyServiceAdvertiserDelegate {
     func advertiser(_ advertiser: MCNearbyServiceAdvertiser, didNotStartAdvertisingPeer error: Error) {
         print("❌ Failed to advertise: \(error.localizedDescription)")
     }
+    
+    func sendStartGameSignal() {
+        let message = "startGame"
+        if let data = message.data(using: .utf8) {
+            try? session.send(data, toPeers: session.connectedPeers, with: .reliable)
+        }
+    }
 }

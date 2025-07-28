@@ -9,6 +9,7 @@ import Foundation
 import MultipeerConnectivity
 import Combine
 
+@MainActor
 final class WaitingRoomViewModel: ObservableObject {
     @Published var showLeaveAlert = false
     @Published var players: [PlayerModel] = []
@@ -19,7 +20,8 @@ final class WaitingRoomViewModel: ObservableObject {
 
     init(navigationManager: NavigationManager) {
         self.navigationManager = navigationManager
-
+        
+        // players를 mpcManager.players와 실시간 동기화
         mpcManager.$players
             .receive(on: RunLoop.main)
             .assign(to: &$players)
@@ -38,6 +40,10 @@ final class WaitingRoomViewModel: ObservableObject {
             mpcManager.sendPlayersUpdate()
         }
     }
+
+//    func sendStartGameSignal() {
+//        NotificationCenter.default.post(name: .gameStarted, object: nil)
+//    }
 
     func leaveRoom() {
         if mpcManager.isHost {
@@ -68,3 +74,7 @@ final class WaitingRoomViewModel: ObservableObject {
         mpcManager.isHost
     }
 }
+
+//extension Notification.Name {
+//    static let gameStarted = Notification.Name("gameStarted")
+//}

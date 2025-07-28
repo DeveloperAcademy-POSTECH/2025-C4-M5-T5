@@ -1,6 +1,7 @@
 import ARKit
 import RealityKit
 import Combine
+import MultipeerConnectivity
 
 /// ARView의 이벤트를 처리하고 SwiftUI 상태와 연결해주는 총괄 Coordinator
 class ARCoordinator: NSObject, ARSessionDelegate {
@@ -16,10 +17,14 @@ class ARCoordinator: NSObject, ARSessionDelegate {
     var arState: ARState? {
         didSet {
             if let arState {
+                arState.coordinator = self  // coordinator 참조 설정
                 actionStreamHandler.subscribe(to: arState)
             }
         }
     }
+    
+    // MARK: - MPC 연결
+    private let mpcManager = MPCManager.shared
     
     // MARK: - 서브 매니저
     
@@ -50,7 +55,31 @@ class ARCoordinator: NSObject, ARSessionDelegate {
                 planeManager.addPlane(for: planeAnchor)
             } else if let name = anchor.name, name == "YutBoardAnchor" {
                 boardManager.placeYutBoard(on: anchor)
+                
+                // Host가 말판을 배치했을 때 다른 피어들과 공유
+                if mpcManager.isHost {
+                    print("🎯 Host: 말판 앵커 추가됨 - Guest들과 공유 중...")
+                    // 앵커가 자동으로 다른 피어들과 공유됨
+                }
             }
+        }
+    }
+    
+    func session(_ session: ARSession, didReceive anchors: [ARAnchor]) {
+        for anchor in anchors {
+            if let name = anchor.name, name == "YutBoardAnchor" {
+                print("📥 Guest: Host로부터 말판 앵커 수신")
+                // Guest는 Host가 보낸 앵커를 받아서 같은 위치에 배치
+                boardManager.placeYutBoard(on: anchor)
+            }
+        }
+    }
+    
+    // 협업 데이터 수신 및 전송
+    func session(_ session: ARSession, didReceive collaborationData: Data) {
+        // MPC를 통해 협업 데이터 전송
+        if let mpcSession = mpcManager.session {
+            try? mpcSession.send(collaborationData, toPeers: mpcSession.connectedPeers, with: .reliable)
         }
     }
     
@@ -111,5 +140,46 @@ class ARCoordinator: NSObject, ARSessionDelegate {
         
         // 다시 윷을 던질 준비 상태로 돌아갑니다.
         arState.gamePhase = .readyToThrow
+    }
+    
+    // MARK: - MPC 협업 기능
+    
+    // Host가 말판을 배치할 때 호출
+    func placeBoardForCollaboration(at position: SIMD3<Float>) {
+        guard mpcManager.isHost else { return }
+        
+        // 말판 앵커 생성 및 추가
+        let anchor = ARAnchor(name: "YutBoardAnchor", transform: matrix_identity_float4x4)
+        arView?.session.add(anchor: anchor)
+        
+        print("🎯 Host: 말판 배치 완료 - Guest들과 공유 중...")
+    }
+    
+    // 게임 상태를 다른 피어들과 동기화
+    func syncGameState() {
+        guard let arState = self.arState else { return }
+        
+        let gameState = GameStateData(
+            currentPlayer: arState.gameManager.currentPlayer.name,
+            gamePhase: arState.gamePhase,
+            yutResult: arState.gameManager.yutResult
+        )
+        
+        if let data = try? JSONEncoder().encode(gameState) {
+            try? mpcManager.session.send(data, toPeers: mpcManager.session.connectedPeers, with: .reliable)
+        }
+    }
+}
+
+// 게임 상태 데이터 구조
+struct GameStateData: Codable {
+    let currentPlayer: String
+    let gamePhaseString: String
+    let yutResultInt: Int?
+    
+    init(currentPlayer: String, gamePhase: GamePhase, yutResult: YutResult?) {
+        self.currentPlayer = currentPlayer
+        self.gamePhaseString = String(describing: gamePhase)
+        self.yutResultInt = yutResult?.rawValue
     }
 }

@@ -40,10 +40,12 @@ struct ARViewContainer: UIViewRepresentable {
         arView.addGestureRecognizer(panGesture)
         arView.addGestureRecognizer(rotationGesture)
         
-        
         // MARK: - AR 환경설정 (Configuration)
         let config = ARWorldTrackingConfiguration()
         config.planeDetection = [.horizontal,.vertical]
+        
+        // 협업 모드 활성화
+        config.isCollaborationEnabled = true
         
         if ARWorldTrackingConfiguration.supportsSceneReconstruction(.mesh) {
             config.sceneReconstruction = .mesh
