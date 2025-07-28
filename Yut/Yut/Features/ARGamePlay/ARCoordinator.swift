@@ -90,9 +90,13 @@ class ARCoordinator: NSObject, ARSessionDelegate {
         // 2. 이전에 있던 하이라이트를 모두 제거합니다.
         self.pieceManager.clearAllHighlights()
         
-        // 3. 다음 단계는 항상 '움직일 말 선택'이 됩니다.
+        // 3. 다음 단계는 '윷 던지기 결과 표시' 3초 후 '움직일 말 선택'이 됩니다.
         DispatchQueue.main.async {
-            arState.gamePhase = .selectingPieceToMove
+            arState.gamePhase = .showingYutResult
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                arState.gamePhase = .selectingPieceToMove
+            }
         }
     }
     

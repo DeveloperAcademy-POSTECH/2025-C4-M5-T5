@@ -162,7 +162,6 @@ final class YutManager {
             if allStopped {
                 timer.invalidate()
                 self.evaluateYuts()
-
             }
         }
     }
@@ -202,6 +201,12 @@ final class YutManager {
         print("🎯 윷 결과: \(result) (\(result.steps)칸 이동)")
         if result.isExtraTurn {
             print("🎁 추가 턴!")
+        }
+        
+        DispatchQueue.main.async {
+            print("[DEBUG] Setting to .showingYutResult")
+            self.arState?.yutResult = result
+            self.arState?.gamePhase = .showingYutResult
         }
         
         // Coordinator 연결
