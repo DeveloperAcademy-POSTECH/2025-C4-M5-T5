@@ -52,6 +52,13 @@ class GameManager :ObservableObject {
     @Published var result: GameResult? // 게임 최종 결과 반환
     @State private var userChooseToCarry: Bool = false // 업을지 말지 여부 상태 변수
     
+    // ✨ 현재 플레이어가 판 밖에 둔 말이 있는지 확인하는 프로퍼티 추가
+        var currentPlayerHasOffBoardPieces: Bool {
+            // currentPlayer의 말 중에 position이 "_6_6"인 것이 하나라도 있는지 확인
+            currentPlayer.pieces.contains { $0.position == "_6_6" }
+        }
+
+    
     func startGame(with players: [PlayerModel]) {
         self.players = players
         currentPlayerIndex = 0
@@ -59,9 +66,11 @@ class GameManager :ObservableObject {
         cellStates = [:] // 모든 칸에 있는 말 비우기
         
         for piece in pieces {
-            piece.position = "_6_6"
+            piece.position = "_6_6" // PieceModel의 기본값이지만 명시적으로 설정
             piece.isSelected = false
+            piece.routeIndex = 0 // 기본 경로로 설정
         }
+        print("✅ GameManager: 새로운 게임이 \(players.count)명의 플레이어와 함께 설정되었습니다.")
     }
     
     func selectPiece(by id: UUID) { // 이건 UI 단에서 선택되는 id를 반환해야 정해질 것 같음(?) 그 UUID를 기준으로 isSelected가 true로 바뀌는 것
@@ -74,7 +83,7 @@ class GameManager :ObservableObject {
         let currentID = piece.position
         let possibleRoutes = board.availableRouteIndicate(at: currentID, currentRoute: currentRouteIndex)
         var options: [(Int, String)] = []
-
+        
         for routeIndex in possibleRoutes {
             let route = board.routes[routeIndex]
             if let currentIndex = route.firstIndex(of: currentID) {
@@ -87,6 +96,7 @@ class GameManager :ObservableObject {
         }
         return options
     }
+    
     
     // 경로 인덱스와 몇 칸 이동하는지 입력 받으면 그에 맞는 경로 결과 반환
     func move(piece: PieceModel, to targetCellID: String) {
@@ -104,9 +114,9 @@ class GameManager :ObservableObject {
                 gameEnded: true
             )
         }
-
+        
         let existingPieces = cellStates[targetCellID] ?? []
-
+        
         if existingPieces.isEmpty {
             cellStates[targetCellID] = [piece]
             return GameResult(
@@ -117,7 +127,7 @@ class GameManager :ObservableObject {
                 gameEnded: false
             )
         }
-
+        
         let existingOwner = existingPieces.first!.owner
         if existingOwner === piece.owner && userChooseToCarry == true {
             // 업기
@@ -168,28 +178,28 @@ class GameManager :ObservableObject {
         // Result의 gameEnded가 true이면 게임 종료 -> 게임 결과 화면 띄우고,
     }
     
-    init() {
-        // TESTONLY
-        let dummyEntity1 = Entity()
-        let dummyEntity2 = Entity()
-
-        let player1 = PlayerModel(
-            name: "Player 1",
-            sequence: 0,
-            peerID: MCPeerID(displayName: UUID().uuidString),
-            entities: [dummyEntity1, dummyEntity2]
-        )
-
-        let player2 = PlayerModel(
-            name: "Player 2",
-            sequence: 1,
-            peerID: MCPeerID(displayName: UUID().uuidString),
-            entities: [dummyEntity1, dummyEntity2]
-        )
-        self.players = [player1, player2]
-        self.board = BoardModel()
-        self.cellStates = [:]
-        self.yutResult = nil
-    }
+//    init() {
+//        // TESTONLY
+//        let dummyEntity1 = Entity()
+//        let dummyEntity2 = Entity()
+//        
+//        let player1 = PlayerModel(
+//            name: "Player 1",
+//            sequence: 0,
+//            peerID: MCPeerID(displayName: UUID().uuidString),
+////            entities: [dummyEntity1, dummyEntity2]
+//        )
+//        
+//        let player2 = PlayerModel(
+//            name: "Player 2",
+//            sequence: 1,
+//            peerID: MCPeerID(displayName: UUID().uuidString),
+////            entities: [dummyEntity1, dummyEntity2]
+//        )
+//        self.players = [player1, player2]
+//        self.board = BoardModel()
+//        self.cellStates = [:]
+//        self.yutResult = nil
+//    }
 }
 

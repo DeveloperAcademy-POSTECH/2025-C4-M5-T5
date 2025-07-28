@@ -51,50 +51,54 @@ class GestureHandler {
             }
             
         case .selectingPieceToMove:
-
-            guard let tappedEntity = arView.entity(at: tapLocation) else {
-                print("탭 실패: 아무것도 감지되지 않았습니다.")
-                return
-            }
+            guard let tappedEntity = arView.entity(at: tapLocation) else { return }
             
-            // --- 탭한 엔티티부터 부모로 거슬러 올라가며 '말'을 찾는 최종 로직 ---
+            // 탭 된 엔티티로부터 해당하는 PieceModel을 찾습니다.
             var currentEntity: Entity? = tappedEntity
-            var foundPiece: Entity?
+            var pieceToMove: PieceModel?
             
             while currentEntity != nil {
-                // 현재 엔티티의 이름이 "yut_piece_"로 시작하는지 확인합니다.
-                if let name = currentEntity?.name, name.starts(with: "yut_piece_") {
-                    
-                    // 이름이 일치하는 엔티티가 우리가 관리하는 배열에 있는지 최종 확인합니다.
-                    if let piece = pieceManager.pieceEntities.first(where: { $0.name == name }) {
-                        foundPiece = piece
-                        break // 찾았으므로 루프를 중단합니다.
-                    }
+                if let entityName = currentEntity?.name, entityName.starts(with: "yut_piece_") {
+                    pieceToMove = arState.gameManager.pieces.first(where: { $0.entity.name == entityName })
+                    if pieceToMove != nil { break }
                 }
-                currentEntity = currentEntity?.parent // 부모 엔티티로 이동해서 계속 찾습니다.
+                currentEntity = currentEntity?.parent
             }
             
-            // 최종적으로 말을 찾았다면, 다음 단계를 진행합니다.
-            if let piece = foundPiece {
-                print("성공: \(piece.name) 말을 탭했습니다.")
-                
-                // 기존 로직 실행
-                arState.selectedPiece = piece
-                //mmarState.actionStream.send(.showDestinationsForExistingPiece)
-                
-            } else {
-                print("실패: 탭한 엔티티(\(tappedEntity.name)) 또는 그 부모 중에 관리 중인 말이 없습니다.")
-            }
-            
-        case .selectingDestination:
-            
-            guard let tappedEntity = arView.entity(at: tapLocation) else {
+            // 현재 플레이어의 말이 맞는지 최종 확인
+            guard let selectedPiece = pieceToMove,
+                  selectedPiece.owner == arState.gameManager.currentPlayer else {
+                print("❌ 현재 플레이어의 말이 아닙니다.")
                 return
             }
+            
+            // 선택된 말의 이동 가능 경로를 GameManager에게 물어봅니다.
+            guard let yutResult = arState.gameManager.yutResult else { return }
+            let destinations = arState.gameManager.routeOptions(for: selectedPiece, yutResult: yutResult, currentRouteIndex: selectedPiece.routeIndex)
+            
+            if destinations.isEmpty {
+                print("🚫 그 말은 움직일 수 없습니다.")
+                // TODO: 움직일 수 없다는 시각적 피드백 (예: 살짝 흔들기)을 주면 좋습니다.
+            } else {
+                // 갈 수 있는 목적지 타일들을 하이라이트합니다.
+                let destinationNames = destinations.map { $0.destinationID }
+                pieceManager.highlightTiles(named: destinationNames)
+                
+                // ARState에 선택된 말과 목적지 정보를 저장합니다.
+                arState.selectedPiece = selectedPiece
+                arState.availableDestinations = destinationNames
+                
+                // '목적지 선택' 단계로 전환합니다.
+                arState.gamePhase = .selectingDestination
+            }
+            
+            
+        case .selectingDestination:
+            guard let tappedEntity = arView.entity(at: tapLocation) else { return }
+            
+            // 탭 된 것이 타일인지 확인합니다.
             var currentEntity: Entity? = tappedEntity
             var tileName: String?
-            
-            // 부모 엔티티 찾음 (_row_col)
             while currentEntity != nil {
                 if let name = currentEntity?.name, name.starts(with: "_") {
                     tileName = name
@@ -103,24 +107,32 @@ class GestureHandler {
                 currentEntity = currentEntity?.parent
             }
             
-            
-            if let name = tileName, arState.possibleDestinations
-                .contains(name) {
+            // 탭 된 타일이 이동 가능한 목적지 중 하나인지 확인합니다.
+            if let name = tileName,
+               arState.availableDestinations.contains(name),
+               let pieceToMove = arState.selectedPiece {
                 
-                // 만약 선택된 말이 있다면 '이동', 없다면 '새로 배치'
-                if let selectedPiece = arState.selectedPiece {
-                    // <<-- 이동 로직 -->>
-                    pieceManager.movePiece(piece: selectedPiece, to: name)
+                // ✨ 선택된 말이 '새 말'인지 '기존 말'인지 확인합니다.
+                if pieceToMove.position == "_6_6" {
+                    // 위치가 "_6_6"이면, 처음 판에 놓는 것입니다.
+                    pieceManager.placePieceOnBoard(piece: pieceToMove, on: name)
                 } else {
-                    // <<-- 기존의 새 말 배치 로직 -->>
-                    pieceManager.placeNewPiece(on: name)
+                    // 그 외에는, 이미 판 위에 있던 말을 움직이는 것입니다.
+                    pieceManager.movePiece(piece: pieceToMove.entity, to: name)
                 }
                 
-                // 마무리 작업
-                pieceManager.clearHighlights()
-                arState.selectedPiece = nil // 선택된 말 초기화
-                arState.gamePhase = .selectingPieceToMove
+                // GameManager의 말 위치 정보를 업데이트합니다.
+                arState.gameManager.move(piece: pieceToMove, to: name)
+                
+                // 하이라이트와 선택 정보를 모두 초기화합니다.
+                pieceManager.clearAllHighlights()
+                arState.selectedPiece = nil
+                arState.availableDestinations = []
+                
+                // 턴을 종료합니다.
+                coordinator?.endTurn()
             }
+            
         default:
             break
         }

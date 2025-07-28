@@ -16,7 +16,7 @@ class PlayerModel: Identifiable, ObservableObject, Codable, Equatable, Hashable 
     @Published var isHost: Bool
 
     var pieces: [PieceModel] = []
-    var pieceEntities: [Entity] = []
+//    var pieceEntities: [Entity] = []
     
     static let fileNames = ["Piece1_yellow", "Piece2_jade", "Piece3_blue", "Piece4_red"]
 
@@ -24,26 +24,42 @@ class PlayerModel: Identifiable, ObservableObject, Codable, Equatable, Hashable 
     var profile: String { "Player/P\(sequence)/profile" }
     var buttonOn: String { "Player/P\(sequence)/button_on" }
     var buttonOff: String { "Player/P\(sequence)/button_off" }
+    var pieceEntity: String {
+        switch sequence {
+        case 1:
+            return "Piece1_yellow"
+        case 2:
+            return "Piece2_jade"
+        case 3:
+            return "Piece3_blue"
+        case 4:
+            return "Piece4_red"
+        default:
+            fatalError("Invalid player sequence: \(sequence)")
+        }
+        
+        /*"Player/P\(sequence)/token"*/
+    }
 
     enum CodingKeys: String, CodingKey {
         case id, name, sequence, isHost, peerDisplayName
     }
 
-    init(name: String, sequence: Int, peerID: MCPeerID, entities: [Entity], isHost: Bool = false) {
+    init(name: String, sequence: Int, peerID: MCPeerID, isHost: Bool = false) {
         self.id = UUID()
         self.name = name
         self.sequence = sequence
         self.peerID = peerID
         self.isHost = isHost
-        //        self.pieceEntities = entities
-
-                let dummyEntities = Array(repeating: Entity(), count: 4)
-                self.pieceEntities = dummyEntities
+//        self.pieceEntities = entities
+//
+//                let dummyEntities = Array(repeating: Entity(), count: 4)
+//                self.pieceEntities = dummyEntities
                 
 
-        for i in 0..<2 {
-            //            let piece = PieceModel(owner: self, entity: entities[i])
-            let piece = PieceModel(owner: self, entity: dummyEntities[i])
+        for _ in 0..<2 {
+            guard let piece = PieceModel(owner: self) else { return }
+//            let piece = PieceModel(owner: self, entity: dummyEntities[i])
             pieces.append(piece)
         }
     }
@@ -58,7 +74,7 @@ class PlayerModel: Identifiable, ObservableObject, Codable, Equatable, Hashable 
 
             // Entity 임의로 주입
             let dummyEntities = Array(repeating: Entity(), count: 4)
-            self.init(name: name, sequence: sequence, peerID: MCPeerID(displayName: peerDisplayName), entities: dummyEntities, isHost: isHost)
+            self.init(name: name, sequence: sequence, peerID: MCPeerID(displayName: peerDisplayName), isHost: isHost)
         }
 
     func encode(to encoder: Encoder) throws {
@@ -79,17 +95,17 @@ class PlayerModel: Identifiable, ObservableObject, Codable, Equatable, Hashable 
     }
 
     static func load(name: String, sequence: Int, peerID: MCPeerID, isHost: Bool = false) async -> PlayerModel {
-        var loadedEntities: [Entity] = []
+//        var loadedEntities: [Entity] = []
 
-        for file in fileNames {
-            do {
-                let entity = try await Entity(named: file)
-                loadedEntities.append(entity)
-            } catch {
-                print("'\(file)' 로딩 실패:", error)
-            }
-        }
+//        for file in fileNames {
+//            do {
+//                let entity = try await Entity(named: file)
+//                loadedEntities.append(entity)
+//            } catch {
+//                print("'\(file)' 로딩 실패:", error)
+//            }
+//        }
 
-        return PlayerModel(name: name, sequence: sequence, peerID: peerID, entities: loadedEntities, isHost: isHost)
+        return PlayerModel(name: name, sequence: sequence, peerID: peerID, isHost: isHost)
     }
 }
