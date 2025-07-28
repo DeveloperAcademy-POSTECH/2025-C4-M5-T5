@@ -30,10 +30,10 @@ struct PlayerCard: View {
             height: 289
         )
         .background(.white.opacity(0.35))
-        .cornerRadius(18)
+        .cornerRadius(12)
         .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 4)
         .overlay(
-            RoundedRectangle(cornerRadius: 18)
+            RoundedRectangle(cornerRadius: 12)
                 .stroke(.white.opacity(0.35), lineWidth: 1)
         )
     }
