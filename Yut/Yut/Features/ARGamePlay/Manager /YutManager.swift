@@ -73,7 +73,7 @@ final class YutManager {
         guard let arView = arView else { return }
         
         let yutNames = ["Yut1", "Yut2", "Yut3", "Yut4_back"]
-        let spacing: Float = 0.07
+        let spacing: Float = 0.01
         
         for i in 0..<4 {
             guard let original = preloadedModels[yutNames[i]] else {
@@ -82,6 +82,7 @@ final class YutManager {
             }
             
             let yut = original.clone(recursive: true)
+            addDirectionAxes(to: yut)
             let yutModel = YutModel(entity: yut, isFrontUp: nil)
             thrownYuts.append(yutModel)
             
@@ -113,16 +114,28 @@ final class YutManager {
                 mode: .dynamic
             )
             
+            
+            
             guard let camTransform = arView.session.currentFrame?.camera.transform else { return }
             
             var translation = matrix_identity_float4x4
-            translation.columns.3.z = -0.3
+            translation.columns.3.z = -0.1
             //            translation.columns.3.x = 0.6
             //            translation.columns.3.y = 0.3
-                        translation.columns.3.y += (Float(i) - 0.5) * spacing  // 앞뒤 퍼짐
+            translation.columns.3.y += (Float(i) - 0.5) * spacing  // 앞뒤 퍼짐
             
             let finalTransform = simd_mul(camTransform, translation)
-            yut.transform = Transform(matrix: finalTransform)
+//            yut.transform = Transform(matrix: finalTransform)
+            
+            let rotation = simd_quatf(angle: .pi / 2, axis: SIMD3<Float>(0, 0, 1))  // 세로 회전
+
+            let baseTransform = Transform(matrix: finalTransform)
+            yut.transform = Transform(
+                rotation: rotation * baseTransform.rotation, // ← 여기 적용 중요
+            )
+            
+            
+            
             
             let forward = -simd_make_float3(camTransform.columns.2)
             let flatForward = simd_normalize(SIMD3<Float>(forward.x, 0, forward.z))
@@ -176,11 +189,11 @@ final class YutManager {
             result = .backdho
         } else {
             switch frontCount {
-            case 0: result = .mo
-            case 1: result = .dho
-            case 2: result = .gae
-            case 3: result = .geol
-            case 4: result = .yut
+            case 0: result = .yut     // 모두 뒷면 → 윷
+            case 1: result = .geol    // 걸
+            case 2: result = .gae     // 개
+            case 3: result = .dho     // 도
+            case 4: result = .mo      // 모두 앞면 → 모
             default:
                 print("⚠️ 유효하지 않은 윷 결과")
                 return
@@ -192,4 +205,27 @@ final class YutManager {
             print("🎁 추가 턴!")
         }
     }
+}
+func addDirectionAxes(to entity: Entity) {
+    let axisLength: Float = 0.03
+    let thickness: Float = 0.002
+
+    // +X: 빨강
+    let xBox = ModelEntity(mesh: .generateBox(size: [axisLength, thickness, thickness]))
+    xBox.position = SIMD3(axisLength / 2, 0, 0)
+    xBox.model?.materials = [SimpleMaterial(color: .red, isMetallic: false)]
+
+    // +Y: 초록
+    let yBox = ModelEntity(mesh: .generateBox(size: [thickness, axisLength, thickness]))
+    yBox.position = SIMD3(0, axisLength / 2, 0)
+    yBox.model?.materials = [SimpleMaterial(color: .green, isMetallic: false)]
+
+    // +Z: 파랑
+    let zBox = ModelEntity(mesh: .generateBox(size: [thickness, thickness, axisLength]))
+    zBox.position = SIMD3(0, 0, axisLength / 2)
+    zBox.model?.materials = [SimpleMaterial(color: .blue, isMetallic: false)]
+
+    entity.addChild(xBox)
+    entity.addChild(yBox)
+    entity.addChild(zBox)
 }
