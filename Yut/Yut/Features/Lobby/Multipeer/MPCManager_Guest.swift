@@ -31,6 +31,8 @@ extension MPCManager: MCNearbyServiceBrowserDelegate {
                 self.availableRooms.append(room)
             }
         }
+        
+        browser.invitePeer(peerID, to: self.session, withContext: nil, timeout: 10)
     }
     
     func browser(_ browser: MCNearbyServiceBrowser, lostPeer peerID: MCPeerID) {

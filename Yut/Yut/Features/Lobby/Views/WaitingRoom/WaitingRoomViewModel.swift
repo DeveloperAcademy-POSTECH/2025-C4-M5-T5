@@ -7,18 +7,22 @@
 
 import Foundation
 import MultipeerConnectivity
+import Combine
 
-@MainActor
 final class WaitingRoomViewModel: ObservableObject {
     @Published var showLeaveAlert = false
     @Published var players: [PlayerModel] = []
 
     private let mpcManager = MPCManager.shared
     private let navigationManager: NavigationManager
+    private var cancellables = Set<AnyCancellable>()
 
     init(navigationManager: NavigationManager) {
         self.navigationManager = navigationManager
-        self.players = mpcManager.players
+
+        mpcManager.$players
+            .receive(on: RunLoop.main)
+            .assign(to: &$players)
     }
 
     func addPlayer(name: String) async {

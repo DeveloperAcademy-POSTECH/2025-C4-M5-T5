@@ -22,7 +22,9 @@ struct HostNameInputView: View {
                 onSubmit: {
                     MPCManager.shared.isHost = true
                     MPCManager.shared.myPeerID = MCPeerID(displayName: host_nickname)
+                    MPCManager.shared.updatePeerIDAndSession(with: host_nickname)
                     MPCManager.shared.addHostPlayer(name: host_nickname)
+                    MPCManager.shared.configurePeerAndSession(with: host_nickname)
                     MPCManager.shared.startAdvertising()
                     MPCManager.shared.sendPlayersUpdate()
                    
