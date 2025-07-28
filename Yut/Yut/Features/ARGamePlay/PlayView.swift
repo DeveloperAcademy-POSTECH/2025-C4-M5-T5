@@ -45,6 +45,7 @@ struct PlayView : View {
                     RoundedBrownButton(title: "여기에 배치", isEnabled: true) {
                         arState.actionStream.send(.fixBoardPosition)
                         arState.actionStream.send(.disablePlaneVisualization)
+                        arState.actionStream.send(.preloadYutModels)
                         arState.gamePhase = .boardConfirmed
                     }
 

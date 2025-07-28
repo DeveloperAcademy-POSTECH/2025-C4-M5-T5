@@ -32,6 +32,9 @@ final class ActionStreamHandler {
         case .showDestinationsForExistingPiece:
             handleShowDestinationsForExistingPiece()
 
+        case .preloadYutModels:
+            coordinator.yutManager.preloadYutModels()
+        
         case .startMonitoringMotion:
             coordinator.yutManager.startMonitoringMotion()
             Task { @MainActor in
