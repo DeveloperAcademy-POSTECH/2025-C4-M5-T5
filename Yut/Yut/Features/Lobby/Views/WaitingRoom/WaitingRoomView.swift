@@ -14,8 +14,6 @@ struct WaitingRoomView: View {
     private let maxPlayers = 4
     
     @StateObject private var viewModel: WaitingRoomViewModel
-
-    @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var navigationManager: NavigationManager
     
     init(room: RoomModel, navigationManager: NavigationManager) {
@@ -96,6 +94,6 @@ struct WaitingRoomView: View {
     }
 }
 
-//#Preview {
+// #Preview {
 //    WaitingRoomView(room: RoomModel(roomName: "해피제이의 윷놀이방", hostName: "해피제이", players: []), navigationManager: NavigationManager())
-//}
+// }

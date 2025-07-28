@@ -12,6 +12,17 @@ extension MPCManager: MCSessionDelegate {
     /// - connected: 게스트가 연결되면 Host가 players에 추가하고 업데이트 전송
     /// - notConnected: 연결이 끊기면 connectedPeers에서 제거 후, Host라면 갱신된 리스트 전송
     func session(_ session: MCSession, peer peerID: MCPeerID, didChange state: MCSessionState) {
+        switch state {
+        case .connected:
+            print("✅ Connected to \(peerID.displayName)")
+        case .connecting:
+            print("🟡 Connecting to \(peerID.displayName)")
+        case .notConnected:
+            print("❌ Disconnected from \(peerID.displayName)")
+        @unknown default:
+            print("⚠️ Unknown state for \(peerID.displayName)")
+        }
+        
         if state == .connected {
             DispatchQueue.main.async {
                 // Host 측에서 새로운 Guest를 players 배열에 추가
@@ -39,7 +50,7 @@ extension MPCManager: MCSessionDelegate {
                     self.broadcastPlayerList()
                 } else {
                     // Host가 방 폭파한 경우 (모든 게스트 HomeView로 이동)
-                    if peerID.displayName == self.players.first?.name {
+                    if let hostPeerID = self.players.first?.peerID, peerID == hostPeerID {
                         self.players.removeAll()
                         NotificationCenter.default.post(name: .roomClosed, object: nil)
                     }

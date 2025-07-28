@@ -37,15 +37,21 @@ final class WaitingRoomViewModel: ObservableObject {
 
     func leaveRoom() {
         if mpcManager.isHost {
+            // 1. 생성된 방 목록에서 제거
+            MPCManager.shared.availableRooms.removeAll {
+                $0.hostName == MPCManager.shared.myPeerID.displayName
+            }
+            // 2. 세션 종료 및 상태 초기화
             mpcManager.disconnect()
+            // 3. 홈으로 이동
             navigationManager.popToRoot()
-        } else {
+        } else { // 게스트는 본인만 players에서 제거
             if let index = mpcManager.players.firstIndex(where: { $0.peerID == mpcManager.myPeerID }) {
                 mpcManager.players.remove(at: index)
             }
             mpcManager.sendPlayersUpdate()
             mpcManager.disconnect()
-            navigationManager.popToRoot()
+            navigationManager.pop()
         }
     }
 

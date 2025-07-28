@@ -76,7 +76,6 @@ struct NameInputFormView: View {
                                 .font(.pretendard(.semiBold, size: 20))
                         )
                 }
-                .padding(.horizontal, 16)
                 .padding(.bottom, 12)
             }
         }
