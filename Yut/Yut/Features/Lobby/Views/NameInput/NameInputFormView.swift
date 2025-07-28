@@ -54,7 +54,7 @@ struct NameInputFormView: View {
             HStack {
                 Spacer()
                 Text("\(nickname.count)/10")
-                    .font(.system(size: 16))
+                    .font(.system(size: 15))
                     .foregroundColor(.brown5)
             }
             .padding(.trailing, 12)
