@@ -22,7 +22,6 @@ struct ARViewContainer: UIViewRepresentable {
     func makeUIView(context: Context) -> some UIView {
         let arView = ARView(frame: .zero)
 //        arView.debugOptions.insert(.showPhysics)
-        
         // MARK: - Coordinator 설정
         context.coordinator.arView = arView // makeCoordinator에서 만든 ARCoordinator 인스턴스
         context.coordinator.arState = arState
@@ -43,7 +42,7 @@ struct ARViewContainer: UIViewRepresentable {
         
         // MARK: - AR 환경설정 (Configuration)
         let config = ARWorldTrackingConfiguration()
-        config.planeDetection = [.horizontal,.vertical]
+        config.planeDetection = [.horizontal]
         
         if ARWorldTrackingConfiguration.supportsSceneReconstruction(.mesh) {
             config.sceneReconstruction = .mesh
