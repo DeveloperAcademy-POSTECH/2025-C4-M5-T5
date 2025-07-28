@@ -32,7 +32,7 @@ struct RoomListView: View {
                     Spacer()
                 }
                 .padding(.top, 40)
-                .padding(.horizontal, 16)
+                .padding(.horizontal, 20)
             }
         }
         .gesture(
