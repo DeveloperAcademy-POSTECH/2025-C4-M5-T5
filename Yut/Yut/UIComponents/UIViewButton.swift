@@ -35,10 +35,10 @@ struct UIViewButton: View {
                 
                 Text(title)
                     .foregroundColor(.brown2)
-                    .font(.system(size: 22, weight: .bold, design: .default))
+                    .font(.system(size: 20, weight: .bold, design: .default))
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 75)
+            .frame(height: 65)
         }
         .disabled(!isEnabled)
     }
