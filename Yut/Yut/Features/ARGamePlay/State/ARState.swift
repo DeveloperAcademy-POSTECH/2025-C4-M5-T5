@@ -23,6 +23,7 @@ class ARState: ObservableObject {
     @Published var availableDestinations: [String] = []
 
     // 윷 결과 (도:1 ~ 모:5)
-    @Published var yutResult: Int = 1
+//    @Published var yutResult: Int = 1
+    @Published var yutResult: YutResult? = nil
 
 }
