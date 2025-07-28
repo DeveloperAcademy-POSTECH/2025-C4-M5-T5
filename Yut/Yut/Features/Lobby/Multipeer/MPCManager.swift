@@ -57,7 +57,7 @@ class MPCManager: NSObject, ObservableObject {
         let guestPlayer = PlayerModel(
             name: peerID.displayName,
             sequence: players.count + 1,
-            peerID: peerID,
+            peerID: peerID
 //            entities: []
         )
         players.append(guestPlayer)
