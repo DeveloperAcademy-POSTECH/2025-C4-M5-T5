@@ -43,6 +43,7 @@ struct WaitingRoomView: View {
                         Image(systemName: "xmark")
                             .font(.pretendard(.bold, size: 24))
                             .foregroundColor(.brown4)
+                            .padding(.trailing, 5)
                     }
                 }
             }
