@@ -31,7 +31,7 @@ struct HomeView: View {
                     ) { navigationManager.push(.guestNameInput) }
                 }
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, 20)
         }
     }
 }
