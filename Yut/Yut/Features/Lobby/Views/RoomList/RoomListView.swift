@@ -17,6 +17,7 @@ struct RoomListView: View {
             Color.white1
 //                .edgesIgnoringSafeArea(.all)
                 .ignoresSafeArea()
+            
             ScrollView {
                 VStack {
                     ForEach(mpcManager.availableRooms) { room in
@@ -61,12 +62,15 @@ struct RoomListView: View {
 
             ToolbarItem(placement: .principal) {
                 Text("주변 윷놀이방 참여하기")
-                    .font(.pretendard(.bold, size: 24))
+                    .font(.pretendard(.bold, size: 20))
                     .foregroundColor(.brown5)
+//                    .padding(.top, 29)
+//                    .padding(.bottom,29) 이거 2개 실선 사라지면 반영해야 할 패딩값
             }
         }
     }
 }
+
 
 #Preview {
     RoomListView()
