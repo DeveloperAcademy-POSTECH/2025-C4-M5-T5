@@ -11,6 +11,7 @@ final class YutManager {
     private var arView: ARView? { coordinator.arView }
     private var arState: ARState? { coordinator.arState }
     
+    private var preloadedModels: [String: ModelEntity] = [:]
     private let motionManager = CMMotionManager()
     private var lastThrowTime = Date(timeIntervalSince1970: 0)
     
@@ -21,6 +22,22 @@ final class YutManager {
         self.coordinator = coordinator
     }
     
+    func preloadYutModels() {
+        let yutNames = ["Yut1", "Yut2", "Yut3", "Yut4_back"]
+        
+        for name in yutNames {
+            // 이미 로드되어 있다면 건너뜀
+            if preloadedModels[name] != nil { continue }
+            
+            do {
+                let model = try ModelEntity.loadModel(named: name)
+                preloadedModels[name] = model
+            } catch {
+                print("⚠️ \(name) 미리 로딩 실패: \(error)")
+            }
+        }
+    }
+
     // MARK: - Motion Detection
     
     func startMonitoringMotion() {
@@ -69,9 +86,13 @@ final class YutManager {
         let yutNames = ["Yut1", "Yut2", "Yut3", "Yut4_back"]
         let spacing: Float = 0.07
         
-        for i in 0..<yutNames.count {
-            guard let yut = try? ModelEntity.loadModel(named: yutNames[i]) else { continue }
+        for i in 0..<4 {
+            guard let original = preloadedModels[yutNames[i]] else {
+                print("❌ 사전 로딩되지 않은 모델: \(yutNames[i])")
+                continue
+            }
             
+            let yut = original.clone(recursive: true)
             let yutModel = YutModel(entity: yut, isFrontUp: nil)
             thrownYuts.append(yutModel)
             
