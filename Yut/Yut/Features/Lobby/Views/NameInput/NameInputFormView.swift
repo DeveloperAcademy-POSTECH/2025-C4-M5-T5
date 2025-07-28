@@ -61,7 +61,7 @@ struct NameInputFormView: View {
             
             Spacer()
             
-            if keyboard.isKeyboardVisible {
+//            if keyboard.isKeyboardVisible {
                 Button {
                     isFocused = false
                     onSubmit()
@@ -77,7 +77,7 @@ struct NameInputFormView: View {
                         )
                 }
                 .padding(.bottom, 12)
-            }
+//            }
         }
         .padding(.horizontal, 20)
         .onAppear {
