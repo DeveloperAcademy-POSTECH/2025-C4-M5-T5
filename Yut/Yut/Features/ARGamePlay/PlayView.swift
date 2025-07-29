@@ -131,6 +131,7 @@ struct PlayView : View {
                             showYutGatheringSequence = true
                             showFinalFrame = false
                             showYutGatheringSequence = true
+                            sound.playcollectYutSound()
                             
                             DispatchQueue.main.asyncAfter(deadline: .now() + 1.3) {
                                 showYutGatheringSequence = false
