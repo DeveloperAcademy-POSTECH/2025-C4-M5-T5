@@ -11,7 +11,7 @@ import Foundation
 import SwiftUI
 import MultipeerConnectivity
 
-enum YutResult: Int {
+enum YutResult: Int, Identifiable, CaseIterable {
     case backdho = -1
     case dho = 1
     case gae = 2
@@ -21,6 +21,10 @@ enum YutResult: Int {
     
     var steps: Int { rawValue }
     var isExtraTurn: Bool { self == .yut || self == .mo }
+    
+    // ForEach를 위한 id
+    var id: Int { rawValue }
+    
 }
 
 struct GameResult {
@@ -52,12 +56,11 @@ class GameManager :ObservableObject {
     @Published var result: GameResult? // 게임 최종 결과 반환
     @State private var userChooseToCarry: Bool = false // 업을지 말지 여부 상태 변수
     
-    // ✨ 현재 플레이어가 판 밖에 둔 말이 있는지 확인하는 프로퍼티 추가
-        var currentPlayerHasOffBoardPieces: Bool {
-            // currentPlayer의 말 중에 position이 "_6_6"인 것이 하나라도 있는지 확인
-            currentPlayer.pieces.contains { $0.position == "_6_6" }
-        }
-
+    // currentPlayer의 말 중에 position이 "_6_6"인 것이 하나라도 있는지 확인
+    var currentPlayerHasOffBoardPieces: Bool {
+        currentPlayer.pieces.contains { $0.position == "_6_6" }
+    }
+    
     
     func startGame(with players: [PlayerModel]) {
         self.players = players
@@ -177,29 +180,6 @@ class GameManager :ObservableObject {
     func endGame() {
         // Result의 gameEnded가 true이면 게임 종료 -> 게임 결과 화면 띄우고,
     }
-    
-//    init() {
-//        // TESTONLY
-//        let dummyEntity1 = Entity()
-//        let dummyEntity2 = Entity()
-//        
-//        let player1 = PlayerModel(
-//            name: "Player 1",
-//            sequence: 0,
-//            peerID: MCPeerID(displayName: UUID().uuidString),
-////            entities: [dummyEntity1, dummyEntity2]
-//        )
-//        
-//        let player2 = PlayerModel(
-//            name: "Player 2",
-//            sequence: 1,
-//            peerID: MCPeerID(displayName: UUID().uuidString),
-////            entities: [dummyEntity1, dummyEntity2]
-//        )
-//        self.players = [player1, player2]
-//        self.board = BoardModel()
-//        self.cellStates = [:]
-//        self.yutResult = nil
-//    }
+
 }
 

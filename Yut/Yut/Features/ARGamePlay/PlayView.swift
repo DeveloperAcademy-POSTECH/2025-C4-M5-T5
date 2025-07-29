@@ -97,6 +97,21 @@ struct PlayView : View {
                 case .readyToThrow:
                     InstructionView(text: "버튼을 누르고 기기를 흔들어 윷을 던지세요")
                     Spacer()
+                    
+                    HStack(spacing: 10) {
+                        // YutResult의 모든 케이스를 순회하며 버튼을 만듭니다.
+                        ForEach(YutResult.allCases) { result in
+                            Button(result.displayText) {
+                                // 버튼을 누르면 테스트용 액션을 보냅니다.
+                                arState.actionStream.send(.setYutResultForTesting(result))
+                            }
+                            .padding()
+                            .background(Color.brown.opacity(0.8))
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                            .font(.system(size: 14, weight: .bold))
+                        }
+                    }
                     RoundedBrownButton(title: "윷 던지기 활성화!", isEnabled: true) {
                         showYutGatheringSequence = true
                         showFinalFrame = false
@@ -119,8 +134,6 @@ struct PlayView : View {
                     VStack {
                         InstructionView(text: "\(arState.gameManager.currentPlayer.name)의 턴: 움직일 말을 탭하세요.")
                         Spacer()
-                        
-                        // 만약 현재 플레이어가 판 밖에 둔 말이 있다면, '새 말 놓기' 버튼을 보여줍니다.
                         if arState.gameManager.currentPlayerHasOffBoardPieces {
                             RoundedBrownButton(title: "새 말 놓기", isEnabled: true) {
                                 arState.actionStream.send(.showDestinationsForNewPiece)
