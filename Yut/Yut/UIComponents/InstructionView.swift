@@ -11,7 +11,7 @@ struct InstructionView: View {
     let text: String
     var body: some View {
         Text(text)
-            .font(.system(size: 20))
+            .font(.system(size: 18))
             .fontWeight(.medium)
             .foregroundColor(.black)
             .padding(.vertical, 12)
