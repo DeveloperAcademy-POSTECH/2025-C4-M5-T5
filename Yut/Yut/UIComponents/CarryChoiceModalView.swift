@@ -62,7 +62,6 @@ struct CarryChoiceModalView: View {
                 )
                 .padding(20)
                 .shadow(color: .brown1.opacity(0.2), radius: 18, x: 0, y: 0)
-                
             }
         }
     }
