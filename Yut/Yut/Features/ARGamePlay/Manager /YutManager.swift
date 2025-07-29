@@ -10,6 +10,8 @@ final class YutManager {
     
     private var arView: ARView? { coordinator.arView }
     private var arState: ARState? { coordinator.arState }
+    private let yutNames = ["Yut1", "Yut2", "Yut3", "Yut4_back"]
+
     
     private var preloadedModels: [String: ModelEntity] = [:]
     private let motionManager = CMMotionManager()
@@ -23,7 +25,7 @@ final class YutManager {
     }
     
     func preloadYutModels() {
-        let yutNames = ["Yut1", "Yut2", "Yut3", "Yut4_back"]
+//        let yutNames = ["Yut1", "Yut2", "Yut3", "Yut4_back"]
         
         for name in yutNames {
             // 이미 로드되어 있다면 건너뜀
@@ -83,10 +85,10 @@ final class YutManager {
             // 2. 다음 계산을 위해 윷 모델을 추적하는 배열을 비웁니다.
             thrownYuts.removeAll()
         
-        let yutNames = ["Yut1", "Yut2", "Yut3", "Yut4_back"]
+//        let yutNames = ["Yut1", "Yut2", "Yut3", "Yut4_back"]
         let spacing: Float = 0.01
         
-        for i in 0..<4 {
+        for i in 0..<yutNames.count {
             guard let original = preloadedModels[yutNames[i]] else {
                 print("❌ 사전 로딩되지 않은 모델: \(yutNames[i])")
                 continue
@@ -125,7 +127,7 @@ final class YutManager {
              }
             
             yut.physicsBody = PhysicsBodyComponent(
-                massProperties: .init(mass: 10),
+                massProperties: .init(mass: 5),
                 material: physMaterial,
                 mode: .dynamic
             )
