@@ -45,6 +45,7 @@ final class YutManager {
             print("❌ 디바이스 모션 사용 불가")
             return
         }
+        self.arState?.showFinalFrame = true
         
         motionManager.deviceMotionUpdateInterval = 0.05
         
@@ -61,6 +62,10 @@ final class YutManager {
             
             if magnitude > threshold,
                Date().timeIntervalSince(self.lastThrowTime) > cooldown {
+                DispatchQueue.main.async {
+                    self.arState?.showFinalFrame = false
+                }
+                
                 self.lastThrowTime = Date()
                 self.throwYuts()
             }
