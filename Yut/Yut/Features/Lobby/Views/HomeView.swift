@@ -16,7 +16,7 @@ struct HomeView: View {
                 Text("윷")
                     .foregroundColor(.brown1)
                     .font(.hancom(.hoonmin, size: 236))
-                    .padding(.top, 50)
+                    .padding(.top, 98)
                 Spacer()
                 
                 VStack(spacing: 12) {
@@ -31,7 +31,7 @@ struct HomeView: View {
                     ) { navigationManager.push(.guestNameInput) }
                 }
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, 20)
         }
     }
 }

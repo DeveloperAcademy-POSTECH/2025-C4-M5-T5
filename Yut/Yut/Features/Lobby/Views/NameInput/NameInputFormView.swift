@@ -41,12 +41,17 @@ struct NameInputFormView: View {
                         .padding(.vertical, 17)
                         .background(
                             ZStack {
-                                RoundedRectangle(cornerRadius: 18)
+                                RoundedRectangle(cornerRadius: 12)
                                     .fill(Color.white.opacity(0.14))
-                                RoundedRectangle(cornerRadius: 18)
+                                RoundedRectangle(cornerRadius: 12)
                                     .stroke(Color.brown, lineWidth: 1)
                             }
                         )
+                        .onChange(of: nickname) { newValue in
+                            if newValue.count > 10 {
+                                nickname = String(newValue.prefix(10))
+                            }
+                        }
                 }
             }
             .padding(.bottom, 12)
@@ -54,14 +59,14 @@ struct NameInputFormView: View {
             HStack {
                 Spacer()
                 Text("\(nickname.count)/10")
-                    .font(.system(size: 16))
+                    .font(.system(size: 15))
                     .foregroundColor(.brown5)
             }
             .padding(.trailing, 12)
             
             Spacer()
             
-            if keyboard.isKeyboardVisible {
+//            if keyboard.isKeyboardVisible {
                 Button {
                     isFocused = false
                     onSubmit()
@@ -76,9 +81,8 @@ struct NameInputFormView: View {
                                 .font(.pretendard(.semiBold, size: 20))
                         )
                 }
-                .padding(.horizontal, 16)
                 .padding(.bottom, 12)
-            }
+//            }
         }
         .padding(.horizontal, 20)
         .onAppear {

@@ -84,15 +84,25 @@ final class YutManager {
             thrownYuts.removeAll()
         
         let yutNames = ["Yut1", "Yut2", "Yut3", "Yut4_back"]
-        let spacing: Float = 0.07
+        let spacing: Float = 0.01
         
         for i in 0..<4 {
-            guard let original = preloadedModels[yutNames[i]] else {
-                print("❌ 사전 로딩되지 않은 모델: \(yutNames[i])")
-                continue
-            }
+//            guard let original = preloadedModels[yutNames[i]] else {
+//                print("❌ 사전 로딩되지 않은 모델: \(yutNames[i])")
+//                continue
+//            }
+//            
+//            let yut = original.clone(recursive: true)
+//            
+//            
+//            
+//            addDirectionAxes(to: yut)
+//            let yutModel = YutModel(entity: yut, isFrontUp: nil)
+//            thrownYuts.append(yutModel)
+//            
             
-            let yut = original.clone(recursive: true)
+            guard let yut = try? ModelEntity.loadModel(named: yutNames[i]) else { continue }
+            
             let yutModel = YutModel(entity: yut, isFrontUp: nil)
             thrownYuts.append(yutModel)
             
@@ -119,21 +129,30 @@ final class YutManager {
              }
             
             yut.physicsBody = PhysicsBodyComponent(
-                massProperties: .default,
+                massProperties: .init(mass: 10),
                 material: physMaterial,
                 mode: .dynamic
             )
             
+            
+            
             guard let camTransform = arView.session.currentFrame?.camera.transform else { return }
             
             var translation = matrix_identity_float4x4
-            translation.columns.3.z = -0.3
+            translation.columns.3.z = -0.1
             //            translation.columns.3.x = 0.6
             //            translation.columns.3.y = 0.3
-                        translation.columns.3.y += (Float(i) - 0.5) * spacing  // 앞뒤 퍼짐
+            translation.columns.3.y += (Float(i) - 0.5) * spacing  // 앞뒤 퍼짐
             
             let finalTransform = simd_mul(camTransform, translation)
-            yut.transform = Transform(matrix: finalTransform)
+//            yut.transform = Transform(matrix: finalTransform)
+            
+            let rotation = simd_quatf(angle: .pi / 2, axis: SIMD3<Float>(0, 0, 1))  // 세로 회전
+
+            let baseTransform = Transform(matrix: finalTransform)
+            yut.transform = Transform(
+                rotation: rotation * baseTransform.rotation, // ← 여기 적용 중요
+            )
             
             let forward = -simd_make_float3(camTransform.columns.2)
             let flatForward = simd_normalize(SIMD3<Float>(forward.x, 0, forward.z))
@@ -143,6 +162,20 @@ final class YutManager {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
                 yut.components.set(PhysicsMotionComponent(linearVelocity: velocity))
             }
+            
+//            let x = ModelEntity(mesh: .generateBox(size: 0.02), materials: [SimpleMaterial(color: .red, isMetallic: false)])
+//             x.position = SIMD3<Float>(0.1, 0, 0)  // X축
+//
+//             let y = ModelEntity(mesh: .generateBox(size: 0.02), materials: [SimpleMaterial(color: .green, isMetallic: false)])
+//             y.position = SIMD3<Float>(0, 0.1, 0)  // Y축
+//
+//             let z = ModelEntity(mesh: .generateBox(size: 0.02), materials: [SimpleMaterial(color: .blue, isMetallic: false)])
+//             z.position = SIMD3<Float>(0, 0, 0.1)  // Z축
+//
+//             yut.addChild(x)
+//             yut.addChild(y)
+//             yut.addChild(z)
+            
             
             let anchor = AnchorEntity(world: finalTransform)
             anchor.addChild(yut)
@@ -162,25 +195,41 @@ final class YutManager {
             if allStopped {
                 timer.invalidate()
                 self.evaluateYuts()
-
             }
         }
     }
     
-    private func evaluateYuts() {
+    func evaluateYuts() {
+        // 앞뒤 판단 먼저 수행
         for i in 0..<thrownYuts.count {
             let entity = thrownYuts[i].entity
-            let frontAxis = SIMD3<Float>(0, 1, 0)
-            let worldUp = SIMD3<Float>(0, 1, 0)
+//            let up = entity.transform.rotation.act(SIMD3<Float>(0, 1, 0))
+//            let dot = simd_dot(up, SIMD3<Float>(0, 1, 0))
+//            let isFront = dot >= 0
+            
+//            let upVector = entity.transform.rotation.act(SIMD3<Float>(0, 1, 0))
+//            let isFront = upVector.y > 0.5
+            
+            let frontAxis = SIMD3<Float>(0, 1, 0) // 모델링에서 앞면이 향한 축으로 변경 필요
+            let worldUp = SIMD3<Float>(1, 0, 0)
+            
             let rotated = entity.transform.rotation.act(frontAxis)
             let dot = simd_dot(rotated, worldUp)
-            let isFront = dot > 0
+            let isFront = dot < 0
+            
             thrownYuts[i].isFrontUp = isFront
+            
+            print("rotated: \(rotated)")
+            print("dot: \(dot)")
+            
+            thrownYuts[i].isFrontUp = isFront
+            print("윷 \(entity.name) → 앞면: \(isFront)")
         }
         
+        // 백도 예외 케이스 확인
         let frontCount = thrownYuts.filter { $0.isFrontUp == true }.count
         let backYut = thrownYuts.first(where: {
-            $0.entity.name == "Yut4_back" && $0.isFrontUp == false
+            $0.entity.name == "Yut_4_back" && $0.isFrontUp == false
         })
         
         let result: YutResult
@@ -188,23 +237,90 @@ final class YutManager {
             result = .backdho
         } else {
             switch frontCount {
-            case 0: result = .mo
-            case 1: result = .dho
+            case 0: result = .yut
+            case 1: result = .geol
             case 2: result = .gae
-            case 3: result = .geol
-            case 4: result = .yut
+            case 3: result = .dho
+            case 4: result = .mo
             default:
-                print("⚠️ 유효하지 않은 윷 결과")
+                print("⚠️ 유효하지 않은 윷 결과 - 다시 던지기")
                 return
             }
         }
-        
+
         print("🎯 윷 결과: \(result) (\(result.steps)칸 이동)")
         if result.isExtraTurn {
             print("🎁 추가 턴!")
         }
         
+        DispatchQueue.main.async {
+            print("[DEBUG] Setting to .showingYutResult")
+            self.arState?.yutResult = result
+            self.arState?.gamePhase = .showingYutResult
+        }
+        
         // Coordinator 연결
         coordinator.yutThrowCompleted(with: result)
     }
+    
+//    private func evaluateYuts() {
+//        for i in 0..<thrownYuts.count {
+//            let entity = thrownYuts[i].entity
+//            let frontAxis = SIMD3<Float>(1, 0, 0)
+//            let worldUp = SIMD3<Float>(1, 0, 0)
+//            let rotated = entity.transform.rotation.act(frontAxis)
+//            let dot = simd_dot(rotated, worldUp)
+//            let isFront = dot > 0
+//            thrownYuts[i].isFrontUp = isFront
+//        }
+//        
+//        let frontCount = thrownYuts.filter { $0.isFrontUp == true }.count
+//        let backYut = thrownYuts.first(where: {
+//            $0.entity.name == "Yut4_back" && $0.isFrontUp == false
+//        })
+//        
+//        let result: YutResult
+//        if frontCount == 3, backYut != nil {
+//            result = .backdho
+//        } else {
+//            switch frontCount {
+//            case 0: result = .mo      // 모두 뒷면 → 모
+//            case 1: result = .dho     // 도
+//            case 2: result = .gae     // 개
+//            case 3: result = .geol    // 걸
+//            case 4: result = .yut     // 모두 앞면 → 윷
+//            default:
+//                print("⚠️ 유효하지 않은 윷 결과")
+//                return
+//            }
+//        }
+//        
+//        print("🎯 윷 결과: \(result) (\(result.steps)칸 이동)")
+//        if result.isExtraTurn {
+//            print("🎁 추가 턴!")
+//        }
+//    }
+}
+func addDirectionAxes(to entity: Entity) {
+    let axisLength: Float = 0.03
+    let thickness: Float = 0.002
+
+    // +X: 빨강
+    let xBox = ModelEntity(mesh: .generateBox(size: [axisLength, thickness, thickness]))
+    xBox.position = SIMD3(axisLength / 2, 0, 0)
+    xBox.model?.materials = [SimpleMaterial(color: .red, isMetallic: false)]
+
+    // +Y: 초록
+    let yBox = ModelEntity(mesh: .generateBox(size: [thickness, axisLength, thickness]))
+    yBox.position = SIMD3(0, axisLength / 2, 0)
+    yBox.model?.materials = [SimpleMaterial(color: .green, isMetallic: false)]
+
+    // +Z: 파랑
+    let zBox = ModelEntity(mesh: .generateBox(size: [thickness, thickness, axisLength]))
+    zBox.position = SIMD3(0, 0, axisLength / 2)
+    zBox.model?.materials = [SimpleMaterial(color: .blue, isMetallic: false)]
+
+    entity.addChild(xBox)
+    entity.addChild(yBox)
+    entity.addChild(zBox)
 }

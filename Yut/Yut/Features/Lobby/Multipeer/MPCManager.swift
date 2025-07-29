@@ -10,7 +10,7 @@ import MultipeerConnectivity
 class MPCManager: NSObject, ObservableObject {
     static let shared = MPCManager()
     
-    let serviceType = "yut-game"
+    let serviceType = "yutgame"
     var myPeerID = MCPeerID(displayName: UIDevice.current.name)
     
     var session: MCSession!
@@ -57,12 +57,31 @@ class MPCManager: NSObject, ObservableObject {
         let guestPlayer = PlayerModel(
             name: peerID.displayName,
             sequence: players.count + 1,
-            peerID: peerID,
+            peerID: peerID
 //            entities: []
         )
         players.append(guestPlayer)
         print("✅ Guest added: \(guestPlayer.name), sequence: \(guestPlayer.sequence), profile: \(guestPlayer.profile)")
     }
+    
+    func disconnect() {
+        session.disconnect()
+        players.removeAll()
+        print("🔌 Disconnected and players reset")
+    }
+    
+    func updatePeerIDAndSession(with displayName: String) {
+        myPeerID = MCPeerID(displayName: displayName)
+        session.disconnect()
+        session = MCSession(peer: myPeerID, securityIdentity: nil, encryptionPreference: .required)
+        session.delegate = self
+    }
+    
+    func configurePeerAndSession(with displayName: String) {
+         myPeerID = MCPeerID(displayName: displayName)
+         session = MCSession(peer: myPeerID, securityIdentity: nil, encryptionPreference: .required)
+         session.delegate = self
+     }
 }
 
 extension MPCManager {

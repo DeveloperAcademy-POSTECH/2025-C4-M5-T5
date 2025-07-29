@@ -24,7 +24,7 @@ struct RootView: View {
                     case .roomList:
                         RoomListView()
                     case .waitingRoom(let room):
-                        WaitingRoomView(room: room)
+                        WaitingRoomView(room: room, navigationManager: navigationManager)
                     case .winner:
                         WinnerView()
                     case .playView:
