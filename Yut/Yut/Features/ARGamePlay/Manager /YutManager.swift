@@ -87,25 +87,21 @@ final class YutManager {
         let spacing: Float = 0.01
         
         for i in 0..<4 {
-//            guard let original = preloadedModels[yutNames[i]] else {
-//                print("❌ 사전 로딩되지 않은 모델: \(yutNames[i])")
-//                continue
-//            }
-//            
-//            let yut = original.clone(recursive: true)
-//            
-//            
-//            
-//            addDirectionAxes(to: yut)
-//            let yutModel = YutModel(entity: yut, isFrontUp: nil)
-//            thrownYuts.append(yutModel)
-//            
+            guard let original = preloadedModels[yutNames[i]] else {
+                print("❌ 사전 로딩되지 않은 모델: \(yutNames[i])")
+                continue
+            }
             
-            guard let yut = try? ModelEntity.loadModel(named: yutNames[i]) else { continue }
+            let yut = original.clone(recursive: true)
             
             let yutModel = YutModel(entity: yut, isFrontUp: nil)
             thrownYuts.append(yutModel)
             
+            
+//            guard let yut = try? ModelEntity.loadModel(named: yutNames[i]) else { continue }
+//            let yutModel = YutModel(entity: yut, isFrontUp: nil)
+//            thrownYuts.append(yutModel)
+//            
             let physMaterial = PhysicsMaterialResource.generate(
                 staticFriction: 1.0,
                 dynamicFriction: 1.0,
@@ -301,26 +297,4 @@ final class YutManager {
 //        }
 //    }
 }
-func addDirectionAxes(to entity: Entity) {
-    let axisLength: Float = 0.03
-    let thickness: Float = 0.002
 
-    // +X: 빨강
-    let xBox = ModelEntity(mesh: .generateBox(size: [axisLength, thickness, thickness]))
-    xBox.position = SIMD3(axisLength / 2, 0, 0)
-    xBox.model?.materials = [SimpleMaterial(color: .red, isMetallic: false)]
-
-    // +Y: 초록
-    let yBox = ModelEntity(mesh: .generateBox(size: [thickness, axisLength, thickness]))
-    yBox.position = SIMD3(0, axisLength / 2, 0)
-    yBox.model?.materials = [SimpleMaterial(color: .green, isMetallic: false)]
-
-    // +Z: 파랑
-    let zBox = ModelEntity(mesh: .generateBox(size: [thickness, thickness, axisLength]))
-    zBox.position = SIMD3(0, 0, axisLength / 2)
-    zBox.model?.materials = [SimpleMaterial(color: .blue, isMetallic: false)]
-
-    entity.addChild(xBox)
-    entity.addChild(yBox)
-    entity.addChild(zBox)
-}
