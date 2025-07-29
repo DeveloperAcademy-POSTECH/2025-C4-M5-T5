@@ -129,7 +129,7 @@ private struct BottomButtonRowView: View {
                     .cornerRadius(34)
             }
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, 20)
         .frame(height: 70)
     }
 }

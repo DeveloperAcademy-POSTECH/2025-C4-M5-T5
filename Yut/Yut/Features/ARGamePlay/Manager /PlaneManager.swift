@@ -34,14 +34,13 @@ final class PlaneManager {
             return
         }
 
-
         // Material 생성 및 색상 적용
         let uiColor = UIColor(named: "white1")?.withAlphaComponent(0.6) ?? .white
         var material = UnlitMaterial()
         material.baseColor = MaterialColorParameter.color(uiColor)
 
-        
         let planeEntity = ModelEntity(mesh: planeMesh, materials: [material])
+        planeEntity.name = "Plane"
 
         planeEntity.components.set(PhysicsBodyComponent(mode: .static))
 

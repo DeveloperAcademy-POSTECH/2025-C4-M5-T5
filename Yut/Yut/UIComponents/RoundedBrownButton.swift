@@ -30,7 +30,13 @@ struct RoundedBrownButton: View {
                 )
                 .cornerRadius(24) // 모서리 둥글게
         }
-        .padding(.horizontal, 30) // 좌우 여백
+        .padding(.horizontal, 20) // 좌우 여백
         .disabled(!isEnabled) // 버튼 비활성화 처리
+    }
+}
+
+#Preview {
+    RoundedBrownButton(title: "sdf", isEnabled: true) {
+        
     }
 }

@@ -44,6 +44,7 @@ struct WaitingRoomView: View {
                         Image(systemName: "xmark")
                             .font(.pretendard(.bold, size: 24))
                             .foregroundColor(.brown4)
+                            .padding(.trailing, 5)
                     }
                 }
             }
@@ -77,7 +78,7 @@ struct WaitingRoomView: View {
             .disabled(viewModel.players.count < 2)
             .padding(.bottom, 20)
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, 20)
         .background(Color.white1.ignoresSafeArea())
         .alert("방을 나가시겠습니까?", isPresented: $viewModel.showLeaveAlert) {
             Button("나가기", role: .destructive) {
