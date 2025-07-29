@@ -124,7 +124,9 @@ class ARCoordinator: NSObject, ARSessionDelegate {
             
             arState.selectedPiece = newPiece
             arState.availableDestinations = destinationNames
-            arState.gamePhase = .selectingDestination
+            DispatchQueue.main.async {
+                arState.gamePhase = .selectingDestination
+            }
         }
     }
     

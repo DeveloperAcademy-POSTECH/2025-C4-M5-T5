@@ -24,7 +24,7 @@ final class BoardManager {
         do {
             // 1. 윷판 모델 로딩
             let boardEntity = try ModelEntity.load(named: "Board.usdz")
-//            boardEntity.generateCollisionShapes(recursive: true)
+            boardEntity.generateCollisionShapes(recursive: true)
 
             // 2. Board와 같은 크기의 보이지 않는 박스 생성
             let boardBounds = boardEntity.visualBounds(relativeTo: nil)
