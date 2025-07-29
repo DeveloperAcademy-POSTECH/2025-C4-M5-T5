@@ -1,6 +1,6 @@
-import SwiftUI
 import Combine
 import RealityKit
+import SwiftUI
 
 // MARK: - AR 상태 관리 클래스
 
@@ -10,7 +10,7 @@ class ARState: ObservableObject {
 
     // Coordinator와 통신할 명령 스트림
     let actionStream = PassthroughSubject<ARAction, Never>()
-    
+
     // GameManager 싱글톤 인스턴스
     @ObservedObject var gameManager = GameManager.shared
 
@@ -26,10 +26,10 @@ class ARState: ObservableObject {
 //    @Published var yutResult: Int = 1
     @Published var yutResult: YutResult? = nil
 
-
     // Coordinator 참조 추가
     weak var coordinator: ARCoordinator?
 
+    @Published var showFinalFrame: Bool = false
 }
 
 extension ARState {
@@ -37,8 +37,4 @@ extension ARState {
     func syncGameState() {
         coordinator?.syncGameState()
     }
-
-    
-    @Published var showFinalFrame: Bool = false
-
 }
