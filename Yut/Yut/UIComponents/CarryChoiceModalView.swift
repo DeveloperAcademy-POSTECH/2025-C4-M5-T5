@@ -68,24 +68,24 @@ struct CarryChoiceModalView: View {
     }
 }
 
-#Preview {
-    CarryChoiceModalExample()
-}
-
-// PreView용 테스트 뷰
-struct CarryChoiceModalExample: View {
-    @State private var showModal = false
-
-    var body: some View {
-        ZStack {
-            VStack(spacing: 20) {
-                Text("~ 윷놀이 중 ~")
-                    .font(.title)
-                Button("업을지 말지 선택 모달 띄우기") {
-                    showModal = true
-                }
-            }
-            CarryChoiceModalView(isPresented: $showModal)
-        }
-    }
-}
+//#Preview {
+//    CarryChoiceModalExample()
+//}
+//
+//// PreView용 테스트 뷰
+//struct CarryChoiceModalExample: View {
+//    @State private var showModal = false
+//
+//    var body: some View {
+//        ZStack {
+//            VStack(spacing: 20) {
+//                Text("~ 윷놀이 중 ~")
+//                    .font(.title)
+//                Button("업을지 말지 선택 모달 띄우기") {
+//                    showModal = true
+//                }
+//            }
+//            CarryChoiceModalView(isPresented: $showModal)
+//        }
+//    }
+//}
