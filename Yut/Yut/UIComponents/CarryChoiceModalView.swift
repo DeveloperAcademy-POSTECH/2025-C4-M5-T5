@@ -23,7 +23,7 @@ struct CarryChoiceModalView: View {
                     Text("두 말이 한 곳에서 만났어요!\n업을까요?")
                         .multilineTextAlignment(.center)
                         .font(.pretendard(.semiBold, size: 22))
-                        .padding(.top, 30)
+                        .padding(.top, 24)
                         .padding(.bottom, 4)
                         .lineSpacing(6)
                     
@@ -51,7 +51,7 @@ struct CarryChoiceModalView: View {
                         .cornerRadius(36)
                     }
                     .padding(.horizontal, 20)
-                    .padding(.bottom, 24)
+                    .padding(.bottom, 20)
                 }
                 .background(.ultraThinMaterial.opacity(0.8))
                 .background(.white1.opacity(0.8))
