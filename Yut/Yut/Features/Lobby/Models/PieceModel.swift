@@ -21,6 +21,7 @@ class PieceModel {
         self.position = position
         do {
             let tokenEntity: Entity = try ModelEntity.load(named: owner.pieceEntity)
+            tokenEntity.name = self.id.uuidString
             self.entity = tokenEntity
         } catch {
             print("모델 로딩 실패: \(error)")

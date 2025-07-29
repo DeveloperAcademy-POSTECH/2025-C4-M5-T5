@@ -52,43 +52,40 @@ class GestureHandler {
             
         case .selectingPieceToMove:
             guard let tappedEntity = arView.entity(at: tapLocation) else { return }
-            
-            // 탭 된 엔티티로부터 해당하는 PieceModel을 찾습니다.
             var currentEntity: Entity? = tappedEntity
             var pieceToMove: PieceModel?
             
+            // 탭 된 Tile Entity 의 UUID를 가지는 PieceModel 찾기
             while currentEntity != nil {
-                if let entityName = currentEntity?.name, entityName.starts(with: "yut_piece_") {
-                    pieceToMove = arState.gameManager.pieces.first(where: { $0.entity.name == entityName })
-                    if pieceToMove != nil { break }
+                if let name = currentEntity?.name, let uuid = UUID(uuidString: name) {
+                    if let piece = arState.gameManager.pieces.first(where: { $0.id == uuid }) {
+                        pieceToMove = piece
+                        break
+                    }
                 }
                 currentEntity = currentEntity?.parent
             }
             
-            // 현재 플레이어의 말이 맞는지 최종 확인
+            // 찾은 말의 주인이 현재 플레이어인지 ID로 비교
             guard let selectedPiece = pieceToMove,
-                  selectedPiece.owner == arState.gameManager.currentPlayer else {
+                  selectedPiece.owner.id == arState.gameManager.currentPlayer.id else {
                 print("❌ 현재 플레이어의 말이 아닙니다.")
                 return
             }
             
-            // 선택된 말의 이동 가능 경로를 GameManager에게 물어봅니다.
+            // 선택된 말의 이동 가능 경로 확인
             guard let yutResult = arState.gameManager.yutResult else { return }
             let destinations = arState.gameManager.routeOptions(for: selectedPiece, yutResult: yutResult, currentRouteIndex: selectedPiece.routeIndex)
             
             if destinations.isEmpty {
                 print("🚫 그 말은 움직일 수 없습니다.")
-                // TODO: 움직일 수 없다는 시각적 피드백 (예: 살짝 흔들기)을 주면 좋습니다.
+                // TODO: 말이 움직일 수 없는 경우가 있는지 체크하기
             } else {
-                // 갈 수 있는 목적지 타일들을 하이라이트합니다.
                 let destinationNames = destinations.map { $0.destinationID }
                 pieceManager.highlightTiles(named: destinationNames)
                 
-                // ARState에 선택된 말과 목적지 정보를 저장합니다.
                 arState.selectedPiece = selectedPiece
                 arState.availableDestinations = destinationNames
-                
-                // '목적지 선택' 단계로 전환합니다.
                 arState.gamePhase = .selectingDestination
             }
             
@@ -96,7 +93,7 @@ class GestureHandler {
         case .selectingDestination:
             guard let tappedEntity = arView.entity(at: tapLocation) else { return }
             
-            // 탭 된 것이 타일인지 확인합니다.
+            // 경로(타일)를 탭했는지 확인
             var currentEntity: Entity? = tappedEntity
             var tileName: String?
             while currentEntity != nil {
@@ -107,29 +104,26 @@ class GestureHandler {
                 currentEntity = currentEntity?.parent
             }
             
-            // 탭 된 타일이 이동 가능한 목적지 중 하나인지 확인합니다.
+            // 탭 된 타일이 이동 가능한 목적지 중 하나인지 확인
             if let name = tileName,
                arState.availableDestinations.contains(name),
                let pieceToMove = arState.selectedPiece {
                 
-                // ✨ 선택된 말이 '새 말'인지 '기존 말'인지 확인합니다.
+                // 선택된 말이 새 말인지 기존 말인지 확인
                 if pieceToMove.position == "_6_6" {
-                    // 위치가 "_6_6"이면, 처음 판에 놓는 것입니다.
                     pieceManager.placePieceOnBoard(piece: pieceToMove, on: name)
                 } else {
-                    // 그 외에는, 이미 판 위에 있던 말을 움직이는 것입니다.
                     pieceManager.movePiece(piece: pieceToMove.entity, to: name)
                 }
                 
-                // GameManager의 말 위치 정보를 업데이트합니다.
+                // 말 위치 정보 업데이트
                 arState.gameManager.move(piece: pieceToMove, to: name)
                 
-                // 하이라이트와 선택 정보를 모두 초기화합니다.
+                // 정보 초기화
                 pieceManager.clearAllHighlights()
                 arState.selectedPiece = nil
                 arState.availableDestinations = []
                 
-                // 턴을 종료합니다.
                 coordinator?.endTurn()
             }
             
