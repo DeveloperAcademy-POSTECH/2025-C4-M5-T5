@@ -111,7 +111,7 @@ class GameManager :ObservableObject {
         if targetCellID == "end" || targetCellID == "start" {
             return GameResult(
                 piece: piece,
-                cell: targetCellID,
+                cell: "_6_6",
                 didCapture: false,
                 didCarry: false,
                 gameEnded: true
