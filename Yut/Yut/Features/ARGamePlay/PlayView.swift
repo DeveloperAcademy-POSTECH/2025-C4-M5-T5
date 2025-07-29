@@ -164,5 +164,6 @@ struct PlayView : View {
                 }
             }
         }
+        .navigationBarBackButtonHidden(true)
     }
 }
