@@ -12,7 +12,7 @@ struct ProgressBar: View {
     var body: some View {
         ZStack(alignment: .leading) {
             // 전체 배경 바 (진행률과 관계없는 틀)
-            RoundedRectangle(cornerRadius: 28)
+            RoundedRectangle(cornerRadius: 12)
                 .fill(.ultraThinMaterial.opacity(0.8)) // 흐린 반투명 재질
 
             // 실제 진행률을 나타내는 채워지는 바
@@ -20,21 +20,21 @@ struct ProgressBar: View {
                 // 현재 진행률 비율 계산
                 let width = CGFloat(currentProgress / minRequiredArea) * geometry.size.width
 
-                RoundedRectangle(cornerRadius: 28)
+                RoundedRectangle(cornerRadius: 12)
                     .fill(.white3) // 사용자 정의 색상
                     .frame(width: width) // 진행된 비율만큼 너비 지정
             }
 
             // 가운데 표시되는 안내 텍스트
             Text(text)
-                .font(.system(size: 20))
+                .font(.system(size: 18))
                 .fontWeight(.medium)
                 .foregroundColor(.black)
                 .frame(maxWidth: .infinity) // 가운데 정렬
         }
         .frame(height: 72)
-        .cornerRadius(28)
-        .padding(.horizontal, 16)
+        .cornerRadius(12)
+        .padding(.horizontal, 20)
     }
 }
 

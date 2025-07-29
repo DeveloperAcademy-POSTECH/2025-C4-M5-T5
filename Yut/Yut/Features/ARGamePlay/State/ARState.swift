@@ -27,5 +27,4 @@ class ARState: ObservableObject {
     @Published var yutResult: YutResult? = nil
     
     @Published var showFinalFrame: Bool = false
-
 }
