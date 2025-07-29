@@ -25,6 +25,20 @@ class ARState: ObservableObject {
     // 윷 결과 (도:1 ~ 모:5)
 //    @Published var yutResult: Int = 1
     @Published var yutResult: YutResult? = nil
+
+
+    // Coordinator 참조 추가
+    weak var coordinator: ARCoordinator?
+
+}
+
+extension ARState {
+    // 게임 상태를 다른 피어들과 동기화
+    func syncGameState() {
+        coordinator?.syncGameState()
+    }
+
     
     @Published var showFinalFrame: Bool = false
+
 }

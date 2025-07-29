@@ -15,6 +15,7 @@ struct WaitingRoomView: View {
     
     @StateObject private var viewModel: WaitingRoomViewModel
     @EnvironmentObject private var navigationManager: NavigationManager
+    @State private var isNavigatingToPlayView = false
     
     init(room: RoomModel, navigationManager: NavigationManager) {
         self.room = room
@@ -88,9 +89,22 @@ struct WaitingRoomView: View {
             Text("Host가 나가면 방이 사라지고 모든 게스트가 나가게 됩니다.")
         }
         .navigationBarBackButtonHidden(true)
+        .onReceive(NotificationCenter.default.publisher(for: .gameStarted)) { _ in
+            isNavigatingToPlayView = true
+        }
+        .background(
+            NavigationLink(destination: PlayView(), isActive: $isNavigatingToPlayView) {
+                EmptyView()
+            }
+        )
     }
     
     func startGame() {
+        // Host가 게임 시작 신호를 보내는 로직
+        if viewModel.isHost {
+            // MPCManager를 통해 게임 시작 신호 전송
+            MPCManager.shared.sendStartGameSignal()
+        }
         navigationManager.push(.playView)
     }
 }
