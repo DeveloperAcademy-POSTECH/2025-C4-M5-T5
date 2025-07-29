@@ -94,7 +94,14 @@ class GameManager :ObservableObject {
                 if nextIndex < route.count {
                     let destinationID = route[nextIndex]
                     options.append((routeIndex, destinationID))
+                } else if (nextIndex < 0){
+                    let destinationID = "start"
+                    options.append((routeIndex, destinationID))
+                } else {
+                    let destinationID = "end"
+                    options.append((routeIndex, destinationID))
                 }
+                
             }
         }
         return options
