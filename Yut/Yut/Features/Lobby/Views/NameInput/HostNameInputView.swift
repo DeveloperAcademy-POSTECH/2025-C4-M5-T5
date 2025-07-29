@@ -1,12 +1,12 @@
-//HostNameInputView.swift
+// HostNameInputView.swift
 //  HostNameInputView.swift
 //  Yut
 //
 //  Created by Hwnag Seyeon on 7/17/25.
 //
 
-import SwiftUI
 import MultipeerConnectivity
+import SwiftUI
 
 struct HostNameInputView: View {
     @State private var host_nickname: String = ""
@@ -25,10 +25,9 @@ struct HostNameInputView: View {
                 nickname: $host_nickname,
                 onSubmit: {
                     MPCManager.shared.isHost = true
-                    MPCManager.shared.myPeerID = MCPeerID(displayName: host_nickname)
-                    MPCManager.shared.updatePeerIDAndSession(with: host_nickname)
-                    MPCManager.shared.addHostPlayer(name: host_nickname)
                     MPCManager.shared.configurePeerAndSession(with: host_nickname)
+                    print("Host PeerID: \(MPCManager.shared.myPeerID.displayName)")
+                    MPCManager.shared.addHostPlayer(name: host_nickname)
                     MPCManager.shared.startAdvertising()
                     MPCManager.shared.sendPlayersUpdate()
 
@@ -36,6 +35,19 @@ struct HostNameInputView: View {
                         navigationManager.path.append(.waitingRoom(newRoom))
                     }
                 },
+//                onSubmit: {
+//                    MPCManager.shared.isHost = true
+//                    MPCManager.shared.myPeerID = MCPeerID(displayName: host_nickname)
+//                    MPCManager.shared.updatePeerIDAndSession(with: host_nickname)
+//                    MPCManager.shared.addHostPlayer(name: host_nickname)
+//                    MPCManager.shared.configurePeerAndSession(with: host_nickname)
+//                    MPCManager.shared.startAdvertising()
+//                    MPCManager.shared.sendPlayersUpdate()
+//
+//                    if let newRoom = MPCManager.shared.availableRooms.first(where: { $0.hostName == host_nickname }) {
+//                        navigationManager.path.append(.waitingRoom(newRoom))
+//                    }
+//                },
                 autoFocus: true
             )
         }

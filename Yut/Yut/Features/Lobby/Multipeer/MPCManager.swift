@@ -64,9 +64,26 @@ class MPCManager: NSObject, ObservableObject {
         print("✅ Guest added: \(guestPlayer.name), sequence: \(guestPlayer.sequence), profile: \(guestPlayer.profile)")
     }
     
+//    func disconnect() {
+//        session.disconnect()
+//        players.removeAll()
+//        print("🔌 Disconnected and players reset")
+//    }
     func disconnect() {
-        session.disconnect()
-        players.removeAll()
+        // Ensure session is non-nil before disconnecting
+        if session == nil {
+            session = MCSession(peer: myPeerID, securityIdentity: nil, encryptionPreference: .required)
+            session.delegate = self
+        }
+        
+        advertiser?.stopAdvertisingPeer()
+        advertiser = nil
+        browser?.stopBrowsingForPeers()
+        browser = nil
+        session?.disconnect()
+        session = nil
+        connectedPeers = []
+        players = []
         print("🔌 Disconnected and players reset")
     }
     
