@@ -38,6 +38,8 @@ final class BoardManager {
                 collisionShape: .generateBox(size: boxSize),
                 mass: 0.0
             )
+            invisibleBox.name = "YutBoardCollision" 
+            
             invisibleBox.position = boxPosition
             invisibleBox.components.set([
                 CollisionComponent(shapes: [.generateBox(size: boxSize)]),
