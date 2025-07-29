@@ -26,6 +26,7 @@ class ARState: ObservableObject {
 //    @Published var yutResult: Int = 1
     @Published var yutResult: YutResult? = nil
 
+
     // Coordinator 참조 추가
     weak var coordinator: ARCoordinator?
 
@@ -36,4 +37,8 @@ extension ARState {
     func syncGameState() {
         coordinator?.syncGameState()
     }
+
+    
+    @Published var showFinalFrame: Bool = false
+
 }
