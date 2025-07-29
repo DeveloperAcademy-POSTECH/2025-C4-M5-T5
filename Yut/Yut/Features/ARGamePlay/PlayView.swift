@@ -8,6 +8,7 @@ struct PlayView : View {
     @State private var showYutGatheringSequence: Bool = false
     @State private var showFinalFrame: Bool = false
     @State private var isAnimationDone: Bool = false
+    private let sound = SoundService()
     
     var body: some View {
         ZStack {
@@ -115,6 +116,7 @@ struct PlayView : View {
                     RoundedBrownButton(title: "윷 던지기 활성화!", isEnabled: true) {
                         showYutGatheringSequence = true
                         showFinalFrame = false
+                        sound.playcollectYutSound()
                         
                         // 1초 후 애니메이션 정지 → 마지막 프레임 보여주기 + 모션 감지 시작
                         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
