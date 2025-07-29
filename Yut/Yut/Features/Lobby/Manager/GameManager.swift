@@ -11,7 +11,7 @@ import Foundation
 import SwiftUI
 import MultipeerConnectivity
 
-enum YutResult: Int {
+enum YutResult: Int, Identifiable, CaseIterable {
     case backdho = -1
     case dho = 1
     case gae = 2
@@ -21,6 +21,10 @@ enum YutResult: Int {
     
     var steps: Int { rawValue }
     var isExtraTurn: Bool { self == .yut || self == .mo }
+    
+    // ForEach를 위한 id
+    var id: Int { rawValue }
+
 }
 
 struct GameResult {
