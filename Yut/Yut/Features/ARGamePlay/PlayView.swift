@@ -9,6 +9,7 @@ struct PlayView : View {
     @State private var showYutGatheringSequence: Bool = false
     @State private var showFinalFrame: Bool = false
     @State private var isAnimationDone: Bool = false
+    private let sound = SoundService()
     
     @State private var showThrowInstruction = true
     @State private var showThrowButton = true
@@ -130,7 +131,6 @@ struct PlayView : View {
                             showYutGatheringSequence = true
                             showFinalFrame = false
                             showYutGatheringSequence = true
-                            showFinalFrame = false
                             
                             DispatchQueue.main.asyncAfter(deadline: .now() + 1.3) {
                                 showYutGatheringSequence = false
