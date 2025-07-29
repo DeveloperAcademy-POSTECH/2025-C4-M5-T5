@@ -232,7 +232,7 @@ final class YutManager {
                 return
             }
         }
-
+        
         DispatchQueue.main.async {
             self.arState?.yutResult = result
             self.arState?.gamePhase = .showingYutResult

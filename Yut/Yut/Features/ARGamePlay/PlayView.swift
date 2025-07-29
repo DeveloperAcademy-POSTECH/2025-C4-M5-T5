@@ -5,9 +5,17 @@ import ARKit
 struct PlayView : View {
     // 상태 관리 객체 (AR의 현재 단계, 명령 스트림, 윷 결과 등 공유)
     @StateObject var arState = ARState()
+    
     @State private var showYutGatheringSequence: Bool = false
     @State private var showFinalFrame: Bool = false
     @State private var isAnimationDone: Bool = false
+    
+    @State private var showThrowInstruction = true
+    @State private var showThrowButton = true
+    
+    var currentPlayerSequence: Int {
+        arState.gameManager.currentPlayer.sequence
+    }
     
     var body: some View {
         ZStack {
@@ -55,7 +63,7 @@ struct PlayView : View {
                     // 1. 바닥 탐색 중 (아직 충분히 인식되지 않음)
                 case .searchingForSurface:
                     ProgressBar(
-                        text: "바닥을 충분히 색칠해 주세요.",
+                        text: "말판을 배치할 평면을 충분히 스캔해 주세요",
                         currentProgress: arState.recognizedArea,
                         minRequiredArea: arState.minRequiredArea
                     )
@@ -69,16 +77,16 @@ struct PlayView : View {
                     
                     // 2. 사용자가 탭으로 보드를 놓는 단계
                 case .placeBoard:
-                    InstructionView(text: "탭해서 말판을 배치하세요.")
+                    InstructionView(text: "탭해서 말판을 배치하세요")
                     Spacer()
                     EmptyView() // 버튼 없음
                     
                     // 3. 핀치/드래그로 위치/크기 조정 단계
                 case .adjustingBoard:
-                    InstructionView(text: "핀치와 드래그로\n보드의 크기와 위치를 조정하세요.")
+                    InstructionView(text: "말판의 크기와 위치를 조정하세요")
                     Spacer()
                     // 보드 확정 및 시각화 종료
-                    RoundedBrownButton(title: "여기에 배치", isEnabled: true) {
+                    RoundedBrownButton(title: "배치하기", isEnabled: true) {
                         arState.actionStream.send(.fixBoardPosition)
                         arState.actionStream.send(.disablePlaneVisualization)
                         arState.actionStream.send(.preloadYutModels)
@@ -95,14 +103,15 @@ struct PlayView : View {
                     
                     // 5. 윷 던지기 준비 단계
                 case .readyToThrow:
-                    InstructionView(text: "버튼을 누르고 기기를 흔들어 윷을 던지세요")
+                    if showThrowInstruction {
+                        InstructionView(text: "버튼을 누르고 기기를 흔들어 윷을 던지세요")
+                    }
+                    
                     Spacer()
                     
                     HStack(spacing: 10) {
-                        // YutResult의 모든 케이스를 순회하며 버튼을 만듭니다.
                         ForEach(YutResult.allCases) { result in
                             Button(result.displayText) {
-                                // 버튼을 누르면 테스트용 액션을 보냅니다.
                                 arState.actionStream.send(.setYutResultForTesting(result))
                             }
                             .padding()
@@ -112,16 +121,22 @@ struct PlayView : View {
                             .font(.system(size: 14, weight: .bold))
                         }
                     }
-                    RoundedBrownButton(title: "윷 던지기 활성화!", isEnabled: true) {
-                        showYutGatheringSequence = true
-                        showFinalFrame = false
-                        
-                        // 1초 후 애니메이션 정지 → 마지막 프레임 보여주기 + 모션 감지 시작
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                            showYutGatheringSequence = false
+                    
+                    // sequence 값 기반 버튼 표시
+                    let currentPlayer = arState.gameManager.currentPlayer
+                    
+                    if showThrowButton {
+                        YutThrowButton(sequence: currentPlayer.sequence) {
+                            showYutGatheringSequence = true
+                            showFinalFrame = false
+                            showYutGatheringSequence = true
+                            showFinalFrame = false
                             
-                            showFinalFrame = true
-                            arState.actionStream.send(.startMonitoringMotion)
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.3) {
+                                showYutGatheringSequence = false
+                                showFinalFrame = true
+                                arState.actionStream.send(.startMonitoringMotion)
+                            }
                         }
                     }
                     
