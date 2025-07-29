@@ -128,6 +128,7 @@ final class PieceManager {
         }
         
         let pieceEntity = piece.entity // PlayerModel.load()가 이미 로드해 둔 엔티티
+        pieceEntity.name = piece.id.uuidString
         
         pieceEntity.generateCollisionShapes(recursive: true)
         pieceEntity.scale = [0.3, 8.0, 0.3]
