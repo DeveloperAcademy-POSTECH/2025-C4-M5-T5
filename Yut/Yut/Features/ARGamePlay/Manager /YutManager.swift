@@ -220,7 +220,6 @@ final class YutManager {
 
         DispatchQueue.main.async {
             self.arState?.yutResult = result
-            self.arState?.gamePhase = .showingYutResult
         }
 
         coordinator.yutThrowCompleted(with: result)

@@ -133,13 +133,13 @@ class ARCoordinator: NSObject, ARSessionDelegate {
         
         guard let arState = self.arState else { return }
         
-        // 1. GameManager에 윷 결과를 업데이트합니다.
+        // 윷 결과 업데이트 (UI 반영, 매니저에게 전달)
+        arState.yutResult = result
         arState.gameManager.yutResult = result
         print("\(result)")
-        // 2. 이전에 있던 하이라이트를 모두 제거합니다.
+        
         self.pieceManager.clearAllHighlights()
         
-        // 3. 다음 단계는 '윷 던지기 결과 표시' 3초 후 '움직일 말 선택'이 됩니다.
         DispatchQueue.main.async {
             arState.gamePhase = .showingYutResult
             
