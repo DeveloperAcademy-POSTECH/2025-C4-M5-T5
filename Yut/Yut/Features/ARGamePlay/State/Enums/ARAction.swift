@@ -7,5 +7,5 @@ enum ARAction {
     case setupNewGame                       // 새 게임 시작
     case preloadYutModels                   // 윷 미리 선언
     case startMonitoringMotion              // 윷 던지기 감지 시작 (CoreMotion)
-
+    case setYutResultForTesting(YutResult)  // 테스트용 윷 결과 생성
 }

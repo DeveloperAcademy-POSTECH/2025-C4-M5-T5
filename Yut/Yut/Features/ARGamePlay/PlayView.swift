@@ -85,8 +85,7 @@ struct PlayView : View {
                     VStack {
                         InstructionView(text: "\(arState.gameManager.currentPlayer.name)의 턴: 움직일 말을 탭하세요.")
                         Spacer()
-                        
-                        // 만약 현재 플레이어가 판 밖에 둔 말이 있다면, '새 말 놓기' 버튼을 보여줍니다.
+
                         if arState.gameManager.currentPlayerHasOffBoardPieces {
                             RoundedBrownButton(title: "새 말 놓기", isEnabled: true) {
                                 arState.actionStream.send(.showDestinationsForNewPiece)
