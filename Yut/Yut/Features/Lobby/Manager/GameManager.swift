@@ -115,7 +115,7 @@ class GameManager :ObservableObject {
     
     @discardableResult
     func applyMoveResult(piece: PieceModel, to targetCellID: String, userChooseToCarry: Bool) -> GameResult {
-        if targetCellID == "end" || targetCellID == "start" {
+        if targetCellID == "end" {
             return GameResult(
                 piece: piece,
                 cell: "_6_6",
@@ -123,7 +123,16 @@ class GameManager :ObservableObject {
                 didCarry: false,
                 gameEnded: true
             )
+        } else if (targetCellID == "start") {
+            return GameResult(
+                piece: piece,
+                cell: "_5_6",
+                didCapture: false,
+                didCarry: false,
+                gameEnded: true
+            )
         }
+        
         
         let existingPieces = cellStates[targetCellID] ?? []
         
