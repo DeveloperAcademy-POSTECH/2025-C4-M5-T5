@@ -38,10 +38,10 @@ struct ProgressBar: View {
     }
 }
 
-#Preview {
-    ProgressBar(
-        text: "바닥을 충분히 색칠해주세요",
-        currentProgress: 8,
-        minRequiredArea: 15
-    )
-}
+//#Preview {
+//    ProgressBar(
+//        text: "바닥을 충분히 색칠해주세요",
+//        currentProgress: 8,
+//        minRequiredArea: 15
+//    )
+//}

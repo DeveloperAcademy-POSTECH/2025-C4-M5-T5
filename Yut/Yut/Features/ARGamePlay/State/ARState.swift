@@ -25,5 +25,7 @@ class ARState: ObservableObject {
     // 윷 결과 (도:1 ~ 모:5)
 //    @Published var yutResult: Int = 1
     @Published var yutResult: YutResult? = nil
+    
+    @Published var showFinalFrame: Bool = false
 
 }

@@ -5,7 +5,9 @@ import ARKit
 struct PlayView : View {
     // 상태 관리 객체 (AR의 현재 단계, 명령 스트림, 윷 결과 등 공유)
     @StateObject var arState = ARState()
-    @State private var showGatheringVideo: Bool = false
+    @State private var showYutGatheringSequence: Bool = false
+    @State private var showFinalFrame: Bool = false
+    @State private var isAnimationDone: Bool = false
     
     var body: some View {
         ZStack {
@@ -22,15 +24,29 @@ struct PlayView : View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color.clear)
-                .zIndex(999)
+                .zIndex(1)
             }
             
-//            if showGatheringVideo {
-//                YutGatheringVideoView()
-//                    .ignoresSafeArea()
-//                    .transition(.opacity)
-//                    .zIndex(10)
-//            }
+            if showYutGatheringSequence {
+                YutGatheringSequenceView(isAnimationDone: $isAnimationDone)
+                    .ignoresSafeArea()
+                    .transition(.opacity)
+                    .zIndex(3)
+                    .padding(.top, 40)
+            }
+            
+            if arState.showFinalFrame {
+                GeometryReader { geometry in
+                    Image("Yut.0030")
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+                        .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
+                        .ignoresSafeArea()
+                        .zIndex(2)
+                        .padding(.top, 38)
+                }
+            }
             
             VStack {
                 // 게임 상태에 따라 상단 안내 뷰 + 하단 인터랙션 UI를 함께 표시
@@ -79,7 +95,7 @@ struct PlayView : View {
                     
                     // 5. 윷 던지기 준비 단계
                 case .readyToThrow:
-                    InstructionView(text: "버튼을 눌러 윷을 던져랏")
+                    InstructionView(text: "버튼을 누르고 기기를 흔들어 윷을 던지세요")
                     Spacer()
                     
                     HStack(spacing: 10) {
@@ -97,15 +113,16 @@ struct PlayView : View {
                         }
                     }
                     RoundedBrownButton(title: "윷 던지기 활성화!", isEnabled: true) {
-                        //                        showGatheringVideo = true
-                        //
-                        //                        // 영상 재생 도중 다른 동작 방지 위해 잠시 지연 후 실제 액션 실행
-                        //                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
-                        //                                arState.actionStream.send(.startMonitoringMotion)
-                        //                                showGatheringVideo = false
-                        //                            }
-                        arState.actionStream.send(.startMonitoringMotion)
+                        showYutGatheringSequence = true
+                        showFinalFrame = false
                         
+                        // 1초 후 애니메이션 정지 → 마지막 프레임 보여주기 + 모션 감지 시작
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                            showYutGatheringSequence = false
+                            
+                            showFinalFrame = true
+                            arState.actionStream.send(.startMonitoringMotion)
+                        }
                     }
                     
                     // 5.5 윷 던지기 결과 표시

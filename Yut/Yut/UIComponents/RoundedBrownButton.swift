@@ -34,9 +34,3 @@ struct RoundedBrownButton: View {
         .disabled(!isEnabled) // 버튼 비활성화 처리
     }
 }
-
-#Preview {
-    RoundedBrownButton(title: "sdf", isEnabled: true) {
-        
-    }
-}

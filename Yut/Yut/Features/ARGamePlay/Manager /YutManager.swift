@@ -47,12 +47,27 @@ final class YutManager {
 //            print("\u274c \uB514\uBC84\uC774\uC2A4 \uBAA8\uC158 \uC0AC\uC6A9 \uBD88\uAC00")
             return
         }
+
+        self.arState?.showFinalFrame = true
+
         motionManager.deviceMotionUpdateInterval = 0.05
         motionManager.startDeviceMotionUpdates(to: .main) { [weak self] motion, _ in
             guard let self, let motion = motion else { return }
-            let acc = motion.userAcceleration
-            let magnitude = sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z)
-            if magnitude > 1.5, Date().timeIntervalSince(self.lastThrowTime) > 1.0 {
+            
+            let acceleration = motion.userAcceleration
+            let magnitude = sqrt(acceleration.x * acceleration.x +
+                                 acceleration.y * acceleration.y +
+                                 acceleration.z * acceleration.z)
+            
+            let threshold = 1.5
+            let cooldown: TimeInterval = 1.0
+            
+            if magnitude > threshold,
+               Date().timeIntervalSince(self.lastThrowTime) > cooldown {
+                DispatchQueue.main.async {
+                    self.arState?.showFinalFrame = false
+                }
+                
                 self.lastThrowTime = Date()
                 subscribeToYutCollisions()
                 self.throwYuts()
