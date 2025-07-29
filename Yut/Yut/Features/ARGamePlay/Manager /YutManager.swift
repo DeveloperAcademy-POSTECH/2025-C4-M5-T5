@@ -103,13 +103,13 @@ final class YutManager {
                 return
             }
             
-            print("💥 충돌 감지: \(a.name) & \(b.name), impulse: \(event.impulse)")
+            // print("💥 충돌 감지: \(a.name) & \(b.name), impulse: \(event.impulse)")
             
             let impulse = event.impulse
             
             // 1. 너무 약한 충돌은 무시 (여기서 걸러냄)
             guard impulse >= 0.4 else {
-                print("⚠️ 너무 약한 충돌 무시됨: \(impulse)")
+                // print("⚠️ 너무 약한 충돌 무시됨: \(impulse)")
                 return
             }
             
