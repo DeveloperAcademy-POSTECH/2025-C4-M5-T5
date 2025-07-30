@@ -55,7 +55,7 @@ struct PlayView: View {
                     Image("Yut.0030")
                         .resizable()
                         .scaledToFill()
-                        .frame(width: geometry.size.width, height: geometry.size.height)
+                        .frame(width: geometry.size.width + 60, height: geometry.size.height + 60)
                         .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
                         .ignoresSafeArea()
                         .zIndex(2)
@@ -124,19 +124,15 @@ struct PlayView: View {
                     
                     // 5. 윷 던지기 준비 단계
                 case .readyToThrow:
-                    // 윷 던지기 준비 상태
                     if arState.showThrowButton {
-                        // 안내 메시지를 조건에 따라 표시
                         InstructionView(text: "버튼을 누르고 기기를 흔들어 윷을 던지세요")
                         
+                        Spacer()
                         
-                        Spacer() // 위와 아래 요소 간 여백 확보
-                        
-                        // 테스트용 윷 결과 버튼 (디버깅이나 임시 시연용)
+                        // 테스트 용
                         HStack(spacing: 10) {
                             ForEach(YutResult.allCases) { result in
                                 Button(result.displayText) {
-                                    // 테스트 결과를 강제로 설정 (예: 도/개/걸/윷/모)
                                     arState.actionStream.send(.setYutResultForTesting(result))
                                 }
                                 .padding()
@@ -149,24 +145,18 @@ struct PlayView: View {
                         
                         // 현재 플레이어 정보 추출
                         let currentPlayer = arState.gameManager.currentPlayer
-                        
-                        // 윷 던지기 버튼 표시 조건
-                        //                        if arState.showThrowButton {
+
                         YutThrowButton(sequence: currentPlayer.sequence) {
                             arState.showThrowButton = false
-                            // 1. 윷 수거 애니메이션 시퀀스 시작
                             showYutGatheringSequence = true
                             showFinalFrame = false // 최종 프레임 숨김 (겹침 방지용)
-                            
-                            // 2. 효과음 재생
-                            sound.playcollectYutSound()
-                            
-                            // 3. 약간의 지연 후, 실제 윷 던지기 시작
+
+                            sound.playCollectYutSound()
+
                             DispatchQueue.main.asyncAfter(deadline: .now() + 1.3) {
                                 showYutGatheringSequence = false // 윷 수거 애니메이션 종료
                                 showFinalFrame = true // 다시 프레임 표시
-                                
-                                // 4. 모션 감지 시작 (ARState에서 모션 감지 시작 신호를 전달)
+
                                 arState.actionStream.send(.startMonitoringMotion)
                             }
                         }

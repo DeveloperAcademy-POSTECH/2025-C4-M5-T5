@@ -22,8 +22,8 @@ struct YutGatheringSequenceView: View {
             Image(uiImage: loadFrame(index: frameIndex))
                 .resizable()
                 .scaledToFill()
-                .frame(width: width, height: height)
-                .clipped()
+                .frame(width: width + 60, height: height + 60)
+                .position(x: width / 2, y: height / 2)
                 .ignoresSafeArea()
                 .onAppear {
                     startAnimation()
