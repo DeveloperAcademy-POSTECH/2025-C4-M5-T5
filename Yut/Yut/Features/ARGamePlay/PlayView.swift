@@ -120,35 +120,36 @@ struct PlayView : View {
                     
                     // 5. 윷 던지기 준비 단계
                 case .readyToThrow:
-                    // 윷 던지기 준비 상태
-                    if arState.showThrowButton {
-                        // 안내 메시지를 조건에 따라 표시
-                        InstructionView(text: "버튼을 누르고 기기를 흔들어 윷을 던지세요")
-                        
-                        
-                        Spacer() // 위와 아래 요소 간 여백 확보
-                        
-                        // 테스트용 윷 결과 버튼 (디버깅이나 임시 시연용)
-                        HStack(spacing: 10) {
-                            ForEach(YutResult.allCases) { result in
-                                Button(result.displayText) {
-                                    // 테스트 결과를 강제로 설정 (예: 도/개/걸/윷/모)
-                                    arState.actionStream.send(.setYutResultForTesting(result))
-                                }
-                                .padding()
-                                .background(Color.brown.opacity(0.8))
-                                .foregroundColor(.white)
-                                .cornerRadius(10)
-                                .font(.system(size: 14, weight: .bold))
-                            }
-                        }
-                        
-                        // 현재 플레이어 정보 추출
+                    VStack {
+                        // 현재 플레이어 정보 추출 (조건문 밖으로 이동)
                         let currentPlayer = arState.gameManager.currentPlayer
-                        
-                        // 윷 던지기 버튼 표시 조건
-//                        if arState.showThrowButton {
+                                                
+                        if arState.showThrowButton {
+                            // 안내 메시지를 조건에 따라 표시
+                            InstructionView(text: "버튼을 누르고 기기를 흔들어 윷을 던지세요")
+                            
+                            
+                            Spacer() // 위와 아래 요소 간 여백 확보
+                            
+                            // 테스트용 윷 결과 버튼 (디버깅이나 임시 시연용)
+                            HStack(spacing: 10) {
+                                ForEach(YutResult.allCases) { result in
+                                    Button(result.displayText) {
+                                        // 테스트 결과를 강제로 설정 (예: 도/개/걸/윷/모)
+                                        arState.actionStream.send(.setYutResultForTesting(result))
+                                    }
+                                    .padding()
+                                    .background(Color.brown.opacity(0.8))
+                                    .foregroundColor(.white)
+                                    .cornerRadius(10)
+                                    .font(.system(size: 14, weight: .bold))
+                                }
+                            }
+                            
+                            // 윷 던지기 버튼 표시 조건
                             YutThrowButton(sequence: currentPlayer.sequence) {
+                                
+                                
                                 arState.showThrowButton = false
                                 // 1. 윷 수거 애니메이션 시퀀스 시작
                                 showYutGatheringSequence = true
@@ -166,8 +167,13 @@ struct PlayView : View {
                                     arState.actionStream.send(.startMonitoringMotion)
                                 }
                             }
-//                        }
+                        }
+                    }.onAppear {
+                        // 윷 던지기 준비 상태
+                        arState.showThrowButton = true
+                        
                     }
+                    
                     
                     // 5.5 윷 던지기 결과 표시
                 case .showingYutResult:

@@ -189,7 +189,14 @@ class ARCoordinator: NSObject, ARSessionDelegate {
         DispatchQueue.main.async {
             arState.gamePhase = .showingYutResult
             
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                // 1. 던져진 윷 제거
+                if let yutManager = arState.coordinator?.yutManager {
+                    for yutModel in yutManager.thrownYuts {
+                        yutModel.entity.parent?.removeFromParent()
+                    }
+                    yutManager.thrownYuts.removeAll()
+                }
                 arState.gamePhase = .selectingPieceToMove
             }
         }
@@ -210,6 +217,7 @@ class ARCoordinator: NSObject, ARSessionDelegate {
         
         // 다시 윷을 던질 준비 상태로 돌아갑니다.
         arState.gamePhase = .readyToThrow
+        
     }
     
     // MARK: - MPC 협업 기능
