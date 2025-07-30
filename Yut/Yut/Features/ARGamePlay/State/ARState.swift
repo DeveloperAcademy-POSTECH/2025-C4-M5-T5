@@ -6,7 +6,8 @@ import SwiftUI
 
 class ARState: ObservableObject {
     // 현재 앱 상태 (초기값: 평면 탐색)
-    @Published var gamePhase: GamePhase = .searchingForSurface
+    @Published var sessionUUID: UUID = UUID()
+    @Published var gamePhase: GamePhase = .arSessionLoading
 
     // Coordinator와 통신할 명령 스트림
     let actionStream = PassthroughSubject<ARAction, Never>()

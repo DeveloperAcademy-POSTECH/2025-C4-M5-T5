@@ -33,6 +33,7 @@ class ARCoordinator: NSObject, ARSessionDelegate {
     var planeManager: PlaneManager!
     var pieceManager: PieceManager!
     var yutManager: YutManager!
+    var assetCacheManager: AssetCacheManager!
     var actionStreamHandler: ActionStreamHandler!
     
     // MARK: - 초기화
@@ -41,8 +42,9 @@ class ARCoordinator: NSObject, ARSessionDelegate {
         super.init()
         self.boardManager = BoardManager(coordinator: self)
         self.planeManager = PlaneManager(coordinator: self)
-        self.pieceManager = PieceManager()
+        self.pieceManager = PieceManager(coordinator: self)
         self.yutManager = YutManager(coordinator: self)
+        self.assetCacheManager = AssetCacheManager()
         self.gestureHandler = GestureHandler(coordinator: self)
         self.actionStreamHandler = ActionStreamHandler(coordinator: self)
     }
@@ -106,6 +108,14 @@ class ARCoordinator: NSObject, ARSessionDelegate {
         }
     }
     
+    func session(_ session: ARSession, didRemove anchors: [ARAnchor]) {
+        for anchor in anchors {
+            if let planeAnchor = anchor as? ARPlaneAnchor {
+                planeManager.removePlane(for: planeAnchor)
+            }
+        }
+    }
+    
     // MARK: - Game Flow Control
     
     // '새 게임 준비' 액션을 처리하는 함수
@@ -113,23 +123,25 @@ class ARCoordinator: NSObject, ARSessionDelegate {
         Task {
             // Main 스레드
             // GameManager 설정, 게임 상태 변경
+            @MainActor in
             
-            await MainActor.run {
-                // PlayerModel 로드 (PeerID 임시값)
-                let player1 = PlayerModel(name: "노랑", sequence: 1, peerID: MCPeerID(displayName: "Player1"))
-                let player2 = PlayerModel(name: "초록", sequence: 2, peerID: MCPeerID(displayName: "Player2"))
-                
-                guard let arState = self.arState else { return }
-                
-                // GameManager에 실제 플레이어 정보로 새 게임을 설정
-                arState.gameManager.startGame(with: [player1, player2])
-                
-                // PieceManager 윷판 앵커를 알 수 있도록 연결
-                self.pieceManager.boardAnchor = self.boardManager.yutBoardAnchor
-                
-                // 준비 끝, 상태 전환
-                arState.gamePhase = .readyToThrow
-            }
+            // PlayerModel 로드 (PeerID 임시값)
+//            let player1 = PlayerModel(name: "노랑", sequence: 1, peerID: MCPeerID(displayName: "Player1"))
+//            let player2 = PlayerModel(name: "초록", sequence: 2, peerID: MCPeerID(displayName: "Player2"))
+            let players = MPCManager.shared.players
+            
+            guard let arState = self.arState else { return }
+            
+            // GameManager에 실제 플레이어 정보로 새 게임을 설정
+//            arState.gameManager.startGame(with: [player1, player2])
+            arState.gameManager.startGame(with: players)
+            
+            // PieceManager 윷판 앵커를 알 수 있도록 연결
+            self.pieceManager.boardAnchor = self.boardManager.yutBoardAnchor
+            
+            // 준비 끝, 상태 전환
+            arState.gamePhase = .readyToThrow
+            
         }
     }
     

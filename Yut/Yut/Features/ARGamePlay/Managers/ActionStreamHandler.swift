@@ -34,8 +34,10 @@ final class ActionStreamHandler {
             coordinator.showDestinationsForNewPiece()
 
         // setupNewGame에서 실행해도 괜찮을 듯
-        case .preloadYutModels:
-            coordinator.yutManager.preloadYutModels()
+        case .preloadModels:
+            Task { @MainActor in
+                    await coordinator.assetCacheManager.preloadAll()
+                }
         
         case .startMonitoringMotion:
             coordinator.yutManager.startMonitoringMotion()

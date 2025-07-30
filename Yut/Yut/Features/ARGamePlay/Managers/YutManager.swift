@@ -46,7 +46,6 @@ final class YutManager {
     // MARK: - Motion Detection
     func startMonitoringMotion() {
         guard motionManager.isDeviceMotionAvailable else {
-            //            print("\u274c \uB514\uBC84\uC774\uC2A4 \uBAA8\uC158 \uC0AC\uC6A9 \uBD88\uAC00")
             return
         }
 
@@ -72,12 +71,13 @@ final class YutManager {
                 
                 self.lastThrowTime = Date()
                 subscribeToYutCollisions()
+                
                 self.throwYuts()
             }
         }
     }
     
-    // MARK: - Collision Subscription
+    // MARK: - 햅틱
     func subscribeToYutCollisions() {
         guard let scene = arView?.scene else { return }
         
@@ -103,8 +103,8 @@ final class YutManager {
                 return
             }
             
-            // print("💥 충돌 감지: \(a.name) & \(b.name), impulse: \(event.impulse)")
-            
+            print("💥 충돌 감지: \(a.name) & \(b.name), impulse: \(event.impulse)")
+
             let impulse = event.impulse
             
             // 1. 너무 약한 충돌은 무시 (여기서 걸러냄)
@@ -137,22 +137,28 @@ final class YutManager {
         
         let spacing: Float = 0.01
         
-        for i in 0..<yutNames.count {
-            guard let original = preloadedModels[yutNames[i]] else {
-//                print("\u274c \uC0AC\uC804 \uB85C\uB529\uB418\uC9C0 \uC54A\uC740 \uBAA8\uB378: \(yutNames[i])")
-                continue
-            }
-            let yut = original.clone(recursive: true)
-            let yutModel = YutModel(entity: yut, isFrontUp: nil)
-            thrownYuts.append(yutModel)
-            
-            let physMaterial = PhysicsMaterialResource.generate(
-                staticFriction: 1.0,
-                dynamicFriction: 1.0,
-                restitution: 0.0
-            )
-            
-            Task { @MainActor in
+        // 2. Task에서 비동기 처리
+        Task { @MainActor in
+            for i in 0..<yutNames.count {
+                
+                // ✅ AssetCacheManager에서 비동기 로드
+                guard let original = coordinator.assetCacheManager.cachedModel(named: yutNames[i]) else {
+                    print("❌ 캐시된 모델 없음: \(yutNames[i])")
+                    continue
+                }
+                let yut = original.clone(recursive: true)
+                
+                let yutModel = YutModel(entity: yut, isFrontUp: nil)
+                thrownYuts.append(yutModel)
+                
+                // 3. 물리 설정
+                let physMaterial = PhysicsMaterialResource.generate(
+                    staticFriction: 1.0,
+                    dynamicFriction: 1.0,
+                    restitution: 0.0
+                )
+                
+                // 4. 충돌면 설정
                 if let modelComponent = yut.components[ModelComponent.self] {
                     do {
                         let shape = try await ShapeResource.generateConvex(from: modelComponent.mesh)
@@ -161,40 +167,44 @@ final class YutManager {
                         yut.generateCollisionShapes(recursive: true)
                     }
                 }
+                
+                yut.physicsBody = PhysicsBodyComponent(
+                    massProperties: .init(mass: 5),
+                    material: physMaterial,
+                    mode: .dynamic
+                )
+                
+                // 5. 위치 계산
+                guard let camTransform = arView.session.currentFrame?.camera.transform else { return }
+                
+                var translation = matrix_identity_float4x4
+                translation.columns.3.z = -0.1
+                translation.columns.3.y += (Float(i) - 0.5) * spacing
+                let finalTransform = simd_mul(camTransform, translation)
+                
+                let rotation = simd_quatf(angle: .pi / 2, axis: SIMD3<Float>(0, 0, 1))
+                let baseTransform = Transform(matrix: finalTransform)
+                yut.transform = Transform(rotation: rotation * baseTransform.rotation)
+                
+                // 6. 힘 적용
+                let forward = -simd_make_float3(camTransform.columns.2)
+                let flatForward = simd_normalize(SIMD3<Float>(forward.x, 0, forward.z))
+                let upward = SIMD3<Float>(0, 3, 0)
+                let velocity = flatForward * 1.0 + upward
+                
+                // 약간의 딜레이 후 힘 적용
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+                    yut.components.set(PhysicsMotionComponent(linearVelocity: velocity))
+                }
+                
+                // 7. 엔티티 추가
+                yut.components.set(InputTargetComponent())
+                let anchor = AnchorEntity(world: finalTransform)
+                anchor.addChild(yut)
+                arView.scene.addAnchor(anchor)
             }
-            
-            yut.physicsBody = PhysicsBodyComponent(
-                massProperties: .init(mass: 5),
-                material: physMaterial,
-                mode: .dynamic
-            )
-            
-            guard let camTransform = arView.session.currentFrame?.camera.transform else { return }
-            var translation = matrix_identity_float4x4
-            translation.columns.3.z = -0.1
-            translation.columns.3.y += (Float(i) - 0.5) * spacing
-            let finalTransform = simd_mul(camTransform, translation)
-            
-            let rotation = simd_quatf(angle: .pi / 2, axis: SIMD3<Float>(0, 0, 1))
-            let baseTransform = Transform(matrix: finalTransform)
-            yut.transform = Transform(rotation: rotation * baseTransform.rotation)
-            
-            let forward = -simd_make_float3(camTransform.columns.2)
-            let flatForward = simd_normalize(SIMD3<Float>(forward.x, 0, forward.z))
-            let upward = SIMD3<Float>(0, 3, 0)
-            let velocity = flatForward * 1.0 + upward
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
-                yut.components.set(PhysicsMotionComponent(linearVelocity: velocity))
-            }
-            
-            yut.components.set(InputTargetComponent())
-            let anchor = AnchorEntity(world: finalTransform)
-            anchor.addChild(yut)
-            arView.scene.addAnchor(anchor)
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            // 8. 평가 대기 타이머
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
             self.waitUntilAllYutsStopAndEvaluate()
         }
     }

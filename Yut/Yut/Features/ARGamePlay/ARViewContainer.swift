@@ -40,20 +40,11 @@ struct ARViewContainer: UIViewRepresentable {
         arView.addGestureRecognizer(rotationGesture)
         
         // MARK: - AR 환경설정 (Configuration)
-        let config = ARWorldTrackingConfiguration()
-        config.planeDetection = [.horizontal, .vertical]
-        
-        // 협업 모드 활성화
-        config.isCollaborationEnabled = true
-        
-        if ARWorldTrackingConfiguration.supportsSceneReconstruction(.mesh) {
-            config.sceneReconstruction = .mesh
-        }
-        arView.environment.sceneUnderstanding.options.insert([.physics])
-        
+
+        // RealityKit Scene 초기화 (기존 AnchorEntity 제거)
+        arView.resetARSession(for: arView)
+
         arView.addCoachig()
-        arView.session.run(config, options: [.resetTracking, .removeExistingAnchors])
-        
         return arView
     }
     

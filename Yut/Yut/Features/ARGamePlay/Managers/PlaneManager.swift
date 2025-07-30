@@ -77,7 +77,17 @@ final class PlaneManager {
             print("❌ 평면 메시 업데이트 실패: \(error)")
         }
     }
-
+    
+    // 평면 제거 시 호출
+    func removePlane(for anchor: ARPlaneAnchor) {
+        guard let entity = planeEntities[anchor.identifier] else { return }
+        
+        entity.removeFromParent()
+        planeEntities.removeValue(forKey: anchor.identifier)
+        
+        print("🗑️ 평면 제거됨: \(anchor.identifier)")
+    }
+    
     func disablePlaneVisualization() {
         for (_, entity) in planeEntities {
             entity.model?.materials = [SimpleMaterial(color: .clear, isMetallic: false)]
