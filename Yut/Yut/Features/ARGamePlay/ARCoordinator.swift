@@ -211,12 +211,20 @@ class ARCoordinator: NSObject, ARSessionDelegate {
         if gameManager.yutResult?.isExtraTurn == false {
             gameManager.nextTurn()
             print("턴 종료! 다음 플레이어: \(gameManager.currentPlayer.name)")
+            arState.gamePhase = .readyToThrow
         } else {
+            self.arState?.yutResult = nil
+            DispatchQueue.main.async {
+                arState.gamePhase = .showingYutResult
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                    arState.gamePhase = .readyToThrow
+                }
+            }
             print("🎁 윷이나 모! 한 번 더 던지세요.")
         }
         
         // 다시 윷을 던질 준비 상태로 돌아갑니다.
-        arState.gamePhase = .readyToThrow
+//        arState.gamePhase = .readyToThrow
         
     }
     

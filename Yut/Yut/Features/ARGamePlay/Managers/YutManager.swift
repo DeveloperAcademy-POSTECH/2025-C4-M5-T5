@@ -233,7 +233,7 @@ final class YutManager {
 
             // relativeTo: nil → 월드 기준
             for yut in self.thrownYuts {
-                print(yut.entity.position(relativeTo: nil).y)
+//                print(yut.entity.position(relativeTo: nil).y)
                 let y = yut.entity.position(relativeTo: nil).y
                 if y < yutThreshold {
                     hasFallenYut = true
