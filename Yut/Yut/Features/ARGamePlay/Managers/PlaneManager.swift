@@ -44,7 +44,11 @@ final class PlaneManager {
 
         planeEntity.components.set(PhysicsBodyComponent(mode: .static))
 
-        let anchorEntity = AnchorEntity(anchor: anchor)
+#if targetEnvironment(simulator)
+                let anchorEntity = AnchorEntity(world: anchor.transform) // 시뮬레이터에서는 월드 기준 anchor
+#else
+                let anchorEntity = AnchorEntity(anchor: anchor) // 실제 디바이스에서는 ARAnchor 기반
+#endif
         anchorEntity.addChild(planeEntity)
 
         arView.scene.addAnchor(anchorEntity)

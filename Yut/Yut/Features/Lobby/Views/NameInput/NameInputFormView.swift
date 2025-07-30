@@ -72,7 +72,7 @@ struct NameInputFormView: View {
                     onSubmit()
                 } label: {
                     RoundedRectangle(cornerRadius: 34)
-                        .fill(Color("Brown1"))
+                        .fill(.brown1)
                         .frame(maxWidth: .infinity)
                         .frame(height: 64)
                         .overlay(

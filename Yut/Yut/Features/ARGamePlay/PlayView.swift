@@ -3,7 +3,11 @@ import MultipeerConnectivity
 import RealityKit
 import ARKit
 
-struct PlayView : View {
+struct PlayView: View {
+    let arCoordinator: ARCoordinator
+    
+    @EnvironmentObject var viewModel: WaitingRoomViewModel
+    
     // 상태 관리 객체 (AR의 현재 단계, 명령 스트림, 윷 결과 등 공유)
     @StateObject var arState = ARState()
     
@@ -13,13 +17,13 @@ struct PlayView : View {
     private let sound = SoundService()
     
     @State private var showThrowInstruction = true
-//    @State private var showThrowButton = true
     
     var currentPlayerSequence: Int {
         arState.gameManager.currentPlayer.sequence
     }
     
     var body: some View {
+        
         ZStack {
             // AR 콘텐츠 뷰 (카메라, 평면 인식 등 RealityKit 기반)
             ARViewContainer(arState: arState)
@@ -51,7 +55,7 @@ struct PlayView : View {
                     Image("Yut.0030")
                         .resizable()
                         .scaledToFill()
-                        .frame(width: geometry.size.width, height: geometry.size.height)
+                        .frame(width: geometry.size.width + 60, height: geometry.size.height + 60)
                         .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
                         .ignoresSafeArea()
                         .zIndex(2)
@@ -71,10 +75,10 @@ struct PlayView : View {
                         arState.actionStream.send(.preloadModels)
                         
                         // MPC 목업 데이터
-                        let player1 = PlayerModel(name: "노랑", sequence: 1, peerID: MCPeerID(displayName: "Player1"))
-                        let player2 = PlayerModel(name: "초록", sequence: 2, peerID: MCPeerID(displayName: "Player2"))
-                        MPCManager.shared.players = [player1, player2]
-                        
+                        //                        let player1 = PlayerModel(name: "노랑", sequence: 1, peerID: MCPeerID(displayName: "Player1"))
+                        //                        let player2 = PlayerModel(name: "초록", sequence: 2, peerID: MCPeerID(displayName: "Player2"))
+                        //                        MPCManager.shared.players = [player1, player2]
+                        //
                         try? await Task.sleep(nanoseconds: 3 * 1_000_000_000)
                         arState.gamePhase = .searchingForSurface
                     }
@@ -115,11 +119,12 @@ struct PlayView : View {
                     EmptyView() // 상단 안내 없음
                     Spacer()
                     RoundedBrownButton(title: "윷놀이 시작!", isEnabled: true) {
-                        arState.actionStream.send(.setupNewGame)
+                        arState.actionStream.send(.setupNewGame(players: viewModel.players))
                     }
                     
                     // 5. 윷 던지기 준비 단계
                 case .readyToThrow:
+
                     VStack {
                         // 현재 플레이어 정보 추출 (조건문 밖으로 이동)
                         let currentPlayer = arState.gameManager.currentPlayer
@@ -143,9 +148,10 @@ struct PlayView : View {
                                     .foregroundColor(.white)
                                     .cornerRadius(10)
                                     .font(.system(size: 14, weight: .bold))
+
                                 }
                             }
-                            
+
                             // 윷 던지기 버튼 표시 조건
                             YutThrowButton(sequence: currentPlayer.sequence) {
                                 
@@ -171,6 +177,7 @@ struct PlayView : View {
                         // 윷 던지기 준비 상태
                         arState.showThrowButton = true
                         
+
                     }
                     
                     
@@ -184,7 +191,6 @@ struct PlayView : View {
                         InstructionView(text: "\(arState.gameManager.currentPlayer.name)의 턴: 움직일 말을 탭하세요.")
                         Spacer()
                         if arState.gameManager.currentPlayerHasOffBoardPieces {
-//                            print(\(arState.gameManager.currentPlayer))
                             RoundedBrownButton(title: "새 말 놓기", isEnabled: true) {
                                 arState.actionStream.send(.showDestinationsForNewPiece)
                             }
@@ -201,6 +207,14 @@ struct PlayView : View {
         }
         .onAppear {
             arState.sessionUUID = UUID() // 강제 리프레시 → ARView 재생성
+            print("👀 viewModel object identity:", ObjectIdentifier(viewModel))
+            
+            print("👀 players (PlayView onAppear):", viewModel.players.map(\.name))
+            
+            if viewModel.players.count >= 2 {
+                arCoordinator.setupNewGame(with: viewModel.players)
+            }
         }
+        .navigationBarBackButtonHidden(true)
     }
 }
