@@ -243,17 +243,24 @@ final class YutManager {
 
             if hasFallenYut {
                 timer.invalidate()
-                // 1. 던져진 윷 제거
-                
-                for yutModel in thrownYuts {
-                    yutModel.entity.parent?.removeFromParent()
-                }
-                thrownYuts.removeAll()
                 
                 print("⚠️ 바닥 밑으로 떨어진 윷 발견 - 다시 던지기")
                 self.motionManager.stopDeviceMotionUpdates()
-                self.arState?.yutResult = nil
-                self.arState?.actionStream.send(.startMonitoringMotion)
+                self.arState?.yutResult = .nak
+                
+                DispatchQueue.main.async {
+                    self.arState?.gamePhase = .showingYutResult
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                        // 던져진 윷 제거
+                        for yutModel in self.thrownYuts {
+                            yutModel.entity.parent?.removeFromParent()
+                        }
+                        self.thrownYuts.removeAll()
+                        
+                        self.arState?.gamePhase = .readyToThrow
+                    }
+                }
                 return
             }
 

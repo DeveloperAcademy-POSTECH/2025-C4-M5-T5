@@ -16,6 +16,7 @@ extension YutResult {
         case .geol:    return "걸"
         case .yut:     return "윷"
         case .mo:      return "모"
+        case .nak:     return "낙!"
         }
     }
 }

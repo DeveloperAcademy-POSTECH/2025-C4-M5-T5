@@ -149,7 +149,6 @@ struct PlayView : View {
                             // 윷 던지기 버튼 표시 조건
                             YutThrowButton(sequence: currentPlayer.sequence) {
                                 
-                                
                                 arState.showThrowButton = false
                                 // 1. 윷 수거 애니메이션 시퀀스 시작
                                 showYutGatheringSequence = true

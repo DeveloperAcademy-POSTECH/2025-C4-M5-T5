@@ -13,6 +13,7 @@ import MultipeerConnectivity
 
 enum YutResult: Int, Identifiable, CaseIterable {
     case backdho = -1
+    case nak = 0
     case dho = 1
     case gae = 2
     case geol = 3
@@ -20,6 +21,7 @@ enum YutResult: Int, Identifiable, CaseIterable {
     case mo = 5
     
     var steps: Int { rawValue }
+    // 추가 턴
     var isExtraTurn: Bool { self == .yut || self == .mo }
     
     // ForEach를 위한 id
