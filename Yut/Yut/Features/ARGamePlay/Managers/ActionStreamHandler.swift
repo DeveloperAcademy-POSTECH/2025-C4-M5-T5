@@ -27,8 +27,8 @@ final class ActionStreamHandler {
         case .disablePlaneVisualization:
             coordinator.planeManager.disablePlaneVisualization()
             
-        case .setupNewGame:
-            coordinator.setupNewGame()
+        case .setupNewGame(let players):
+            coordinator.setupNewGame(with: players)
         
         case .showDestinationsForNewPiece:
             coordinator.showDestinationsForNewPiece()

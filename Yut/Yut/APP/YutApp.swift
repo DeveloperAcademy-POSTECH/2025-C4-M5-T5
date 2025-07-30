@@ -11,8 +11,12 @@ import SwiftUI
 struct YutApp: App {
     var body: some Scene {
         WindowGroup {
-            PlayView()
-//            RootView()
+//            let dummyNavigationManager = NavigationManager()
+//            let dummyViewModel = WaitingRoomViewModel(navigationManager: dummyNavigationManager)
+//            PlayView(viewModel: dummyViewModel)
+            
+            RootView()
         }
+        
     }
 }

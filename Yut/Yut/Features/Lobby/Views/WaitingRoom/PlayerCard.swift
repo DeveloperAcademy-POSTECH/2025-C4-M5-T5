@@ -40,5 +40,5 @@ struct PlayerCard: View {
 }
 
 //#Preview {
-//    PlayerCard(player: PlayerModel(name: "sena", sequence: 1, peerID: MCPeerID(displayName: "sena")))
+//    PlayerCard(player: PlayerModel(name: "sena", sequence: 1, peerID: 12, isHost: true))
 //}
