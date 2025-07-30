@@ -71,7 +71,7 @@ struct AddPlayerModalView: View {
                     .foregroundColor(.brown5)
             }
             .padding(.trailing, 62)
-            .padding(.bottom, 16)
+            .padding(.bottom, 18)
         }
         .transition(.opacity)
         .animation(.easeInOut, value: isPresented)
