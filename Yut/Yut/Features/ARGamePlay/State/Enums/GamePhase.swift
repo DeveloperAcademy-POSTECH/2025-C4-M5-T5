@@ -14,6 +14,7 @@ enum GamePhase {
     case showingYutResult           // 5.5단계: 윷 던지기 결과 표시
     case selectingPieceToMove       // 6단계: 말을 선택하는 중
     case selectingDestination       // 7단계: 말의 이동 위치 선택
-    // case pieceMoved              // (예정) 8단계: 말 이동 완료
+    case promptingForCarry          // 8단계: 업기/따로 가기 선택 요청
+    // case pieceMoved              // (예정) 9단계: 말 이동 완료
     
 }

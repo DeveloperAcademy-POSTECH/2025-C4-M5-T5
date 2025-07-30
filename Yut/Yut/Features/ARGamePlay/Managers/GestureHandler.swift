@@ -51,44 +51,74 @@ class GestureHandler {
             }
             
         case .selectingPieceToMove:
+            // 1. 탭한 위치의 엔티티를 직접 가져옵니다.
             guard let tappedEntity = arView.entity(at: tapLocation) else { return }
-            var currentEntity: Entity? = tappedEntity
-            var pieceToMove: PieceModel?
             
-            // 탭 된 Tile Entity 의 UUID를 가지는 PieceModel 찾기
-            while currentEntity != nil {
-                if let name = currentEntity?.name, let uuid = UUID(uuidString: name) {
-                    if let piece = arState.gameManager.pieces.first(where: { $0.id == uuid }) {
-                        pieceToMove = piece
-                        break
-                    }
-                }
-                currentEntity = currentEntity?.parent
+            var foundPiece: PieceModel?
+            
+            // 2. 탭한 엔티티 또는 그 부모의 이름으로 말을 찾는 안정적인 로직
+            // Case 1: 말(Piece) 엔티티 자체를 탭한 경우
+            if let pieceUUID = UUID(uuidString: tappedEntity.name) {
+                foundPiece = arState.gameManager.pieces.first(where: { $0.id == pieceUUID })
+            }
+            // Case 2: 말의 일부(자식 메쉬 등)를 탭한 경우, 부모의 이름으로 찾습니다.
+            else if let parent = tappedEntity.parent, let pieceUUID = UUID(uuidString: parent.name) {
+                foundPiece = arState.gameManager.pieces.first(where: { $0.id == pieceUUID })
             }
             
-            // 찾은 말의 주인이 현재 플레이어인지 ID로 비교
-            guard let selectedPiece = pieceToMove,
-                  selectedPiece.owner.id == arState.gameManager.currentPlayer.id else {
+            // 3. 유효한 말을 찾았는지 확인합니다.
+            guard var tappedPiece = foundPiece else {
+                print("❌ 탭한 위치에서 말을 찾을 수 없습니다.")
+                return
+            }
+            
+            // --- ⭐️ 수정된 그룹 선택 로직 ---
+            // 4. 탭한 말이 속한 그룹의 '뿌리 말'(가장 아래 말)을 찾습니다.
+            //    부모를 계속 거슬러 올라가, 부모가 더 이상 '말'이 아닐 때까지 반복합니다.
+            while let parent = tappedPiece.entity.parent,
+                  let parentUUID = UUID(uuidString: parent.name),
+                  let parentPiece = arState.gameManager.pieces.first(where: { $0.id == parentUUID }) {
+                tappedPiece = parentPiece
+            }
+            let rootPiece = tappedPiece
+            print("ℹ️ 그룹의 뿌리 말을 찾았습니다: \(rootPiece.id.uuidString)")
+            
+            // 5. 뿌리 말과 그 모든 자식 말들을 하나의 그룹으로 묶습니다.
+            //    '따로 가는' 말은 자식이 없으므로, 자기 자신만 그룹이 됩니다.
+            var piecesToSelect: [PieceModel] = [rootPiece]
+            var queue: [Entity] = [rootPiece.entity]
+            while !queue.isEmpty {
+                let current = queue.removeFirst()
+                for child in current.children {
+                    if let childUUID = UUID(uuidString: child.name),
+                       let childPiece = arState.gameManager.pieces.first(where: { $0.id == childUUID }) {
+                        piecesToSelect.append(childPiece)
+                        queue.append(child) // 자식의 자식도 확인하기 위해 큐에 추가
+                    }
+                }
+            }
+            print("👍 최종 선택된 그룹: \(piecesToSelect.count)개")
+            
+            // 그룹의 주인이 현재 플레이어인지 확인합니다.
+            guard let owner = piecesToSelect.first?.owner, owner.id == arState.gameManager.currentPlayer.id else {
                 print("❌ 현재 플레이어의 말이 아닙니다.")
                 return
             }
             
-            // 선택된 말의 이동 가능 경로 확인
+            // 5. 이동 가능한 경로를 계산하고 하이라이트합니다. (기존 로직과 동일)
             guard let yutResult = arState.gameManager.yutResult else { return }
-            let destinations = arState.gameManager.routeOptions(for: selectedPiece, yutResult: yutResult, currentRouteIndex: selectedPiece.routeIndex)
+            let destinations = arState.gameManager.routeOptions(for: tappedPiece, yutResult: yutResult, currentRouteIndex: tappedPiece.routeIndex)
             
             if destinations.isEmpty {
                 print("🚫 그 말은 움직일 수 없습니다.")
-                // TODO: 말이 움직일 수 없는 경우가 있는지 체크하기
             } else {
                 let destinationNames = destinations.map { $0.destinationID }
                 pieceManager.highlightTiles(named: destinationNames)
                 
-                arState.selectedPiece = selectedPiece
+                arState.selectedPieces = piecesToSelect
                 arState.availableDestinations = destinationNames
                 arState.gamePhase = .selectingDestination
             }
-            
             
         case .selectingDestination:
             guard let tappedEntity = arView.entity(at: tapLocation) else { return }
@@ -104,29 +134,16 @@ class GestureHandler {
                 currentEntity = currentEntity?.parent
             }
             
-            // 탭 된 타일이 이동 가능한 목적지 중 하나인지 확인
+            
+            // 탭 된 타일이 이동 가능한 목적지 중 하나인지 확인, 처리 위임
             if let name = tileName,
                arState.availableDestinations.contains(name),
-               let pieceToMove = arState.selectedPiece {
+               let piecesToMove = arState.selectedPieces {
                 
-                // 선택된 말이 새 말인지 기존 말인지 확인
-                if pieceToMove.position == "_6_6" {
-                    pieceManager.placePieceOnBoard(piece: pieceToMove, on: name)
-                } else {
-                    pieceManager.movePiece(piece: pieceToMove.entity, to: name)
-                }
-                
-                // 말 위치 정보 업데이트
-                arState.gameManager.move(piece: pieceToMove, to: name)
-                
-                // 정보 초기화
-                pieceManager.clearAllHighlights()
-                arState.selectedPiece = nil
-                arState.availableDestinations = []
-                
-                coordinator?.endTurn()
+                coordinator?.processMoveRequest(pieces: piecesToMove, to: name)
             }
             
+
         default:
             break
         }

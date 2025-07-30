@@ -44,6 +44,9 @@ final class ActionStreamHandler {
             
         case .setYutResultForTesting(let result):
             coordinator.yutThrowCompleted(with: result)
+            
+        case .resolveMove(let carry):
+            coordinator.resolveMove(carry: carry)
         }
         
     }

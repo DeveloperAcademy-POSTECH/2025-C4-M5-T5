@@ -17,6 +17,8 @@ struct PlayView: View {
     private let sound = SoundService()
     
     @State private var showThrowInstruction = true
+    @State private var showThrowButton = true
+    @State var showModal = true
     
     var currentPlayerSequence: Int {
         arState.gameManager.currentPlayer.sequence
@@ -202,6 +204,10 @@ struct PlayView: View {
                     InstructionView(text: "말을 옮길 곳을 선택하세요.")
                     Spacer()
                     EmptyView() // 버튼 없음
+                    
+                    
+                case .promptingForCarry:
+                    CarryChoiceModalView(isPresented: $showModal, arState: arState)
                 }
             }
         }

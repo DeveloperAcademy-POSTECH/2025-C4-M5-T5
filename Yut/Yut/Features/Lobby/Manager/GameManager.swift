@@ -33,6 +33,7 @@ struct GameResult {
     let piece: PieceModel
     let cell: String
     var didCapture: Bool
+    var capturedPieces: [PieceModel] // 잡힌 말 목록을 전달하기 위해 추가
     var didCarry: Bool
     let gameEnded: Bool
 }
@@ -123,6 +124,7 @@ class GameManager :ObservableObject {
                 piece: piece,
                 cell: "_6_6",
                 didCapture: false,
+                capturedPieces: [],
                 didCarry: false,
                 gameEnded: true
             )
@@ -131,6 +133,7 @@ class GameManager :ObservableObject {
                 piece: piece,
                 cell: "_5_6",
                 didCapture: false,
+                capturedPieces: [],
                 didCarry: false,
                 gameEnded: true
             )
@@ -139,48 +142,71 @@ class GameManager :ObservableObject {
         
         let existingPieces = cellStates[targetCellID] ?? []
         
+        // 1. 해당 칸에 아무도 없을 때
         if existingPieces.isEmpty {
+            // 이전 위치에서 말 제거
+            if let previousPieces = cellStates[piece.position],
+               let index = previousPieces.firstIndex(where: { $0.id == piece.id }) {
+                cellStates[piece.position]?.remove(at: index)
+            }
+            
+            // 새 위치에 말 추가
             cellStates[targetCellID] = [piece]
+            piece.position = targetCellID
+            
             return GameResult(
                 piece: piece,
                 cell: targetCellID,
                 didCapture: false,
+                capturedPieces: [],
                 didCarry: false,
                 gameEnded: false
             )
         }
         
+        // 2. 해당 칸에 다른 말이 있을 때
         let existingOwner = existingPieces.first!.owner
-        if existingOwner === piece.owner && userChooseToCarry == true {
-            // 업기
-            cellStates[targetCellID]?.append(piece)
-            return GameResult(
-                piece: piece,
-                cell: targetCellID,
-                didCapture: false,
-                didCarry: true,
-                gameEnded: false
-            )
-        } else if (existingOwner === piece.owner && userChooseToCarry == false){
-            // 업진 않지만 셀에 두 말 추가
-            cellStates[targetCellID]?.append(piece)
-            return GameResult(
-                piece: piece,
-                cell: targetCellID,
-                didCapture: false,
-                didCarry: false,
-                gameEnded: false
-            )
-        } else {
-            // 잡기
-            for captured in existingPieces {
-                // 말 리셋
+        
+        // 2-1. 내 말일 경우 (업거나, 따로 가거나)
+        if existingOwner === piece.owner {
+            if let previousPieces = cellStates[piece.position],
+                let index = previousPieces.firstIndex(where: { $0.id == piece.id }) {
+                cellStates[piece.position]?.remove(at: index)
             }
+
+            cellStates[targetCellID]?.append(piece)
+            piece.position = targetCellID
+            
+            return GameResult(
+                piece: piece,
+                cell: targetCellID,
+                didCapture: false,
+                capturedPieces: [],
+                didCarry: userChooseToCarry,
+                gameEnded: false
+            )
+        }
+        // 2-2. 상대 말일 경우 (잡기)
+        else {
+            if let previousPieces = cellStates[piece.position],
+                let index = previousPieces.firstIndex(where: { $0.id == piece.id }) {
+                cellStates[piece.position]?.remove(at: index)
+            }
+            
+            // 잡힌 말들의 위치를 _6_6으로 초기화
+            for capturedPiece in existingPieces {
+                capturedPiece.position = "_6_6"
+                capturedPiece.routeIndex = 0 // 경로도 초기화
+            }
+
             cellStates[targetCellID] = [piece]
+            piece.position = targetCellID
+            
             return GameResult(
                 piece: piece,
                 cell: targetCellID,
                 didCapture: true,
+                capturedPieces: existingPieces,
                 didCarry: false,
                 gameEnded: false
             )
