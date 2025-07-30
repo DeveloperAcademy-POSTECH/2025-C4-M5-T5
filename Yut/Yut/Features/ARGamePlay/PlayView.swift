@@ -3,7 +3,11 @@ import MultipeerConnectivity
 import RealityKit
 import ARKit
 
-struct PlayView : View {
+struct PlayView: View {
+    let arCoordinator: ARCoordinator
+    
+    @EnvironmentObject var viewModel: WaitingRoomViewModel
+    
     // 상태 관리 객체 (AR의 현재 단계, 명령 스트림, 윷 결과 등 공유)
     @StateObject var arState = ARState()
     
@@ -13,13 +17,13 @@ struct PlayView : View {
     private let sound = SoundService()
     
     @State private var showThrowInstruction = true
-//    @State private var showThrowButton = true
     
     var currentPlayerSequence: Int {
         arState.gameManager.currentPlayer.sequence
     }
     
     var body: some View {
+        
         ZStack {
             // AR 콘텐츠 뷰 (카메라, 평면 인식 등 RealityKit 기반)
             ARViewContainer(arState: arState)
@@ -71,10 +75,10 @@ struct PlayView : View {
                         arState.actionStream.send(.preloadModels)
                         
                         // MPC 목업 데이터
-                        let player1 = PlayerModel(name: "노랑", sequence: 1, peerID: MCPeerID(displayName: "Player1"))
-                        let player2 = PlayerModel(name: "초록", sequence: 2, peerID: MCPeerID(displayName: "Player2"))
-                        MPCManager.shared.players = [player1, player2]
-                        
+                        //                        let player1 = PlayerModel(name: "노랑", sequence: 1, peerID: MCPeerID(displayName: "Player1"))
+                        //                        let player2 = PlayerModel(name: "초록", sequence: 2, peerID: MCPeerID(displayName: "Player2"))
+                        //                        MPCManager.shared.players = [player1, player2]
+                        //
                         try? await Task.sleep(nanoseconds: 3 * 1_000_000_000)
                         arState.gamePhase = .searchingForSurface
                     }
@@ -115,7 +119,7 @@ struct PlayView : View {
                     EmptyView() // 상단 안내 없음
                     Spacer()
                     RoundedBrownButton(title: "윷놀이 시작!", isEnabled: true) {
-                        arState.actionStream.send(.setupNewGame)
+                        arState.actionStream.send(.setupNewGame(players: viewModel.players))
                     }
                     
                     // 5. 윷 던지기 준비 단계
@@ -147,26 +151,25 @@ struct PlayView : View {
                         let currentPlayer = arState.gameManager.currentPlayer
                         
                         // 윷 던지기 버튼 표시 조건
-//                        if arState.showThrowButton {
-                            YutThrowButton(sequence: currentPlayer.sequence) {
-                                arState.showThrowButton = false
-                                // 1. 윷 수거 애니메이션 시퀀스 시작
-                                showYutGatheringSequence = true
-                                showFinalFrame = false // 최종 프레임 숨김 (겹침 방지용)
+                        //                        if arState.showThrowButton {
+                        YutThrowButton(sequence: currentPlayer.sequence) {
+                            arState.showThrowButton = false
+                            // 1. 윷 수거 애니메이션 시퀀스 시작
+                            showYutGatheringSequence = true
+                            showFinalFrame = false // 최종 프레임 숨김 (겹침 방지용)
+                            
+                            // 2. 효과음 재생
+                            sound.playcollectYutSound()
+                            
+                            // 3. 약간의 지연 후, 실제 윷 던지기 시작
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.3) {
+                                showYutGatheringSequence = false // 윷 수거 애니메이션 종료
+                                showFinalFrame = true // 다시 프레임 표시
                                 
-                                // 2. 효과음 재생
-                                sound.playcollectYutSound()
-                                
-                                // 3. 약간의 지연 후, 실제 윷 던지기 시작
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.3) {
-                                    showYutGatheringSequence = false // 윷 수거 애니메이션 종료
-                                    showFinalFrame = true // 다시 프레임 표시
-                                    
-                                    // 4. 모션 감지 시작 (ARState에서 모션 감지 시작 신호를 전달)
-                                    arState.actionStream.send(.startMonitoringMotion)
-                                }
+                                // 4. 모션 감지 시작 (ARState에서 모션 감지 시작 신호를 전달)
+                                arState.actionStream.send(.startMonitoringMotion)
                             }
-//                        }
+                        }
                     }
                     
                     // 5.5 윷 던지기 결과 표시
@@ -179,7 +182,6 @@ struct PlayView : View {
                         InstructionView(text: "\(arState.gameManager.currentPlayer.name)의 턴: 움직일 말을 탭하세요.")
                         Spacer()
                         if arState.gameManager.currentPlayerHasOffBoardPieces {
-//                            print(\(arState.gameManager.currentPlayer))
                             RoundedBrownButton(title: "새 말 놓기", isEnabled: true) {
                                 arState.actionStream.send(.showDestinationsForNewPiece)
                             }
@@ -196,6 +198,14 @@ struct PlayView : View {
         }
         .onAppear {
             arState.sessionUUID = UUID() // 강제 리프레시 → ARView 재생성
+            print("👀 viewModel object identity:", ObjectIdentifier(viewModel))
+            
+            print("👀 players (PlayView onAppear):", viewModel.players.map(\.name))
+            
+            if viewModel.players.count >= 2 {
+                arCoordinator.setupNewGame(with: viewModel.players)
+            }
         }
+        .navigationBarBackButtonHidden(true)
     }
 }
