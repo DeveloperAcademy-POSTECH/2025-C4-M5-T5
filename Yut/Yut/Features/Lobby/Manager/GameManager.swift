@@ -58,6 +58,7 @@ class GameManager :ObservableObject {
     
     // currentPlayer의 말 중에 position이 "_6_6"인 것이 하나라도 있는지 확인
     var currentPlayerHasOffBoardPieces: Bool {
+        
         currentPlayer.pieces.contains { $0.position == "_6_6" }
     }
     
