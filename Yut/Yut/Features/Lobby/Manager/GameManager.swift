@@ -31,6 +31,7 @@ struct GameResult {
     let piece: PieceModel
     let cell: String
     var didCapture: Bool
+    var capturedPieces: [PieceModel] // 잡힌 말 목록을 전달하기 위해 추가
     var didCarry: Bool
     let gameEnded: Bool
 }
@@ -120,6 +121,7 @@ class GameManager :ObservableObject {
                 piece: piece,
                 cell: "_6_6",
                 didCapture: false,
+                capturedPieces: [],
                 didCarry: false,
                 gameEnded: true
             )
@@ -128,6 +130,7 @@ class GameManager :ObservableObject {
                 piece: piece,
                 cell: "_5_6",
                 didCapture: false,
+                capturedPieces: [],
                 didCarry: false,
                 gameEnded: true
             )
@@ -152,6 +155,7 @@ class GameManager :ObservableObject {
                 piece: piece,
                 cell: targetCellID,
                 didCapture: false,
+                capturedPieces: [],
                 didCarry: false,
                 gameEnded: false
             )
@@ -174,6 +178,7 @@ class GameManager :ObservableObject {
                 piece: piece,
                 cell: targetCellID,
                 didCapture: false,
+                capturedPieces: [],
                 didCarry: userChooseToCarry,
                 gameEnded: false
             )
@@ -198,6 +203,7 @@ class GameManager :ObservableObject {
                 piece: piece,
                 cell: targetCellID,
                 didCapture: true,
+                capturedPieces: existingPieces,
                 didCarry: false,
                 gameEnded: false
             )

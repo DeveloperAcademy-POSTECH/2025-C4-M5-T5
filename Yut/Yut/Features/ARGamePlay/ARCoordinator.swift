@@ -127,6 +127,7 @@ class ARCoordinator: NSObject, ARSessionDelegate {
                 // PieceManager 윷판 앵커를 알 수 있도록 연결
                 self.pieceManager.boardAnchor = self.boardManager.yutBoardAnchor
                 
+                self.pieceManager.gameManager = arState.gameManager
                 // 준비 끝, 상태 전환
                 arState.gamePhase = .readyToThrow
             }
@@ -150,7 +151,7 @@ class ARCoordinator: NSObject, ARSessionDelegate {
             let destinationNames = destinations.map { $0.destinationID }
             self.pieceManager.highlightTiles(named: destinationNames)
             
-            arState.selectedPiece = newPiece
+            arState.selectedPieces = [newPiece]
             arState.availableDestinations = destinationNames
             DispatchQueue.main.async {
                 arState.gamePhase = .selectingDestination
@@ -160,7 +161,6 @@ class ARCoordinator: NSObject, ARSessionDelegate {
     
     // 윷 결과 업데이트 후 -> 움직일 말 선택
     func yutThrowCompleted(with result: YutResult) {
-        
         guard let arState = self.arState else { return }
         
         // 윷 결과 업데이트 (UI 반영, 매니저에게 전달)
@@ -179,7 +179,6 @@ class ARCoordinator: NSObject, ARSessionDelegate {
         }
     }
     
-    // ✨ 턴을 종료하고 다음 플레이어를 준비시키는 헬퍼 함수
     func endTurn() {
         guard let arState = self.arState else { return }
         let gameManager = arState.gameManager
@@ -223,6 +222,92 @@ class ARCoordinator: NSObject, ARSessionDelegate {
             try? mpcManager.session.send(data, toPeers: mpcManager.session.connectedPeers, with: .reliable)
         }
     }
+    
+    // MARK: - Piece Movement Logic
+    
+    /// 1. GestureHandler로부터 최초 이동 요청을 받습니다.
+    func processMoveRequest(pieces: [PieceModel], to destination: String) {
+        guard let arState = self.arState else { return }
+        
+        let piecesAtDestination = arState.gameManager.cellStates[destination] ?? []
+        
+        if piecesAtDestination.isEmpty {
+            executeMove(pieces: pieces, to: destination, didCarry: false)
+        } else if let firstPiece = piecesAtDestination.first, let movingPieceOwner = pieces.first?.owner, firstPiece.owner.id != movingPieceOwner.id {
+            executeMove(pieces: pieces, to: destination, didCarry: false)
+        } else {
+            arState.pendingMove = (pieces, destination)
+            arState.gamePhase = .promptingForCarry
+        }
+    }
+    
+    /// 2. 사용자가 '업기'/'따로가기'를 선택하면 호출됩니다.
+    func resolveMove(carry: Bool) {
+        guard let pendingMove = arState?.pendingMove else { return }
+        executeMove(pieces: pendingMove.pieces, to: pendingMove.destination, didCarry: carry)
+    }
+    
+    /// 3. 모든 정보가 확정된 후, 실제 말 이동 및 게임 상태 변경을 실행하는 함수
+    private func executeMove(pieces: [PieceModel], to destination: String, didCarry: Bool) {
+        guard let arState = self.arState,
+              let pieceManager = self.pieceManager,
+              let representativePiece = pieces.first else { return }
+        
+        var finalResult: GameResult?
+
+        // --- 논리적 처리 ---
+        // 업은 말들을 순서대로 하나씩 이동시킵니다.
+        for (index, piece) in pieces.enumerated() {
+            // 첫 번째 말만 잡기/업기 여부를 결정하고, 나머지는 무조건 업습니다(따라갑니다).
+            let isFirstPiece = (index == 0)
+            let result = arState.gameManager.applyMoveResult(
+                piece: piece,
+                to: destination,
+                userChooseToCarry: isFirstPiece ? didCarry : true // 두 번째 말부터는 무조건 업기
+            )
+            if isFirstPiece {
+                finalResult = result // 첫 번째 말의 결과만 최종 결과로 사용합니다.
+            }
+        }
+
+        guard let finalResult = finalResult else { return }
+
+        // --- 시각적 처리 ---
+        // a. 잡은 말이 있다면, 잡힌 말들을 판에서 치웁니다.
+        if finalResult.didCapture {
+            print("💥 잡힌 말들 처리 시작: \(finalResult.capturedPieces.map { $0.id.uuidString })")
+            pieceManager.resetPieces(finalResult.capturedPieces)
+        }
+        
+        // b. 모든 말을 이동시킵니다.
+        for piece in pieces {
+            if piece.entity.parent == nil { // 판 밖에 있던 새 말인 경우
+                pieceManager.placePieceOnBoard(piece: piece, on: destination)
+            } else { // 이미 판 위에 있던 말인 경우
+                pieceManager.movePiece(piece: piece.entity, to: destination)
+            }
+        }
+        
+        // c. 이동 후, 해당 타일의 모든 말을 시각적으로 재배치합니다.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+            pieceManager.arrangePiecesOnTile(destination, didCarry: finalResult.didCarry)
+        }
+        
+        // --- 후처리 ---
+        pieceManager.clearAllHighlights()
+        arState.selectedPieces = nil
+        arState.availableDestinations = []
+        arState.pendingMove = nil
+        
+        // 턴 관리
+        if finalResult.didCapture {
+            print("👍 상대 말을 잡았습니다! 한 번 더 던지세요.")
+            arState.gamePhase = .readyToThrow
+        } else {
+            endTurn()
+        }
+    }
+    
 }
 
 // 게임 상태 데이터 구조

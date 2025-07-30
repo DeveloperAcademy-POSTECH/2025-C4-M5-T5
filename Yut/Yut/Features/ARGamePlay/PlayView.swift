@@ -13,6 +13,7 @@ struct PlayView : View {
     
     @State private var showThrowInstruction = true
     @State private var showThrowButton = true
+    @State var showModal = true
     
     var currentPlayerSequence: Int {
         arState.gameManager.currentPlayer.sequence
@@ -165,7 +166,7 @@ struct PlayView : View {
                     
                     
                 case .promptingForCarry:
-                    CarryChoiceModalView(arState: arState)
+                    CarryChoiceModalView(isPresented: $showModal, arState: arState)
                 }
             }
         }
