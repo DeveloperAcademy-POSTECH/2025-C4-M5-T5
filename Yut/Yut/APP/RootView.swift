@@ -9,6 +9,14 @@ import SwiftUI
 
 struct RootView: View {
     @StateObject private var navigationManager = NavigationManager()
+    @StateObject private var viewModel: WaitingRoomViewModel
+    private let arCoordinator = ARCoordinator()
+
+    init() {
+        let manager = NavigationManager()
+        _navigationManager = StateObject(wrappedValue: manager)
+        _viewModel = StateObject(wrappedValue: WaitingRoomViewModel(navigationManager: manager))
+    }
 
     var body: some View {
         NavigationStack(path: $navigationManager.path) {
@@ -24,11 +32,17 @@ struct RootView: View {
                     case .roomList:
                         RoomListView()
                     case .waitingRoom(let room):
-                        WaitingRoomView(room: room, navigationManager: navigationManager)
+                        WaitingRoomView(
+                            room: room,
+                            navigationManager: navigationManager,
+                            arCoordinator: arCoordinator
+                        )
+                        .environmentObject(viewModel)
                     case .winner:
                         WinnerView()
                     case .playView:
-                        PlayView()
+                        PlayView(arCoordinator: arCoordinator)
+                            .environmentObject(viewModel)
                     }
                 }
         }

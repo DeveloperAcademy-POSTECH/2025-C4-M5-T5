@@ -46,10 +46,10 @@ struct RoomListView: View {
                 }
             }
         )
-        .onDisappear {
-            MPCManager.shared.disconnect()
-            MPCManager.shared.players.removeAll()
-        }
+//        .onDisappear {
+//            MPCManager.shared.disconnect()
+//            MPCManager.shared.players.removeAll()
+//        }
         .navigationBarBackButtonHidden(true)
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Color.white1, for: .navigationBar)
