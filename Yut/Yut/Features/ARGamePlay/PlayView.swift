@@ -163,7 +163,7 @@ struct PlayView: View {
                                 showFinalFrame = false // 최종 프레임 숨김 (겹침 방지용)
                                 
                                 // 2. 효과음 재생
-                                sound.playcollectYutSound()
+                                sound.playCollectYutSound()
                                 
                                 // 3. 약간의 지연 후, 실제 윷 던지기 시작
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.3) {
