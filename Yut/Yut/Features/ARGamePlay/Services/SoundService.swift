@@ -34,7 +34,7 @@ class SoundService {
         }
     }
     
-    func playcollectYutSound() {
+    func playCollectYutSound() {
         guard let url = Bundle.main.url(forResource: "CollectYut", withExtension: "mp3") else {
             print("파일 없음")
             return
@@ -42,6 +42,8 @@ class SoundService {
 
         do {
             player = try AVAudioPlayer(contentsOf: url)
+            player?.enableRate = true
+            player?.rate = 1.2
             player?.prepareToPlay()
             player?.play()
         } catch {
