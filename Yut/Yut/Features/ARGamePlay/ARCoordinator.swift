@@ -33,6 +33,7 @@ class ARCoordinator: NSObject, ARSessionDelegate {
     var planeManager: PlaneManager!
     var pieceManager: PieceManager!
     var yutManager: YutManager!
+    var assetCacheManager: AssetCacheManager!
     var actionStreamHandler: ActionStreamHandler!
     
     // MARK: - 초기화
@@ -41,8 +42,9 @@ class ARCoordinator: NSObject, ARSessionDelegate {
         super.init()
         self.boardManager = BoardManager(coordinator: self)
         self.planeManager = PlaneManager(coordinator: self)
-        self.pieceManager = PieceManager()
+        self.pieceManager = PieceManager(coordinator: self)
         self.yutManager = YutManager(coordinator: self)
+        self.assetCacheManager = AssetCacheManager()
         self.gestureHandler = GestureHandler(coordinator: self)
         self.actionStreamHandler = ActionStreamHandler(coordinator: self)
     }
@@ -106,32 +108,28 @@ class ARCoordinator: NSObject, ARSessionDelegate {
         }
     }
     
+    func session(_ session: ARSession, didRemove anchors: [ARAnchor]) {
+        for anchor in anchors {
+            if let planeAnchor = anchor as? ARPlaneAnchor {
+                planeManager.removePlane(for: planeAnchor)
+            }
+        }
+    }
+    
     // MARK: - Game Flow Control
     
     // '새 게임 준비' 액션을 처리하는 함수
-    func setupNewGame() {
-        Task {
-            // Main 스레드
-            // GameManager 설정, 게임 상태 변경
+    func setupNewGame(with players: [PlayerModel]) {
+        let safePlayers = players
+        
+        Task { @MainActor in
+            guard let arState = self.arState else { return }
             
-            await MainActor.run {
-                // PlayerModel 로드 (PeerID 임시값)
-                let player1 = PlayerModel(name: "노랑", sequence: 1, peerID: MCPeerID(displayName: "Player1"))
-                let player2 = PlayerModel(name: "초록", sequence: 2, peerID: MCPeerID(displayName: "Player2"))
-                
-                guard let arState = self.arState else { return }
-                
-                // GameManager에 실제 플레이어 정보로 새 게임을 설정
-                arState.gameManager.startGame(with: [player1, player2])
-                
-                // PieceManager 윷판 앵커를 알 수 있도록 연결
-                self.pieceManager.boardAnchor = self.boardManager.yutBoardAnchor
-                
-                self.pieceManager.gameManager = arState.gameManager
-                // 준비 끝, 상태 전환
-                arState.gamePhase = .readyToThrow
-            }
-        }
+            arState.gameManager.startGame(with: players)
+            self.pieceManager.boardAnchor = self.boardManager.yutBoardAnchor
+            arState.gamePhase = .readyToThrow
+                        
+		}
     }
     
     // 새 말 놓을 때
@@ -143,6 +141,10 @@ class ARCoordinator: NSObject, ARSessionDelegate {
         guard let newPiece = gameManager.currentPlayer.pieces.first(where: { $0.position == "_6_6" }),
               let yutResult = gameManager.yutResult
         else { return }
+        
+//        print("새말 놓을 때 \(gameManager.currentPlayer.pieces[0])")
+        let piece = gameManager.currentPlayer.pieces[0]
+        print("새말 놓을 때 id: \(piece.id), isOnBoard: \(piece.isSelected), position: \(piece.position)")
         
         let destinations = gameManager.routeOptions(for: newPiece, yutResult: yutResult, currentRouteIndex: newPiece.routeIndex)
         
@@ -166,14 +168,21 @@ class ARCoordinator: NSObject, ARSessionDelegate {
         // 윷 결과 업데이트 (UI 반영, 매니저에게 전달)
         arState.yutResult = result
         arState.gameManager.yutResult = result
-        print("\(result)")
+        print("윷 결과\(result)")
         
         self.pieceManager.clearAllHighlights()
         
         DispatchQueue.main.async {
             arState.gamePhase = .showingYutResult
             
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                // 던져진 윷 제거
+                if let yutManager = arState.coordinator?.yutManager {
+                    for yutModel in yutManager.thrownYuts {
+                        yutModel.entity.parent?.removeFromParent()
+                    }
+                    yutManager.thrownYuts.removeAll()
+                }
                 arState.gamePhase = .selectingPieceToMove
             }
         }
@@ -187,12 +196,21 @@ class ARCoordinator: NSObject, ARSessionDelegate {
         if gameManager.yutResult?.isExtraTurn == false {
             gameManager.nextTurn()
             print("턴 종료! 다음 플레이어: \(gameManager.currentPlayer.name)")
+            arState.gamePhase = .readyToThrow
         } else {
+            self.arState?.yutResult = nil
+            DispatchQueue.main.async {
+                arState.gamePhase = .showingYutResult
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                    arState.gamePhase = .readyToThrow
+                }
+            }
             print("🎁 윷이나 모! 한 번 더 던지세요.")
         }
         
         // 다시 윷을 던질 준비 상태로 돌아갑니다.
-        arState.gamePhase = .readyToThrow
+//        arState.gamePhase = .readyToThrow
+        
     }
     
     // MARK: - MPC 협업 기능

@@ -3,6 +3,7 @@
 enum GamePhase {
     
     // 초기 설정 단계
+    case arSessionLoading
     case searchingForSurface        // 1단계: 바닥을 인식하는 중
     case placeBoard                 // 2단계: 평면에 윷판 배치
     case adjustingBoard             // 3단계: 윷판 위치 및 크기 조절

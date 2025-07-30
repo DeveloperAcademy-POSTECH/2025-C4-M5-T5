@@ -6,13 +6,17 @@ import SwiftUI
 
 class ARState: ObservableObject {
     // 현재 앱 상태 (초기값: 평면 탐색)
-    @Published var gamePhase: GamePhase = .searchingForSurface
+    @Published var sessionUUID: UUID = UUID()
+    @Published var gamePhase: GamePhase = .arSessionLoading
 
     // Coordinator와 통신할 명령 스트림
     let actionStream = PassthroughSubject<ARAction, Never>()
 
     // GameManager 싱글톤 인스턴스
     @ObservedObject var gameManager = GameManager.shared
+    
+    // 윷 생성 버튼
+    @Published var showThrowButton: Bool = true
 
     // 바닥 인식 면적 관련
     @Published var recognizedArea: Float = 0.0

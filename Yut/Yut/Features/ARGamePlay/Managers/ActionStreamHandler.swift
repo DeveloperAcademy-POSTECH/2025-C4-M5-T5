@@ -27,15 +27,17 @@ final class ActionStreamHandler {
         case .disablePlaneVisualization:
             coordinator.planeManager.disablePlaneVisualization()
             
-        case .setupNewGame:
-            coordinator.setupNewGame()
+        case .setupNewGame(let players):
+            coordinator.setupNewGame(with: players)
         
         case .showDestinationsForNewPiece:
             coordinator.showDestinationsForNewPiece()
 
         // setupNewGame에서 실행해도 괜찮을 듯
-        case .preloadYutModels:
-            coordinator.yutManager.preloadYutModels()
+        case .preloadModels:
+            Task { @MainActor in
+                    await coordinator.assetCacheManager.preloadAll()
+                }
         
         case .startMonitoringMotion:
             coordinator.yutManager.startMonitoringMotion()

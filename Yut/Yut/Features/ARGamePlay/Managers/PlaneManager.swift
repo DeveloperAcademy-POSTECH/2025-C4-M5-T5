@@ -44,7 +44,11 @@ final class PlaneManager {
 
         planeEntity.components.set(PhysicsBodyComponent(mode: .static))
 
-        let anchorEntity = AnchorEntity(anchor: anchor)
+#if targetEnvironment(simulator)
+                let anchorEntity = AnchorEntity(world: anchor.transform) // 시뮬레이터에서는 월드 기준 anchor
+#else
+                let anchorEntity = AnchorEntity(anchor: anchor) // 실제 디바이스에서는 ARAnchor 기반
+#endif
         anchorEntity.addChild(planeEntity)
 
         arView.scene.addAnchor(anchorEntity)
@@ -77,7 +81,17 @@ final class PlaneManager {
             print("❌ 평면 메시 업데이트 실패: \(error)")
         }
     }
-
+    
+    // 평면 제거 시 호출
+    func removePlane(for anchor: ARPlaneAnchor) {
+        guard let entity = planeEntities[anchor.identifier] else { return }
+        
+        entity.removeFromParent()
+        planeEntities.removeValue(forKey: anchor.identifier)
+        
+        print("🗑️ 평면 제거됨: \(anchor.identifier)")
+    }
+    
     func disablePlaneVisualization() {
         for (_, entity) in planeEntities {
             entity.model?.materials = [SimpleMaterial(color: .clear, isMetallic: false)]

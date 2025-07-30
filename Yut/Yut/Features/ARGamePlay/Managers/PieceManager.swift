@@ -11,6 +11,9 @@ import ARKit
 
 final class PieceManager {
     
+    private unowned let coordinator: ARCoordinator
+
+    
     weak var boardAnchor: AnchorEntity? // 윷판 앵커
     weak var gameManager: GameManager?
     
@@ -19,6 +22,10 @@ final class PieceManager {
     private var originalMaterials: [ModelEntity: RealityFoundation.Material] = [:]
     static let pieceScale: SIMD3<Float> = [0.3, 10.0, 0.3]
     
+    init(coordinator: ARCoordinator) {
+        self.coordinator = coordinator
+        
+    }
     
     // MARK: - Pieces Logic
     

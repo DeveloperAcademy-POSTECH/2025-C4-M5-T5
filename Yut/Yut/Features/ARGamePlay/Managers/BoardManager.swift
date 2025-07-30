@@ -38,7 +38,7 @@ final class BoardManager {
                 collisionShape: .generateBox(size: boxSize),
                 mass: 0.0
             )
-            invisibleBox.name = "YutBoardCollision" 
+            invisibleBox.name = "YutBoardCollision"
             
             invisibleBox.position = boxPosition
             invisibleBox.components.set([
@@ -51,7 +51,11 @@ final class BoardManager {
             ])
 
             // 4. 앵커에 추가
-            let anchorEntity = AnchorEntity(anchor: anchor)
+#if targetEnvironment(simulator)
+                let anchorEntity = AnchorEntity(world: anchor.transform) // 시뮬레이터에서는 월드 기준 anchor
+#else
+                let anchorEntity = AnchorEntity(anchor: anchor) // 실제 디바이스에서는 ARAnchor 기반
+#endif
             anchorEntity.addChild(boardEntity)
             anchorEntity.addChild(invisibleBox)
 
@@ -69,11 +73,11 @@ final class BoardManager {
 //    func placeYutBoard(on anchor: ARAnchor) {
 //        guard let arView = arView, let arState = arState else { return }
 //        if yutBoardAnchor != nil { return } // 중복 생성 방지
-//        
+//
 //        do {
 //            let boardEntity = try ModelEntity.load(named: "Board.usdz")
 //            boardEntity.generateCollisionShapes(recursive: true)
-//            
+//
 //            let anchorEntity = AnchorEntity(anchor: anchor)
 //            anchorEntity.addChild(boardEntity)
 //
