@@ -193,7 +193,14 @@ class ARCoordinator: NSObject, ARSessionDelegate {
         DispatchQueue.main.async {
             arState.gamePhase = .showingYutResult
             
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                // 던져진 윷 제거
+                if let yutManager = arState.coordinator?.yutManager {
+                    for yutModel in yutManager.thrownYuts {
+                        yutModel.entity.parent?.removeFromParent()
+                    }
+                    yutManager.thrownYuts.removeAll()
+                }
                 arState.gamePhase = .selectingPieceToMove
             }
         }
@@ -208,12 +215,21 @@ class ARCoordinator: NSObject, ARSessionDelegate {
         if gameManager.yutResult?.isExtraTurn == false {
             gameManager.nextTurn()
             print("턴 종료! 다음 플레이어: \(gameManager.currentPlayer.name)")
+            arState.gamePhase = .readyToThrow
         } else {
+            self.arState?.yutResult = nil
+            DispatchQueue.main.async {
+                arState.gamePhase = .showingYutResult
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                    arState.gamePhase = .readyToThrow
+                }
+            }
             print("🎁 윷이나 모! 한 번 더 던지세요.")
         }
         
         // 다시 윷을 던질 준비 상태로 돌아갑니다.
-        arState.gamePhase = .readyToThrow
+//        arState.gamePhase = .readyToThrow
+        
     }
     
     // MARK: - MPC 협업 기능

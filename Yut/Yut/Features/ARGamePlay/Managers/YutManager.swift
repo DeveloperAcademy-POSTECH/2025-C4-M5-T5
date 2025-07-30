@@ -43,41 +43,8 @@ final class YutManager {
         }
     }
     
-    // MARK: - Motion Detection
-    func startMonitoringMotion() {
-        guard motionManager.isDeviceMotionAvailable else {
-            return
-        }
-
-        self.arState?.showFinalFrame = true
-
-        motionManager.deviceMotionUpdateInterval = 0.05
-        motionManager.startDeviceMotionUpdates(to: .main) { [weak self] motion, _ in
-            guard let self, let motion = motion else { return }
-            
-            let acceleration = motion.userAcceleration
-            let magnitude = sqrt(acceleration.x * acceleration.x +
-                                 acceleration.y * acceleration.y +
-                                 acceleration.z * acceleration.z)
-            
-            let threshold = 1.5
-            let cooldown: TimeInterval = 1.0
-            
-            if magnitude > threshold,
-               Date().timeIntervalSince(self.lastThrowTime) > cooldown {
-                DispatchQueue.main.async {
-                    self.arState?.showFinalFrame = false
-                }
-                
-                self.lastThrowTime = Date()
-                subscribeToYutCollisions()
-                
-                self.throwYuts()
-            }
-        }
-    }
-    
     // MARK: - 햅틱
+    
     func subscribeToYutCollisions() {
         guard let scene = arView?.scene else { return }
         
@@ -127,16 +94,55 @@ final class YutManager {
         }
     }
     
+    // MARK: - Motion Detection
+    
+    func startMonitoringMotion() {
+        guard motionManager.isDeviceMotionAvailable else {
+            return
+        }
+
+        self.arState?.showFinalFrame = true
+
+        motionManager.deviceMotionUpdateInterval = 0.05
+        motionManager.startDeviceMotionUpdates(to: .main) { [weak self] motion, _ in
+            guard let self, let motion = motion else { return }
+            
+            let acceleration = motion.userAcceleration
+            let magnitude = sqrt(acceleration.x * acceleration.x +
+                                 acceleration.y * acceleration.y +
+                                 acceleration.z * acceleration.z)
+            
+            let threshold = 1.5
+            let cooldown: TimeInterval = 1.0
+            
+            if magnitude > threshold,
+               Date().timeIntervalSince(self.lastThrowTime) > cooldown {
+                DispatchQueue.main.async {
+                    self.arState?.showFinalFrame = false
+                }
+                
+                self.lastThrowTime = Date()
+                subscribeToYutCollisions()
+                
+                self.throwYuts()
+                
+                self.motionManager.stopDeviceMotionUpdates() // 윷 던지기 이후 모션 감지 종료
+            }
+        }
+    }
+    
+    
+    
     // MARK: - Yut Throwing
     func throwYuts() {
         guard let arView = arView else { return }
         
         didPlaySoundForCurrentThrow = false
         
-        for yutModel in thrownYuts {
-            yutModel.entity.parent?.removeFromParent()
-        }
-        thrownYuts.removeAll()
+//        for yutModel in thrownYuts {
+//            yutModel.entity.parent?.removeFromParent()
+//        }
+//        thrownYuts.removeAll()
         
         let spacing: Float = 0.01
         
@@ -144,7 +150,7 @@ final class YutManager {
         Task { @MainActor in
             for i in 0..<yutNames.count {
                 
-                // ✅ AssetCacheManager에서 비동기 로드
+                // AssetCacheManager에서 비동기 로드
                 guard let original = coordinator.assetCacheManager.cachedModel(named: yutNames[i]) else {
                     print("❌ 캐시된 모델 없음: \(yutNames[i])")
                     continue
@@ -206,15 +212,58 @@ final class YutManager {
                 anchor.addChild(yut)
                 arView.scene.addAnchor(anchor)
             }
+            
             // 8. 평가 대기 타이머
             try? await Task.sleep(nanoseconds: 1_000_000_000)
             self.waitUntilAllYutsStopAndEvaluate()
+            
         }
     }
     
     // MARK: - Evaluation
     private func waitUntilAllYutsStopAndEvaluate() {
-        Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { timer in
+        Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] timer in
+            guard let self = self else {
+                timer.invalidate()
+                return
+            }
+
+            let yutThreshold: Float = -50.0
+            var hasFallenYut = false
+
+            // relativeTo: nil → 월드 기준
+            for yut in self.thrownYuts {
+//                print(yut.entity.position(relativeTo: nil).y)
+                let y = yut.entity.position(relativeTo: nil).y
+                if y < yutThreshold {
+                    hasFallenYut = true
+                    break
+                }
+            }
+
+            if hasFallenYut {
+                timer.invalidate()
+                
+                print("⚠️ 바닥 밑으로 떨어진 윷 발견 - 다시 던지기")
+                self.motionManager.stopDeviceMotionUpdates()
+                self.arState?.yutResult = .nak
+                
+                DispatchQueue.main.async {
+                    self.arState?.gamePhase = .showingYutResult
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                        // 던져진 윷 제거
+                        for yutModel in self.thrownYuts {
+                            yutModel.entity.parent?.removeFromParent()
+                        }
+                        self.thrownYuts.removeAll()
+                        
+                        self.arState?.gamePhase = .readyToThrow
+                    }
+                }
+                return
+            }
+
             let allStopped = self.thrownYuts.allSatisfy { $0.isSettled }
             if allStopped {
                 timer.invalidate()
@@ -248,13 +297,14 @@ final class YutManager {
             case 3: result = .dho
             case 4: result = .mo
             default:
-                print("⚠️ 유효하지 않은 윷 결과 - 다시 던지기")
+                print("⚠️ 유효하지 않은 윷 결과")
                 return
             }
         }
         
-        DispatchQueue.main.async {
+        Task { @MainActor in
             self.arState?.yutResult = result
+            
         }
         
         coordinator.yutThrowCompleted(with: result)
