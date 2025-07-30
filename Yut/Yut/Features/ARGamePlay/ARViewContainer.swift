@@ -21,7 +21,7 @@ struct ARViewContainer: UIViewRepresentable {
     // swiftUI 뷰가 생성될 때 한번만 호출됨 -> ARView 초기화 & 설정
     func makeUIView(context: Context) -> some UIView {
         let arView = ARView(frame: .zero)
-        arView.debugOptions.insert(.showPhysics)
+//        arView.debugOptions.insert(.showPhysics)
         // MARK: - Coordinator 설정
         context.coordinator.arView = arView // makeCoordinator에서 만든 ARCoordinator 인스턴스
         context.coordinator.arState = arState
