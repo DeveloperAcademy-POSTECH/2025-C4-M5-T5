@@ -9,7 +9,8 @@ import SwiftUI
 
 struct CarryChoiceModalView: View {
     @Binding var isPresented: Bool
-
+    @ObservedObject var arState: ARState
+    
     var body: some View {
         if isPresented {
             ZStack {
@@ -30,7 +31,7 @@ struct CarryChoiceModalView: View {
                     HStack(spacing: 12) {
                         Button("따로 가기") {
                             // TODO: - 로직 연결
-                            
+                            arState.actionStream.send(.resolveMove(carry: false))
                             isPresented = false
                         }
                         .frame(maxWidth: .infinity, maxHeight: 70)
@@ -40,8 +41,7 @@ struct CarryChoiceModalView: View {
                         .cornerRadius(36)
                         
                         Button("업기") {
-                            // TODO: - 로직 연결
-                            
+                            arState.actionStream.send(.resolveMove(carry: true))
                             isPresented = false
                         }
                         .frame(maxWidth: .infinity, maxHeight: 70)
