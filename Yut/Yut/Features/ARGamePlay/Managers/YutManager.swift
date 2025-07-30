@@ -118,10 +118,11 @@ final class YutManager {
             Task { @MainActor in
                 self.haptics.playCollisionHaptic(with: normalized, sharpness: normalized)
                 
-                if !self.didPlaySoundForCurrentThrow {
-                    self.sound.playCollisionSound()
-                    self.didPlaySoundForCurrentThrow = true
-                }
+                if !self.didPlaySoundForCurrentThrow,
+                       (aIsYut && bIsFloor) || (bIsYut && aIsFloor) {
+                        self.sound.playCollisionSound()
+                        self.didPlaySoundForCurrentThrow = true
+                    }
             }
         }
     }
@@ -129,6 +130,8 @@ final class YutManager {
     // MARK: - Yut Throwing
     func throwYuts() {
         guard let arView = arView else { return }
+        
+        didPlaySoundForCurrentThrow = false
         
         for yutModel in thrownYuts {
             yutModel.entity.parent?.removeFromParent()
