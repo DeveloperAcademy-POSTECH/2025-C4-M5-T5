@@ -63,6 +63,11 @@ extension MPCManager: MCSessionDelegate {
     /// - Host가 전송한 players 배열을 Guest가 수신하여 UI를 업데이트함
     func session(_ session: MCSession, didReceive data: Data, fromPeer peerID: MCPeerID) {
         DispatchQueue.main.async {
+            if let message = String(data: data, encoding: .utf8), message == "startGame" {
+                NotificationCenter.default.post(name: .gameStarted, object: nil)
+                return
+            }
+            
             if let updatedPlayers = try? JSONDecoder().decode([PlayerModel].self, from: data) {
                 self.players = updatedPlayers
                 print("📥 Updated players: \(self.players.map { $0.name })")
@@ -97,4 +102,5 @@ extension MPCManager: MCSessionDelegate {
 
 extension Notification.Name {
     static let roomClosed = Notification.Name("roomClosed")
+    static let gameStarted = Notification.Name("gameStarted")
 }

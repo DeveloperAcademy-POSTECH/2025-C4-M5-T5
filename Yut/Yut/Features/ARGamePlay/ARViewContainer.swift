@@ -39,11 +39,11 @@ struct ARViewContainer: UIViewRepresentable {
         arView.addGestureRecognizer(panGesture)
         arView.addGestureRecognizer(rotationGesture)
         
-        
         // MARK: - AR 환경설정 (Configuration)
+
         // RealityKit Scene 초기화 (기존 AnchorEntity 제거)
         arView.resetARSession(for: arView)
-        
+
         arView.addCoachig()
         return arView
     }

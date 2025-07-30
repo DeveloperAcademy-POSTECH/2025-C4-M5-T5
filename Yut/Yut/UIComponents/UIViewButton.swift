@@ -44,12 +44,12 @@ struct UIViewButton: View {
     }
 }
 
-#Preview {
-    UIViewButton(
-        title: "확인", // 테스트용 타이틀
-        isEnabled: true, // 활성화 여부
-        action: {
-            print("버튼 클릭됨")
-        }
-    )
-}
+//#Preview {
+//    UIViewButton(
+//        title: "확인", // 테스트용 타이틀
+//        isEnabled: true, // 활성화 여부
+//        action: {
+//            print("버튼 클릭됨")
+//        }
+//    )
+//}

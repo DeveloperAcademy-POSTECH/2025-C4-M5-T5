@@ -14,6 +14,8 @@ final class YutManager {
     private var arState: ARState? { coordinator.arState }
     private let yutNames = ["Yut1", "Yut2", "Yut3", "Yut4_back"]
     private let haptics = HapticsService()
+    private let sound = SoundService()
+    private var didPlaySoundForCurrentThrow = false
     private var collisionSubscription: Cancellable?
     
     private var preloadedModels: [String: ModelEntity] = [:]
@@ -28,18 +30,45 @@ final class YutManager {
         
     }
     
+    // MARK: - Preload
+    func preloadYutModels() {
+        for name in yutNames {
+            if preloadedModels[name] != nil { continue }
+            do {
+                let model = try ModelEntity.loadModel(named: name)
+                preloadedModels[name] = model
+            } catch {
+                //                print("\u26a0\ufe0f \(name) 미리 로딩 실패: \(error)")
+            }
+        }
+    }
     
     // MARK: - Motion Detection
     func startMonitoringMotion() {
         guard motionManager.isDeviceMotionAvailable else {
             return
         }
+
+        self.arState?.showFinalFrame = true
+
         motionManager.deviceMotionUpdateInterval = 0.05
         motionManager.startDeviceMotionUpdates(to: .main) { [weak self] motion, _ in
             guard let self, let motion = motion else { return }
-            let acc = motion.userAcceleration
-            let magnitude = sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z)
-            if magnitude > 1.5, Date().timeIntervalSince(self.lastThrowTime) > 1.0 {
+            
+            let acceleration = motion.userAcceleration
+            let magnitude = sqrt(acceleration.x * acceleration.x +
+                                 acceleration.y * acceleration.y +
+                                 acceleration.z * acceleration.z)
+            
+            let threshold = 1.5
+            let cooldown: TimeInterval = 1.0
+            
+            if magnitude > threshold,
+               Date().timeIntervalSince(self.lastThrowTime) > cooldown {
+                DispatchQueue.main.async {
+                    self.arState?.showFinalFrame = false
+                }
+                
                 self.lastThrowTime = Date()
                 subscribeToYutCollisions()
                 
@@ -75,12 +104,12 @@ final class YutManager {
             }
             
             print("💥 충돌 감지: \(a.name) & \(b.name), impulse: \(event.impulse)")
-            
+
             let impulse = event.impulse
             
             // 1. 너무 약한 충돌은 무시 (여기서 걸러냄)
             guard impulse >= 0.4 else {
-                print("⚠️ 너무 약한 충돌 무시됨: \(impulse)")
+                // print("⚠️ 너무 약한 충돌 무시됨: \(impulse)")
                 return
             }
             
@@ -88,6 +117,11 @@ final class YutManager {
             let normalized = min(impulse / 5.0, 1.0)
             Task { @MainActor in
                 self.haptics.playCollisionHaptic(with: normalized, sharpness: normalized)
+                
+                if !self.didPlaySoundForCurrentThrow {
+                    self.sound.playCollisionSound()
+                    self.didPlaySoundForCurrentThrow = true
+                }
             }
         }
     }
@@ -96,7 +130,6 @@ final class YutManager {
     func throwYuts() {
         guard let arView = arView else { return }
         
-        // 1. 기존 던져진 윷 제거
         for yutModel in thrownYuts {
             yutModel.entity.parent?.removeFromParent()
         }
@@ -170,7 +203,6 @@ final class YutManager {
                 anchor.addChild(yut)
                 arView.scene.addAnchor(anchor)
             }
-            
             // 8. 평가 대기 타이머
             try? await Task.sleep(nanoseconds: 1_000_000_000)
             self.waitUntilAllYutsStopAndEvaluate()
@@ -220,7 +252,6 @@ final class YutManager {
         
         DispatchQueue.main.async {
             self.arState?.yutResult = result
-            self.arState?.gamePhase = .showingYutResult
         }
         
         coordinator.yutThrowCompleted(with: result)

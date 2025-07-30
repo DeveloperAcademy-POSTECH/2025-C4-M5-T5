@@ -22,8 +22,7 @@ class PlayerModel: Identifiable, ObservableObject, Codable, Equatable, Hashable 
 
     var object: String { "Player/P\(sequence)/object" }
     var profile: String { "Player/P\(sequence)/profile" }
-    var buttonOn: String { "Player/P\(sequence)/button_on" }
-    var buttonOff: String { "Player/P\(sequence)/button_off" }
+    var button: String { "Player/P\(sequence)/buttoon" }
     var pieceEntity: String {
         switch sequence {
         case 1:

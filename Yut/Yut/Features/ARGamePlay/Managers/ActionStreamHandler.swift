@@ -41,10 +41,6 @@ final class ActionStreamHandler {
         
         case .startMonitoringMotion:
             coordinator.yutManager.startMonitoringMotion()
-            // 상태 변경 여기서?
-            Task { @MainActor in
-                coordinator.arState?.gamePhase = .selectingPieceToMove
-            }
             
         case .setYutResultForTesting(let result):
             coordinator.yutThrowCompleted(with: result)

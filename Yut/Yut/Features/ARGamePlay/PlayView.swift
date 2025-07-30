@@ -6,7 +6,18 @@ import ARKit
 struct PlayView : View {
     // 상태 관리 객체 (AR의 현재 단계, 명령 스트림, 윷 결과 등 공유)
     @StateObject var arState = ARState()
-    @State private var showGatheringVideo: Bool = false
+    
+    @State private var showYutGatheringSequence: Bool = false
+    @State private var showFinalFrame: Bool = false
+    @State private var isAnimationDone: Bool = false
+    private let sound = SoundService()
+    
+    @State private var showThrowInstruction = true
+    @State private var showThrowButton = true
+    
+    var currentPlayerSequence: Int {
+        arState.gameManager.currentPlayer.sequence
+    }
     
     var body: some View {
         ZStack {
@@ -24,16 +35,30 @@ struct PlayView : View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color.clear)
-                .zIndex(999)
+                .zIndex(1)
             }
             
-            //            if showGatheringVideo {
-            //                YutGatheringVideoView()
-            //                    .ignoresSafeArea()
-            //                    .transition(.opacity)
-            //                    .zIndex(10)
-            //            }
+            if showYutGatheringSequence {
+                YutGatheringSequenceView(isAnimationDone: $isAnimationDone)
+                    .ignoresSafeArea()
+                    .transition(.opacity)
+                    .zIndex(3)
+                    .padding(.top, 40)
+            }
             
+            if arState.showFinalFrame {
+                GeometryReader { geometry in
+                    Image("Yut.0030")
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+                        .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
+                        .ignoresSafeArea()
+                        .zIndex(2)
+                        .padding(.top, 38)
+                }
+            }
+
             VStack {
                 // 게임 상태에 따라 상단 안내 뷰 + 하단 인터랙션 UI를 함께 표시
                 switch arState.gamePhase {
@@ -56,7 +81,7 @@ struct PlayView : View {
                     
                 case .searchingForSurface:
                     ProgressBar(
-                        text: "바닥을 충분히 색칠해 주세요.",
+                        text: "말판을 배치할 평면을 충분히 스캔해 주세요",
                         currentProgress: arState.recognizedArea,
                         minRequiredArea: arState.minRequiredArea
                     )
@@ -70,16 +95,16 @@ struct PlayView : View {
                     
                     // 2. 사용자가 탭으로 보드를 놓는 단계
                 case .placeBoard:
-                    InstructionView(text: "탭해서 말판을 배치하세요.")
+                    InstructionView(text: "탭해서 말판을 배치하세요")
                     Spacer()
                     EmptyView() // 버튼 없음
                     
                     // 3. 핀치/드래그로 위치/크기 조정 단계
                 case .adjustingBoard:
-                    InstructionView(text: "핀치와 드래그로\n보드의 크기와 위치를 조정하세요.")
+                    InstructionView(text: "말판의 크기와 위치를 조정하세요")
                     Spacer()
                     // 보드 확정 및 시각화 종료
-                    RoundedBrownButton(title: "여기에 배치", isEnabled: true) {
+                    RoundedBrownButton(title: "배치하기", isEnabled: true) {
                         arState.actionStream.send(.fixBoardPosition)
                         arState.actionStream.send(.disablePlaneVisualization)
                         arState.gamePhase = .boardConfirmed
@@ -95,14 +120,15 @@ struct PlayView : View {
                     
                     // 5. 윷 던지기 준비 단계
                 case .readyToThrow:
-                    InstructionView(text: "버튼을 눌러 윷을 던져랏")
+                    if showThrowInstruction {
+                        InstructionView(text: "버튼을 누르고 기기를 흔들어 윷을 던지세요")
+                    }
+                    
                     Spacer()
                     
                     HStack(spacing: 10) {
-                        // YutResult의 모든 케이스를 순회하며 버튼을 만듭니다.
                         ForEach(YutResult.allCases) { result in
                             Button(result.displayText) {
-                                // 버튼을 누르면 테스트용 액션을 보냅니다.
                                 arState.actionStream.send(.setYutResultForTesting(result))
                             }
                             .padding()
@@ -112,16 +138,23 @@ struct PlayView : View {
                             .font(.system(size: 14, weight: .bold))
                         }
                     }
-                    RoundedBrownButton(title: "윷 던지기 활성화!", isEnabled: true) {
-                        //                        showGatheringVideo = true
-                        //
-                        //                        // 영상 재생 도중 다른 동작 방지 위해 잠시 지연 후 실제 액션 실행
-                        //                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
-                        //                                arState.actionStream.send(.startMonitoringMotion)
-                        //                                showGatheringVideo = false
-                        //                            }
-                        arState.actionStream.send(.startMonitoringMotion)
-                        
+                    
+                    // sequence 값 기반 버튼 표시
+                    let currentPlayer = arState.gameManager.currentPlayer
+                    
+                    if showThrowButton {
+                        YutThrowButton(sequence: currentPlayer.sequence) {
+                            showYutGatheringSequence = true
+                            showFinalFrame = false
+                            showYutGatheringSequence = true
+                            sound.playcollectYutSound()
+                            
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.3) {
+                                showYutGatheringSequence = false
+                                showFinalFrame = true
+                                arState.actionStream.send(.startMonitoringMotion)
+                            }
+                        }
                     }
                     
                     // 5.5 윷 던지기 결과 표시
