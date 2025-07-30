@@ -21,6 +21,9 @@ class ARState: ObservableObject {
     // 말 선택 및 이동 후보 위치
     @Published var selectedPiece: PieceModel? = nil
     @Published var availableDestinations: [String] = []
+    
+    // 업기 선택을 위한 이동 정보 임시 저장
+    @Published var pendingMove: (piece: PieceModel, destination: String)? = nil
 
     // 윷 결과 (도:1 ~ 모:5)
 //    @Published var yutResult: Int = 1
