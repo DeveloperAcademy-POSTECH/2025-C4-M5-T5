@@ -15,7 +15,6 @@ struct RoomListView: View {
     var body: some View {
         ZStack {
             Color.white1
-            //                .edgesIgnoringSafeArea(.all)
                 .ignoresSafeArea()
             
             ScrollView {
@@ -38,7 +37,6 @@ struct RoomListView: View {
                     Spacer()
                 }
                 .padding(.top, 40)
-                .padding(.horizontal, 20)
             }
         }
         .gesture(
@@ -93,8 +91,7 @@ struct RoomListView: View {
     }
 }
 
-
-#Preview {
-    RoomListView()
-        .environmentObject(NavigationManager())
-}
+//#Preview {
+//    RoomListView()
+//        .environmentObject(NavigationManager())
+//}

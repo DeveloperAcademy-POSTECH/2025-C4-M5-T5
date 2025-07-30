@@ -27,18 +27,32 @@ final class WaitingRoomViewModel: ObservableObject {
             .assign(to: &$players)
     }
 
-    func addPlayer(name: String) async {
-        let newPlayer = await PlayerModel.load(
+// MPC ver.
+//    func addPlayer(name: String) async {
+//        let newPlayer = await PlayerModel.load(
+//            name: name,
+//            sequence: mpcManager.players.count + 1,
+//            peerID: MCPeerID(displayName: name),
+//            isHost: false
+//        )
+//        players.append(newPlayer)
+//        mpcManager.players.append(newPlayer)
+//        if mpcManager.isHost {
+//            mpcManager.sendPlayersUpdate()
+//        }
+//    }
+    
+    // Single Device ver.
+    func addPlayer(named name: String) {
+        guard players.count < 4 else { return }
+
+        let newPlayer = PlayerModel(
             name: name,
-            sequence: mpcManager.players.count + 1,
+            sequence: players.count + 1,
             peerID: MCPeerID(displayName: name),
-            isHost: false
+            isHost: players.isEmpty
         )
         players.append(newPlayer)
-        mpcManager.players.append(newPlayer)
-        if mpcManager.isHost {
-            mpcManager.sendPlayersUpdate()
-        }
     }
 
 //    func sendStartGameSignal() {
@@ -67,7 +81,10 @@ final class WaitingRoomViewModel: ObservableObject {
 
     var buttonTitle: String {
         let mapping = [2: "둘이서", 3: "셋이서", 4: "넷이서"]
-        return mapping[mpcManager.players.count].map { "\($0) 윷놀이 시작하기" } ?? "인원 기다리는 중..."
+        // Single Device ver.
+        return mapping[players.count].map {"\($0) 윷놀이 시작하기"} ?? "인원 모으는 중..."
+        // MPC ver.
+        // return mapping[mpcManager.players.count].map { "\($0) 윷놀이 시작하기" } ?? "인원 기다리는 중..."
     }
 
     var isHost: Bool {

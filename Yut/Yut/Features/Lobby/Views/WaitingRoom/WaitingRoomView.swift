@@ -17,66 +17,81 @@ struct WaitingRoomView: View {
     @EnvironmentObject private var navigationManager: NavigationManager
     @State private var isNavigatingToPlayView = false
     
+    @State private var showNicknameModal = false
+    @State private var newNickname = ""
+    
     init(room: RoomModel, navigationManager: NavigationManager) {
         self.room = room
         _viewModel = StateObject(wrappedValue: WaitingRoomViewModel(navigationManager: navigationManager))
     }
     
     var body: some View {
-        VStack {
-            ZStack {
-                Text("\(room.hostName)의 윷놀이방")
-                    .font(.pretendard(.bold, size: 24))
-                    .foregroundColor(.brown4)
-                
-                HStack {
-                    Spacer()
+        ZStack{
+            VStack {
+                ZStack {
+                    Text("\(room.hostName)의 윷놀이방")
+                        .font(.pretendard(.bold, size: 24))
+                        .foregroundColor(.brown4)
                     
-                    // MARK: 닫기 (MPC 세션 종료)
-
-                    Button(action: {
-                        if viewModel.isHost {
-                            viewModel.showLeaveAlert = true
-                        } else {
-                            viewModel.leaveRoom()
+                    HStack {
+                        Spacer()
+                        
+                        // MARK: 닫기 (MPC 세션 종료)
+                        
+                        Button(action: {
+                            if viewModel.isHost {
+                                viewModel.showLeaveAlert = true
+                            } else {
+                                viewModel.leaveRoom()
+                            }
+                        }) {
+                            Image(systemName: "xmark")
+                                .font(.pretendard(.bold, size: 24))
+                                .foregroundColor(.brown4)
+                                .padding(.trailing, 5)
                         }
-                    }) {
-                        Image(systemName: "xmark")
-                            .font(.pretendard(.bold, size: 24))
-                            .foregroundColor(.brown4)
-                            .padding(.trailing, 5)
                     }
                 }
-            }
-            .padding(.top, 30)
-            
-            Spacer()
-            
-            // Player grid
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: 2), spacing: 16) {
-                ForEach(viewModel.players) { player in
-                    PlayerCard(player: player)
+                .padding(.top, 30)
+                
+                Spacer()
+                
+                // Player grid
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: 2), spacing: 16) {
+                    ForEach(viewModel.players) { player in
+                        PlayerCard(player: player)
+                    }
+                    ForEach(viewModel.players.count ..< room.maxPlayers, id: \.self) { _ in
+                        Button(action: {
+                            showNicknameModal = true
+                        }) {
+                            AddPlayerCard(){}
+                        }
+                    }
                 }
-                ForEach(viewModel.players.count ..< room.maxPlayers, id: \.self) { _ in
-                    EmptyPlayerCard()
+                
+                Spacer()
+                
+                Button(action: startGame) {
+                    Text(viewModel.buttonTitle)
+                        .font(.pretendard(.semiBold, size: 20))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 20)
+                        .background(
+                            RoundedRectangle(cornerRadius: 34)
+                                .fill(viewModel.players.count < 2 ? Color.gray.opacity(0.2) : Color.brown4)
+                        )
+                        .foregroundColor(viewModel.players.count < 2 ? .gray : .white)
                 }
+                .disabled(viewModel.players.count < 2)
+                .padding(.bottom, 20)
             }
-            
-            Spacer()
-            
-            Button(action: startGame) {
-                Text(viewModel.buttonTitle)
-                    .font(.pretendard(.semiBold, size: 20))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 20)
-                    .background(
-                        RoundedRectangle(cornerRadius: 34)
-                            .fill(viewModel.players.count < 2 ? Color.gray.opacity(0.2) : Color.brown4)
-                    )
-                    .foregroundColor(viewModel.players.count < 2 ? .gray : .white)
+            if showNicknameModal {
+                AddPlayerModalView(isPresented: $showNicknameModal, nickname: $newNickname) {
+                    viewModel.addPlayer(named: newNickname)
+                }
+                .zIndex(10)
             }
-            .disabled(viewModel.players.count < 2)
-            .padding(.bottom, 20)
         }
         .padding(.horizontal, 20)
         .background(Color.white1.ignoresSafeArea())
@@ -86,7 +101,7 @@ struct WaitingRoomView: View {
             }
             Button("취소", role: .cancel) {}
         } message: {
-            Text("Host가 나가면 방이 사라지고 모든 게스트가 나가게 됩니다.")
+            Text("Host가 나가면 방이 사라집니다.")
         }
         .navigationBarBackButtonHidden(true)
         .onReceive(NotificationCenter.default.publisher(for: .gameStarted)) { _ in
@@ -109,6 +124,6 @@ struct WaitingRoomView: View {
     }
 }
 
-// #Preview {
+//#Preview {
 //    WaitingRoomView(room: RoomModel(roomName: "해피제이의 윷놀이방", hostName: "해피제이", players: []), navigationManager: NavigationManager())
-// }
+//}
