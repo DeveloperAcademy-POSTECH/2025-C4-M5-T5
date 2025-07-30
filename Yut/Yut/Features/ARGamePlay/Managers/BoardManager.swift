@@ -20,50 +20,54 @@ final class BoardManager {
     func placeYutBoard(on anchor: ARAnchor) {
         guard let arView = arView, let arState = arState else { return }
         if yutBoardAnchor != nil { return } // 중복 생성 방지
-
-        do {
-            // 1. 윷판 모델 로딩
-            let boardEntity = try ModelEntity.load(named: "Board.usdz")
-//            boardEntity.generateCollisionShapes(recursive: true)
-
-            // 2. Board와 같은 크기의 보이지 않는 박스 생성
-            let boardBounds = boardEntity.visualBounds(relativeTo: nil)
-            let boxSize = boardBounds.extents     // SIMD3<Float>(width, height, depth)
-            let boxPosition = boardBounds.center  // 월드 기준 중심 위치
-
-            // 3. 충돌용 박스 엔티티 생성
-            let invisibleBox = ModelEntity(
-                mesh: .generateBox(size: boxSize),
-                materials: [SimpleMaterial(color: .clear, isMetallic: false)], // 투명
-                collisionShape: .generateBox(size: boxSize),
-                mass: 0.0
-            )
-            invisibleBox.name = "YutBoardCollision" 
-            
-            invisibleBox.position = boxPosition
-            invisibleBox.components.set([
-                CollisionComponent(shapes: [.generateBox(size: boxSize)]),
-                PhysicsBodyComponent(
-                    massProperties: .default,
-                    material: .default,
-                    mode: .static
+        
+        Task { @MainActor in
+            do {
+                // 1. 윷판 모델 로딩
+                let boardEntity = try await coordinator.assetCacheManager.load(named: "Board")
+                
+                
+                //            boardEntity.generateCollisionShapes(recursive: true)
+                
+                // 2. Board와 같은 크기의 보이지 않는 박스 생성
+                let boardBounds = boardEntity.visualBounds(relativeTo: nil)
+                let boxSize = boardBounds.extents     // SIMD3<Float>(width, height, depth)
+                let boxPosition = boardBounds.center  // 월드 기준 중심 위치
+                
+                // 3. 충돌용 박스 엔티티 생성
+                let invisibleBox = ModelEntity(
+                    mesh: .generateBox(size: boxSize),
+                    materials: [SimpleMaterial(color: .clear, isMetallic: false)], // 투명
+                    collisionShape: .generateBox(size: boxSize),
+                    mass: 0.0
                 )
-            ])
-
-            // 4. 앵커에 추가
-            let anchorEntity = AnchorEntity(anchor: anchor)
-            anchorEntity.addChild(boardEntity)
-            anchorEntity.addChild(invisibleBox)
-
-            arView.scene.addAnchor(anchorEntity)
-            self.yutBoardAnchor = anchorEntity
-
-            DispatchQueue.main.async {
-                arState.gamePhase = .adjustingBoard
+                invisibleBox.name = "YutBoardCollision" 
+                
+                invisibleBox.position = boxPosition
+                invisibleBox.components.set([
+                    CollisionComponent(shapes: [.generateBox(size: boxSize)]),
+                    PhysicsBodyComponent(
+                        massProperties: .default,
+                        material: .default,
+                        mode: .static
+                    )
+                ])
+                
+                // 4. 앵커에 추가
+                let anchorEntity = AnchorEntity(anchor: anchor)
+                anchorEntity.addChild(boardEntity)
+                anchorEntity.addChild(invisibleBox)
+                
+                arView.scene.addAnchor(anchorEntity)
+                self.yutBoardAnchor = anchorEntity
+                
+                DispatchQueue.main.async {
+                    arState.gamePhase = .adjustingBoard
+                }
+                
+            } catch {
+                print("⚠️ 윷판 모델 로딩 실패: \(error)")
             }
-
-        } catch {
-            print("⚠️ 윷판 모델 로딩 실패: \(error)")
         }
     }
 //    func placeYutBoard(on anchor: ARAnchor) {

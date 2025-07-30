@@ -6,45 +6,32 @@ import CoreHaptics
 import Combine
 
 final class YutManager {
-
+    
     // MARK: - Properties
     private unowned let coordinator: ARCoordinator
-
+    
     private var arView: ARView? { coordinator.arView }
     private var arState: ARState? { coordinator.arState }
     private let yutNames = ["Yut1", "Yut2", "Yut3", "Yut4_back"]
     private let haptics = HapticsService()
     private var collisionSubscription: Cancellable?
-
+    
     private var preloadedModels: [String: ModelEntity] = [:]
     private let motionManager = CMMotionManager()
     private var lastThrowTime = Date(timeIntervalSince1970: 0)
-
+    
     var thrownYuts: [YutModel] = []
-
+    
     // MARK: - Init
     init(coordinator: ARCoordinator) {
         self.coordinator = coordinator
         
     }
-
-    // MARK: - Preload
-    func preloadYutModels() {
-        for name in yutNames {
-            if preloadedModels[name] != nil { continue }
-            do {
-                let model = try ModelEntity.loadModel(named: name)
-                preloadedModels[name] = model
-            } catch {
-//                print("\u26a0\ufe0f \(name) 미리 로딩 실패: \(error)")
-            }
-        }
-    }
-
+    
+    
     // MARK: - Motion Detection
     func startMonitoringMotion() {
         guard motionManager.isDeviceMotionAvailable else {
-//            print("\u274c \uB514\uBC84\uC774\uC2A4 \uBAA8\uC158 \uC0AC\uC6A9 \uBD88\uAC00")
             return
         }
         motionManager.deviceMotionUpdateInterval = 0.05
@@ -55,18 +42,19 @@ final class YutManager {
             if magnitude > 1.5, Date().timeIntervalSince(self.lastThrowTime) > 1.0 {
                 self.lastThrowTime = Date()
                 subscribeToYutCollisions()
+                
                 self.throwYuts()
             }
         }
     }
-
-    // MARK: - Collision Subscription
+    
+    // MARK: - 햅틱
     func subscribeToYutCollisions() {
         guard let scene = arView?.scene else { return }
-
+        
         let yutPrefix = "Yut_"
         let floorNames: Set<String> = ["YutBoardCollision", "Plane"]
-
+        
         collisionSubscription = scene.subscribe(to: CollisionEvents.Began.self) { [weak self] event in
             guard let self = self else { return }
             guard let a = event.entityA as? ModelEntity,
@@ -74,28 +62,28 @@ final class YutManager {
                 print("❌ 캐스팅 실패: \(event)")
                 return
             }
-
+            
             let aIsYut = a.name.hasPrefix(yutPrefix)
             let bIsYut = b.name.hasPrefix(yutPrefix)
             let aIsFloor = floorNames.contains(a.name)
             let bIsFloor = floorNames.contains(b.name)
-
+            
             // 윷끼리 또는 윷+바닥 충돌일 경우에만 통과
             guard (aIsYut && bIsYut) || (aIsYut && bIsFloor) || (bIsYut && aIsFloor) else {
                 print("❌ 충돌 무시: \(a.name) vs \(b.name)")
                 return
             }
-
+            
             print("💥 충돌 감지: \(a.name) & \(b.name), impulse: \(event.impulse)")
-
+            
             let impulse = event.impulse
-
+            
             // 1. 너무 약한 충돌은 무시 (여기서 걸러냄)
             guard impulse >= 0.4 else {
                 print("⚠️ 너무 약한 충돌 무시됨: \(impulse)")
                 return
             }
-
+            
             // 2. 강도 비례 정규화 (최솟값 제한 없음)
             let normalized = min(impulse / 5.0, 1.0)
             Task { @MainActor in
@@ -103,34 +91,41 @@ final class YutManager {
             }
         }
     }
-
+    
     // MARK: - Yut Throwing
     func throwYuts() {
         guard let arView = arView else { return }
-
+        
+        // 1. 기존 던져진 윷 제거
         for yutModel in thrownYuts {
             yutModel.entity.parent?.removeFromParent()
         }
         thrownYuts.removeAll()
-
+        
         let spacing: Float = 0.01
-
-        for i in 0..<yutNames.count {
-            guard let original = preloadedModels[yutNames[i]] else {
-//                print("\u274c \uC0AC\uC804 \uB85C\uB529\uB418\uC9C0 \uC54A\uC740 \uBAA8\uB378: \(yutNames[i])")
-                continue
-            }
-            let yut = original.clone(recursive: true)
-            let yutModel = YutModel(entity: yut, isFrontUp: nil)
-            thrownYuts.append(yutModel)
-
-            let physMaterial = PhysicsMaterialResource.generate(
-                staticFriction: 1.0,
-                dynamicFriction: 1.0,
-                restitution: 0.0
-            )
-
-            Task { @MainActor in
+        
+        // 2. Task에서 비동기 처리
+        Task { @MainActor in
+            for i in 0..<yutNames.count {
+                
+                // ✅ AssetCacheManager에서 비동기 로드
+                guard let original = coordinator.assetCacheManager.cachedModel(named: yutNames[i]) else {
+                    print("❌ 캐시된 모델 없음: \(yutNames[i])")
+                    continue
+                }
+                let yut = original.clone(recursive: true)
+                
+                let yutModel = YutModel(entity: yut, isFrontUp: nil)
+                thrownYuts.append(yutModel)
+                
+                // 3. 물리 설정
+                let physMaterial = PhysicsMaterialResource.generate(
+                    staticFriction: 1.0,
+                    dynamicFriction: 1.0,
+                    restitution: 0.0
+                )
+                
+                // 4. 충돌면 설정
                 if let modelComponent = yut.components[ModelComponent.self] {
                     do {
                         let shape = try await ShapeResource.generateConvex(from: modelComponent.mesh)
@@ -139,44 +134,49 @@ final class YutManager {
                         yut.generateCollisionShapes(recursive: true)
                     }
                 }
+                
+                yut.physicsBody = PhysicsBodyComponent(
+                    massProperties: .init(mass: 5),
+                    material: physMaterial,
+                    mode: .dynamic
+                )
+                
+                // 5. 위치 계산
+                guard let camTransform = arView.session.currentFrame?.camera.transform else { return }
+                
+                var translation = matrix_identity_float4x4
+                translation.columns.3.z = -0.1
+                translation.columns.3.y += (Float(i) - 0.5) * spacing
+                let finalTransform = simd_mul(camTransform, translation)
+                
+                let rotation = simd_quatf(angle: .pi / 2, axis: SIMD3<Float>(0, 0, 1))
+                let baseTransform = Transform(matrix: finalTransform)
+                yut.transform = Transform(rotation: rotation * baseTransform.rotation)
+                
+                // 6. 힘 적용
+                let forward = -simd_make_float3(camTransform.columns.2)
+                let flatForward = simd_normalize(SIMD3<Float>(forward.x, 0, forward.z))
+                let upward = SIMD3<Float>(0, 3, 0)
+                let velocity = flatForward * 1.0 + upward
+                
+                // 약간의 딜레이 후 힘 적용
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+                    yut.components.set(PhysicsMotionComponent(linearVelocity: velocity))
+                }
+                
+                // 7. 엔티티 추가
+                yut.components.set(InputTargetComponent())
+                let anchor = AnchorEntity(world: finalTransform)
+                anchor.addChild(yut)
+                arView.scene.addAnchor(anchor)
             }
-
-            yut.physicsBody = PhysicsBodyComponent(
-                massProperties: .init(mass: 5),
-                material: physMaterial,
-                mode: .dynamic
-            )
-
-            guard let camTransform = arView.session.currentFrame?.camera.transform else { return }
-            var translation = matrix_identity_float4x4
-            translation.columns.3.z = -0.1
-            translation.columns.3.y += (Float(i) - 0.5) * spacing
-            let finalTransform = simd_mul(camTransform, translation)
-
-            let rotation = simd_quatf(angle: .pi / 2, axis: SIMD3<Float>(0, 0, 1))
-            let baseTransform = Transform(matrix: finalTransform)
-            yut.transform = Transform(rotation: rotation * baseTransform.rotation)
-
-            let forward = -simd_make_float3(camTransform.columns.2)
-            let flatForward = simd_normalize(SIMD3<Float>(forward.x, 0, forward.z))
-            let upward = SIMD3<Float>(0, 3, 0)
-            let velocity = flatForward * 1.0 + upward
-
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
-                yut.components.set(PhysicsMotionComponent(linearVelocity: velocity))
-            }
-
-            yut.components.set(InputTargetComponent())
-            let anchor = AnchorEntity(world: finalTransform)
-            anchor.addChild(yut)
-            arView.scene.addAnchor(anchor)
-        }
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            
+            // 8. 평가 대기 타이머
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
             self.waitUntilAllYutsStopAndEvaluate()
         }
     }
-
+    
     // MARK: - Evaluation
     private func waitUntilAllYutsStopAndEvaluate() {
         Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { timer in
@@ -187,7 +187,7 @@ final class YutManager {
             }
         }
     }
-
+    
     func evaluateYuts() {
         for i in 0..<thrownYuts.count {
             let entity = thrownYuts[i].entity
@@ -198,10 +198,10 @@ final class YutManager {
             let isFront = dot < 0
             thrownYuts[i].isFrontUp = isFront
         }
-
+        
         let frontCount = thrownYuts.filter { $0.isFrontUp == true }.count
         let backYut = thrownYuts.first(where: { $0.entity.name == "Yut_4_back" && $0.isFrontUp == false })
-
+        
         let result: YutResult
         if frontCount == 3, backYut != nil {
             result = .backdho
@@ -217,12 +217,12 @@ final class YutManager {
                 return
             }
         }
-
+        
         DispatchQueue.main.async {
             self.arState?.yutResult = result
             self.arState?.gamePhase = .showingYutResult
         }
-
+        
         coordinator.yutThrowCompleted(with: result)
     }
 }

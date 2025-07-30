@@ -18,4 +18,21 @@ extension ARView: ARCoachingOverlayViewDelegate {
         
         self.addSubview(coachingOverlay)
     }
+    
+    func resetARSession(for arView: ARView) {
+        arView.session.pause()
+        arView.scene.anchors.removeAll()
+
+        let config = ARWorldTrackingConfiguration()
+        config.planeDetection = [.horizontal, .vertical]
+
+        if ARWorldTrackingConfiguration.supportsSceneReconstruction(.mesh) {
+            config.sceneReconstruction = .mesh
+        }
+
+        arView.environment.sceneUnderstanding.options.insert(.physics)
+
+        arView.session.run(config, options: [.removeExistingAnchors])
+        arView.session.run(config, options: [.resetTracking, .removeExistingAnchors])
+    }
 }

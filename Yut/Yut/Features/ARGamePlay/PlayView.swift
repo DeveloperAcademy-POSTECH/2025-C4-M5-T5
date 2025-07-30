@@ -1,4 +1,5 @@
 import SwiftUI
+import MultipeerConnectivity
 import RealityKit
 import ARKit
 
@@ -12,6 +13,7 @@ struct PlayView : View {
             // AR 콘텐츠 뷰 (카메라, 평면 인식 등 RealityKit 기반)
             ARViewContainer(arState: arState)
                 .edgesIgnoringSafeArea(.all)
+                .id(arState.sessionUUID)
             
             if arState.gamePhase == .showingYutResult {
                 VStack {
@@ -25,18 +27,33 @@ struct PlayView : View {
                 .zIndex(999)
             }
             
-//            if showGatheringVideo {
-//                YutGatheringVideoView()
-//                    .ignoresSafeArea()
-//                    .transition(.opacity)
-//                    .zIndex(10)
-//            }
+            //            if showGatheringVideo {
+            //                YutGatheringVideoView()
+            //                    .ignoresSafeArea()
+            //                    .transition(.opacity)
+            //                    .zIndex(10)
+            //            }
             
             VStack {
                 // 게임 상태에 따라 상단 안내 뷰 + 하단 인터랙션 UI를 함께 표시
                 switch arState.gamePhase {
                     
                     // 1. 바닥 탐색 중 (아직 충분히 인식되지 않음)
+                case .arSessionLoading:
+                    DecoratedBackground{
+                        InstructionView(text: "카메라가 켜지고 윷놀이가 시작됩니다!")
+                    }.task { @MainActor in
+                        arState.actionStream.send(.preloadModels)
+                        
+                        // MPC 목업 데이터
+                        let player1 = PlayerModel(name: "노랑", sequence: 1, peerID: MCPeerID(displayName: "Player1"))
+                        let player2 = PlayerModel(name: "초록", sequence: 2, peerID: MCPeerID(displayName: "Player2"))
+                        MPCManager.shared.players = [player1, player2]
+                        
+                        try? await Task.sleep(nanoseconds: 3 * 1_000_000_000)
+                        arState.gamePhase = .searchingForSurface
+                    }
+                    
                 case .searchingForSurface:
                     ProgressBar(
                         text: "바닥을 충분히 색칠해 주세요.",
@@ -65,7 +82,6 @@ struct PlayView : View {
                     RoundedBrownButton(title: "여기에 배치", isEnabled: true) {
                         arState.actionStream.send(.fixBoardPosition)
                         arState.actionStream.send(.disablePlaneVisualization)
-                        arState.actionStream.send(.preloadYutModels)
                         arState.gamePhase = .boardConfirmed
                     }
                     
@@ -131,6 +147,9 @@ struct PlayView : View {
                     EmptyView() // 버튼 없음
                 }
             }
+        }
+        .onAppear {
+            arState.sessionUUID = UUID() // 강제 리프레시 → ARView 재생성
         }
     }
 }

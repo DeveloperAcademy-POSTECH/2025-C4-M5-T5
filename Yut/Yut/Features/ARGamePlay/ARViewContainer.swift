@@ -41,17 +41,10 @@ struct ARViewContainer: UIViewRepresentable {
         
         
         // MARK: - AR 환경설정 (Configuration)
-        let config = ARWorldTrackingConfiguration()
-        config.planeDetection = [.horizontal, .vertical]
-        
-        if ARWorldTrackingConfiguration.supportsSceneReconstruction(.mesh) {
-            config.sceneReconstruction = .mesh
-        }
-        arView.environment.sceneUnderstanding.options.insert([.physics])
+        // RealityKit Scene 초기화 (기존 AnchorEntity 제거)
+        arView.resetARSession(for: arView)
         
         arView.addCoachig()
-        arView.session.run(config, options: [.resetTracking, .removeExistingAnchors])
-        
         return arView
     }
     

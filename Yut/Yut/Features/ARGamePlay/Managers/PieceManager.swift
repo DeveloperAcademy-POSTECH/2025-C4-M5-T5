@@ -11,11 +11,18 @@ import ARKit
 
 final class PieceManager {
     
+    private unowned let coordinator: ARCoordinator
+
+    
     weak var boardAnchor: AnchorEntity? // 윷판 앵커
     var pieceEntities: [Entity] = []
     
     private var originalMaterials: [ModelEntity: RealityFoundation.Material] = [:]
     
+    init(coordinator: ARCoordinator) {
+        self.coordinator = coordinator
+        
+    }
     
     func placeNewPiece(on tileName: String) {
         guard let boardEntity = boardAnchor?.children.first,
@@ -24,18 +31,21 @@ final class PieceManager {
             return
         }
         
-        do {
-            let piece = try ModelEntity.load(named: "Piece1_yellow.usdz")
-            piece.generateCollisionShapes(recursive: true)
-            piece.scale = [0.3, 8.0, 0.3]
-            piece.name = "yut_piece_\(pieceEntities.count)"
-            piece.position = [0, 0.2, 0]
-            
-            tileEntity.addChild(piece)
-            pieceEntities.append(piece)
-            print("✅ \(tileName)에 새로운 말 배치 완료")
-        } catch {
-            print("❌ 말 로드 실패: \(error)")
+        Task { @MainActor in
+            do {
+                let piece = try await coordinator.assetCacheManager.load(named: "Piece1_yellow.usdz")
+//                let piece = try ModelEntity.load(named: "Piece1_yellow.usdz")
+                piece.generateCollisionShapes(recursive: true)
+                piece.scale = [0.3, 8.0, 0.3]
+                piece.name = "yut_piece_\(pieceEntities.count)"
+                piece.position = [0, 0.2, 0]
+                
+                tileEntity.addChild(piece)
+                pieceEntities.append(piece)
+                print("✅ \(tileName)에 새로운 말 배치 완료")
+            } catch {
+                print("❌ 말 로드 실패: \(error)")
+            }
         }
     }
     
