@@ -14,6 +14,9 @@ class ARState: ObservableObject {
 
     // GameManager 싱글톤 인스턴스
     @ObservedObject var gameManager = GameManager.shared
+    
+    // 윷 생성 버튼
+    @Published var showThrowButton: Bool = true
 
     // 바닥 인식 면적 관련
     @Published var recognizedArea: Float = 0.0

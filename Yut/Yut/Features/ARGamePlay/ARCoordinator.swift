@@ -155,6 +155,10 @@ class ARCoordinator: NSObject, ARSessionDelegate {
               let yutResult = gameManager.yutResult
         else { return }
         
+//        print("새말 놓을 때 \(gameManager.currentPlayer.pieces[0])")
+        let piece = gameManager.currentPlayer.pieces[0]
+        print("새말 놓을 때 id: \(piece.id), isOnBoard: \(piece.isSelected), position: \(piece.position)")
+        
         let destinations = gameManager.routeOptions(for: newPiece, yutResult: yutResult, currentRouteIndex: newPiece.routeIndex)
         
         // 목적지 타일 하이라이트
@@ -178,7 +182,7 @@ class ARCoordinator: NSObject, ARSessionDelegate {
         // 윷 결과 업데이트 (UI 반영, 매니저에게 전달)
         arState.yutResult = result
         arState.gameManager.yutResult = result
-        print("\(result)")
+        print("윷 결과\(result)")
         
         self.pieceManager.clearAllHighlights()
         

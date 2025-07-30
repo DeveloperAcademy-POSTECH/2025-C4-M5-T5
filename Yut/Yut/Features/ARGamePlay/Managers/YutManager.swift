@@ -88,7 +88,7 @@ final class YutManager {
             guard let self = self else { return }
             guard let a = event.entityA as? ModelEntity,
                   let b = event.entityB as? ModelEntity else {
-                print("❌ 캐스팅 실패: \(event)")
+//                print("❌ 캐스팅 실패: \(event)")
                 return
             }
             
@@ -99,11 +99,11 @@ final class YutManager {
             
             // 윷끼리 또는 윷+바닥 충돌일 경우에만 통과
             guard (aIsYut && bIsYut) || (aIsYut && bIsFloor) || (bIsYut && aIsFloor) else {
-                print("❌ 충돌 무시: \(a.name) vs \(b.name)")
+//                print("❌ 충돌 무시: \(a.name) vs \(b.name)")
                 return
             }
             
-            print("💥 충돌 감지: \(a.name) & \(b.name), impulse: \(event.impulse)")
+//            print("💥 충돌 감지: \(a.name) & \(b.name), impulse: \(event.impulse)")
 
             let impulse = event.impulse
             
