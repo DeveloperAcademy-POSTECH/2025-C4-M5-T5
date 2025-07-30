@@ -190,7 +190,7 @@ class ARCoordinator: NSObject, ARSessionDelegate {
             arState.gamePhase = .showingYutResult
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                // 1. 던져진 윷 제거
+                // 던져진 윷 제거
                 if let yutManager = arState.coordinator?.yutManager {
                     for yutModel in yutManager.thrownYuts {
                         yutModel.entity.parent?.removeFromParent()

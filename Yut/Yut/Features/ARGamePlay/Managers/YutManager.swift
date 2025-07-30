@@ -222,7 +222,41 @@ final class YutManager {
     
     // MARK: - Evaluation
     private func waitUntilAllYutsStopAndEvaluate() {
-        Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { timer in
+        Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] timer in
+            guard let self = self else {
+                timer.invalidate()
+                return
+            }
+
+            let yutThreshold: Float = -50.0
+            var hasFallenYut = false
+
+            // relativeTo: nil → 월드 기준
+            for yut in self.thrownYuts {
+                print(yut.entity.position(relativeTo: nil).y)
+                let y = yut.entity.position(relativeTo: nil).y
+                if y < yutThreshold {
+                    hasFallenYut = true
+                    break
+                }
+            }
+
+            if hasFallenYut {
+                timer.invalidate()
+                // 1. 던져진 윷 제거
+                
+                for yutModel in thrownYuts {
+                    yutModel.entity.parent?.removeFromParent()
+                }
+                thrownYuts.removeAll()
+                
+                print("⚠️ 바닥 밑으로 떨어진 윷 발견 - 다시 던지기")
+                self.motionManager.stopDeviceMotionUpdates()
+                self.arState?.yutResult = nil
+                self.arState?.actionStream.send(.startMonitoringMotion)
+                return
+            }
+
             let allStopped = self.thrownYuts.allSatisfy { $0.isSettled }
             if allStopped {
                 timer.invalidate()
