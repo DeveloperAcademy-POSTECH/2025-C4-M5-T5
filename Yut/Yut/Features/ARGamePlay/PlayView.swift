@@ -132,19 +132,19 @@ struct PlayView : View {
                             Spacer() // 위와 아래 요소 간 여백 확보
                             
                             // 테스트용 윷 결과 버튼 (디버깅이나 임시 시연용)
-                            HStack(spacing: 10) {
-                                ForEach(YutResult.allCases) { result in
-                                    Button(result.displayText) {
-                                        // 테스트 결과를 강제로 설정 (예: 도/개/걸/윷/모)
-                                        arState.actionStream.send(.setYutResultForTesting(result))
-                                    }
-                                    .padding()
-                                    .background(Color.brown.opacity(0.8))
-                                    .foregroundColor(.white)
-                                    .cornerRadius(10)
-                                    .font(.system(size: 14, weight: .bold))
-                                }
-                            }
+//                            HStack(spacing: 10) {
+//                                ForEach(YutResult.allCases) { result in
+//                                    Button(result.displayText) {
+//                                        // 테스트 결과를 강제로 설정 (예: 도/개/걸/윷/모)
+//                                        arState.actionStream.send(.setYutResultForTesting(result))
+//                                    }
+//                                    .padding()
+//                                    .background(Color.brown.opacity(0.8))
+//                                    .foregroundColor(.white)
+//                                    .cornerRadius(10)
+//                                    .font(.system(size: 14, weight: .bold))
+//                                }
+//                            }
                             
                             // 윷 던지기 버튼 표시 조건
                             YutThrowButton(sequence: currentPlayer.sequence) {

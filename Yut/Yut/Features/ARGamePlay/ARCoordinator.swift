@@ -197,7 +197,7 @@ class ARCoordinator: NSObject, ARSessionDelegate {
                     }
                     yutManager.thrownYuts.removeAll()
                 }
-                arState.gamePhase = .selectingPieceToMove
+                arState.gamePhase = .readyToThrow
             }
         }
     }

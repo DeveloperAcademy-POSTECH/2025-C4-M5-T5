@@ -306,7 +306,8 @@ final class YutManager {
             self.arState?.yutResult = result
             
         }
-        
+        self.arState?.gamePhase = .readyToThrow
+
         coordinator.yutThrowCompleted(with: result)
     }
 }
