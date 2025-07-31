@@ -20,7 +20,7 @@ class ARState: ObservableObject {
 
     // 바닥 인식 면적 관련
     @Published var recognizedArea: Float = 0.0
-    let minRequiredArea: Float = 1.0
+    let minRequiredArea: Float = 15.0
 
     // 말 선택 및 이동 후보 위치
     @Published var selectedPieces: [PieceModel]? = nil
