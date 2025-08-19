@@ -5,13 +5,15 @@ import RealityKit
 
 /// ARView의 이벤트를 처리하고 SwiftUI 상태와 연결해주는 총괄 Coordinator
 class ARCoordinator: NSObject, ARSessionDelegate {
-    
+    private var cancellables = Set<AnyCancellable>()
+
     // MARK: - 외부 연결 (의존 객체)
     
     weak var arView: ARView? {
         didSet {
             gestureHandler.arView = arView
             planeManager.scene = arView?.scene
+            bindPlaneArea()
         }
     }
     
@@ -51,6 +53,22 @@ class ARCoordinator: NSObject, ARSessionDelegate {
         self.actionStreamHandler = ActionStreamHandler(coordinator: self)
     }
     
+    private func bindPlaneArea() {
+        planeManager
+            .recognizedAreaPublisher
+            .receive(on: DispatchQueue.main)
+            .sink{ [weak self] area in
+                guard let self, let arState = self.arState else { return }
+                guard area >= arState.recognizedArea else { return }
+                arState.recognizedArea = area
+                
+                if area >= arState.minRequiredArea, arState.gamePhase == .searchingForSurface {
+                    arState.gamePhase = .placeBoard
+                }
+            }
+            .store(in: &cancellables)
+    }
+    
     // MARK: - ARSessionDelegate (앵커 업데이트 처리)
     
     func session(_ session: ARSession, didAdd anchors: [ARAnchor]) {
@@ -70,12 +88,13 @@ class ARCoordinator: NSObject, ARSessionDelegate {
     }
     
     func session(_ session: ARSession, didReceive anchors: [ARAnchor]) {
-        for anchor in anchors {
-            if let name = anchor.name, name == "YutBoardAnchor" {
-                print("📥 Guest: Host로부터 말판 앵커 수신")
-                // Guest는 Host가 보낸 앵커를 받아서 같은 위치에 배치
-                boardManager.placeYutBoard(on: anchor)
-            }
+        anchors.compactMap { $0 as? ARPlaneAnchor }.forEach {
+            planeManager.addPlane(for: $0)
+        }
+
+        anchors.filter { ($0.name ?? "") == "YutBoardAnchor" }.forEach {
+            boardManager.placeYutBoard(on: $0)
+            if mpcManager.isHost { /* ... */ }
         }
     }
     
@@ -88,33 +107,14 @@ class ARCoordinator: NSObject, ARSessionDelegate {
     }
     
     func session(_ session: ARSession, didUpdate anchors: [ARAnchor]) {
-        var recognizedArea: Float = 0.0
-        
-        for anchor in anchors {
-            guard let planeAnchor = anchor as? ARPlaneAnchor else { continue }
-            planeManager.updatePlane(for: planeAnchor)
-            recognizedArea += planeAnchor.meshArea
-        }
-        
-        let roundedArea = round(recognizedArea * 10) / 10.0
-        
-        Task { @MainActor in
-            guard let arState = self.arState else { return }
-            
-            // 🔥 값이 감소한 경우 무시
-            if roundedArea < arState.recognizedArea { return }
-            
-            if arState.recognizedArea != roundedArea {
-                arState.recognizedArea = roundedArea
-            }
+        anchors.compactMap { $0 as? ARPlaneAnchor }.forEach {
+            planeManager.updatePlane(for: $0)
         }
     }
     
     func session(_ session: ARSession, didRemove anchors: [ARAnchor]) {
-        for anchor in anchors {
-            if let planeAnchor = anchor as? ARPlaneAnchor {
-                planeManager.removePlane(for: planeAnchor)
-            }
+        anchors.compactMap{ $0 as? ARPlaneAnchor }.forEach {
+            planeManager.removePlane(for: $0)
         }
     }
     
