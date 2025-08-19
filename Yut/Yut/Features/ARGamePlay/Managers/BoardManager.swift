@@ -49,19 +49,19 @@ final class BoardManager {
                     mode: .static
                 )
             ])
-
+            
             // 4. 앵커에 추가
 #if targetEnvironment(simulator)
-                let anchorEntity = AnchorEntity(world: anchor.transform) // 시뮬레이터에서는 월드 기준 anchor
+            let anchorEntity = AnchorEntity(world: anchor.transform) // 시뮬레이터에서는 월드 기준 anchor
 #else
-                let anchorEntity = AnchorEntity(anchor: anchor) // 실제 디바이스에서는 ARAnchor 기반
+            let anchorEntity = AnchorEntity(anchor: anchor) // 실제 디바이스에서는 ARAnchor 기반
 #endif
             anchorEntity.addChild(boardEntity)
             anchorEntity.addChild(invisibleBox)
-
+            
             arView.scene.addAnchor(anchorEntity)
             yutBoardAnchor = anchorEntity
-
+            
             DispatchQueue.main.async {
                 arState.gamePhase = .adjustingBoard
             }

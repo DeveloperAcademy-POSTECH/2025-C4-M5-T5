@@ -24,7 +24,6 @@ struct NameInputFormView: View {
                     .foregroundColor(.brown1)
                     .padding(.top, 20)
                 
-                // 닉네임 입력창
                 ZStack(alignment: .leading) {
                     if nickname.isEmpty {
                         Text("닉네임")

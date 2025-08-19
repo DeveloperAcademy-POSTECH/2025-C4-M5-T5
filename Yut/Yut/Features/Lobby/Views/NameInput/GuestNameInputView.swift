@@ -5,8 +5,8 @@
 //  Created by Hwnag Seyeon on 7/21/25.
 //
 
-import SwiftUI
 import MultipeerConnectivity
+import SwiftUI
 
 struct GuestNameInputView: View {
     @State private var guest_nickname: String = ""
@@ -90,7 +90,7 @@ extension View {
                                         to: nil, from: nil, for: nil)
     }
 }
-//
+
 //struct GuestNameInputView: View {
 //    @State private var guest_nickname: String = ""
 //    @EnvironmentObject private var navigationManager: NavigationManager

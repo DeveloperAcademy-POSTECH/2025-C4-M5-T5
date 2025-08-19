@@ -8,9 +8,7 @@
 import ARKit
 import simd
 
-
 extension ARPlaneAnchor {
-    
     // 삼각형 메시 기반으로 실제 평면 면적 계산
     var meshArea: Float {
         let vertices = geometry.vertices.map { SIMD3<Float>($0) }

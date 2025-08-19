@@ -6,10 +6,9 @@
 //
 
 import Foundation
-import RealityKit
-import Foundation
-import SwiftUI
 import MultipeerConnectivity
+import RealityKit
+import SwiftUI
 
 enum YutResult: Int, Identifiable, CaseIterable {
     case backdho = -1
@@ -26,7 +25,6 @@ enum YutResult: Int, Identifiable, CaseIterable {
     
     // ForEach를 위한 id
     var id: Int { rawValue }
-    
 }
 
 struct GameResult {
@@ -38,22 +36,21 @@ struct GameResult {
     let gameEnded: Bool
 }
 
-
 class GameManager :ObservableObject {
     static let shared = GameManager() // singleton
     
     // 플레이어 프로퍼티
-    @Published var players: [PlayerModel] = [] // 플레이어 받아오기
-    var currentPlayerIndex: Int = 0 // 현재 플레이어 인덱스
-    var currentPlayer: PlayerModel { // 현재 플레이어
+    @Published var players: [PlayerModel] = []
+    var currentPlayerIndex: Int = 0
+    var currentPlayer: PlayerModel {
         players[currentPlayerIndex]
     }
-    var pieces: [PieceModel] { // 플레이어 말들 받아오기
+    var pieces: [PieceModel] {
         players.flatMap { $0.pieces }
     }
     
     // 게임 프로퍼티
-    var yutResult: YutResult? // 해피한테 윷 결과 받아오기
+    var yutResult: YutResult?
     var board : BoardModel = BoardModel()
     var cellStates: [String: [PieceModel]] = [:] // 각 칸 별 말 상태 저장
     @Published var result: GameResult? // 게임 최종 결과 반환
@@ -64,7 +61,6 @@ class GameManager :ObservableObject {
         
         currentPlayer.pieces.contains { $0.position == "_6_6" }
     }
-    
     
     func startGame(with players: [PlayerModel]) {
         self.players = players
@@ -105,12 +101,10 @@ class GameManager :ObservableObject {
                     let destinationID = "end"
                     options.append((routeIndex, destinationID))
                 }
-                
             }
         }
         return options
     }
-    
     
     // 경로 인덱스와 몇 칸 이동하는지 입력 받으면 그에 맞는 경로 결과 반환
     func move(piece: PieceModel, to targetCellID: String) {
@@ -139,7 +133,6 @@ class GameManager :ObservableObject {
             )
         }
         
-        
         let existingPieces = cellStates[targetCellID] ?? []
         
         // 1. 해당 칸에 아무도 없을 때
@@ -149,7 +142,6 @@ class GameManager :ObservableObject {
                let index = previousPieces.firstIndex(where: { $0.id == piece.id }) {
                 cellStates[piece.position]?.remove(at: index)
             }
-            
             // 새 위치에 말 추가
             cellStates[targetCellID] = [piece]
             piece.position = targetCellID
@@ -223,8 +215,6 @@ class GameManager :ObservableObject {
     }
     
     func endGame() {
-        // Result의 gameEnded가 true이면 게임 종료 -> 게임 결과 화면 띄우고,
+        // TODO: Result의 gameEnded가 true이면 게임 종료 -> 게임 결과 화면 띄우고,
     }
-
 }
-

@@ -134,9 +134,9 @@ private struct BottomButtonRowView: View {
     }
 }
 
-#Preview {
-    WinnerView(
-        winnerName: "노터",
-        winnerPieceType: .blue
-    )
-}
+//#Preview {
+//    WinnerView(
+//        winnerName: "노터",
+//        winnerPieceType: .blue
+//    )
+//}

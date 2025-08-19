@@ -5,8 +5,8 @@
 //  Created by Hwnag Seyeon on 7/17/25.
 //
 
-import SwiftUI
 import Combine
+import SwiftUI
 
 class KeyboardObserver: ObservableObject {
     @Published var isKeyboardVisible: Bool = false

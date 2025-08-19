@@ -32,7 +32,7 @@ struct YutResultDisplay: View {
     }
 }
 
-#Preview {
-    // YutResultDisplay(result: .geol)
-    YutResultDisplay(result: nil) // "한 번 더!"
-}
+//#Preview {
+//    // YutResultDisplay(result: .geol)
+//    YutResultDisplay(result: nil) // "한 번 더!"
+//}

@@ -36,7 +36,6 @@ class PlayerModel: Identifiable, ObservableObject, Codable, Equatable, Hashable 
         default:
             fatalError("Invalid player sequence: \(sequence)")
         }
-        
         /*"Player/P\(sequence)/token"*/
     }
 
@@ -54,7 +53,6 @@ class PlayerModel: Identifiable, ObservableObject, Codable, Equatable, Hashable 
 //
 //                let dummyEntities = Array(repeating: Entity(), count: 4)
 //                self.pieceEntities = dummyEntities
-                
 
         for _ in 0..<2 {
             guard let piece = PieceModel(owner: self) else { return }

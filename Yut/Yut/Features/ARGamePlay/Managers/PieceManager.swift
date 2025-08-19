@@ -10,9 +10,7 @@ import RealityKit
 import ARKit
 
 final class PieceManager {
-    
     private unowned let coordinator: ARCoordinator
-
     
     weak var boardAnchor: AnchorEntity? // 윷판 앵커
     weak var gameManager: GameManager?
@@ -24,14 +22,12 @@ final class PieceManager {
     
     init(coordinator: ARCoordinator) {
         self.coordinator = coordinator
-        
     }
     
     // MARK: - Pieces Logic
     
     // 판 밖에 있던 말을 처음으로 AR 씬에 추가하는 함수
     func placePieceOnBoard(piece: PieceModel, on tileName: String) {
-        
         guard let destinationTile = boardAnchor?.findEntity(named: tileName) else {
             print("❌ [PieceManager] placePieceOnBoard: 목적지 \(tileName) 타일을 찾을 수 없습니다.")
             return
@@ -53,7 +49,6 @@ final class PieceManager {
         destinationTile.addChild(pieceEntity)
         print("✅ [PieceManager] \(piece.entity.name)을 \(tileName)에 처음으로 배치했습니다.")
     }
-    
     
     func movePiece(piece: Entity, to tileName: String) {
         guard let destinationTile = boardAnchor?.findEntity(named: tileName) else {
@@ -81,9 +76,6 @@ final class PieceManager {
             print("✅ \(piece.name) 이동 완료 → \(tileName)")
         }
     }
-    
-    
-    
     
     // 잡힌 말들을 판에서 제거하는 시각적 처리를 합니다.
     func resetPieces(_ pieces: [PieceModel]) {
@@ -163,7 +155,6 @@ final class PieceManager {
             applyHighlight(to: pieceEntity)
         }
     }
-    
     
     // 인자로 받은 엔티티의 하이라이트 적용
     private func applyHighlight(to entity: ModelEntity) {

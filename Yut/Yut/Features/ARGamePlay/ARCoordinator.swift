@@ -1,7 +1,7 @@
 import ARKit
-import RealityKit
 import Combine
 import MultipeerConnectivity
+import RealityKit
 
 /// ARView의 이벤트를 처리하고 SwiftUI 상태와 연결해주는 총괄 Coordinator
 class ARCoordinator: NSObject, ARSessionDelegate {
@@ -128,7 +128,6 @@ class ARCoordinator: NSObject, ARSessionDelegate {
             arState.gameManager.startGame(with: players)
             self.pieceManager.boardAnchor = self.boardManager.yutBoardAnchor
             arState.gamePhase = .readyToThrow
-                        
 		}
     }
     

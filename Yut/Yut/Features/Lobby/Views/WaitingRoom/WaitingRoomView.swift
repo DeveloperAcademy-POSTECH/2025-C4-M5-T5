@@ -77,7 +77,6 @@ struct WaitingRoomView: View {
                 Spacer()
                 
                 Button(action: startGame) {
-                    
                     Text(viewModel.buttonTitle)
                         .font(.pretendard(.semiBold, size: 20))
                         .frame(maxWidth: .infinity)
@@ -87,7 +86,6 @@ struct WaitingRoomView: View {
                                 .fill(viewModel.players.count < 2 ? Color.gray.opacity(0.2) : Color.brown4)
                         )
                         .foregroundColor(viewModel.players.count < 2 ? .gray : .white)
-                    
                 }
                 .disabled(viewModel.players.count < 2)
                 .padding(.bottom, 20)
@@ -114,7 +112,6 @@ struct WaitingRoomView: View {
             isNavigatingToPlayView = true
         }
         .onChange(of: viewModel.players) { players in
-//            print("🧩 onChange triggered, players: \(players.map(\.name))")
             
             if players.count >= 2 && isGameStarting {
                 arCoordinator.setupNewGame(with: players)

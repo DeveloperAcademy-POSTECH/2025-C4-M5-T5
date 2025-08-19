@@ -5,9 +5,9 @@
 //  Created by yunsly on 7/27/25.
 //
 
-import RealityKit
 import ARKit
 import Combine
+import RealityKit
 
 final class PlaneManager {
     weak var coordinator: ARCoordinator?
@@ -33,42 +33,42 @@ final class PlaneManager {
             print("평면 앵커용 메시 생성 오류: \(error)")
             return
         }
-
+        
         // Material 생성 및 색상 적용
         let uiColor = UIColor(named: "white1")?.withAlphaComponent(0.6) ?? .white
         var material = UnlitMaterial()
         material.baseColor = MaterialColorParameter.color(uiColor)
-
+        
         let planeEntity = ModelEntity(mesh: planeMesh, materials: [material])
         planeEntity.name = "Plane"
-
+        
         planeEntity.components.set(PhysicsBodyComponent(mode: .static))
-
+        
 #if targetEnvironment(simulator)
-                let anchorEntity = AnchorEntity(world: anchor.transform) // 시뮬레이터에서는 월드 기준 anchor
+        let anchorEntity = AnchorEntity(world: anchor.transform) // 시뮬레이터에서는 월드 기준 anchor
 #else
-                let anchorEntity = AnchorEntity(anchor: anchor) // 실제 디바이스에서는 ARAnchor 기반
+        let anchorEntity = AnchorEntity(anchor: anchor) // 실제 디바이스에서는 ARAnchor 기반
 #endif
         anchorEntity.addChild(planeEntity)
-
+        
         arView.scene.addAnchor(anchorEntity)
         self.planeEntities[anchor.identifier] = planeEntity
     }
-
+    
     func updatePlane(for anchor: ARPlaneAnchor) {
         guard let planeEntity = self.planeEntities[anchor.identifier] else { return }
-
+        
         do {
             let vertices = anchor.geometry.vertices.map { SIMD3<Float>($0) }
             let faceIndices = anchor.geometry.triangleIndices
-
+            
             var descriptor = MeshDescriptor()
             descriptor.positions = MeshBuffers.Positions(vertices)
             descriptor.primitives = .triangles(faceIndices.map { UInt32($0) })
-
+            
             let updatedMesh = try MeshResource.generate(from: [descriptor])
             planeEntity.model?.mesh = updatedMesh
-
+            
             Task { @MainActor in
                 do {
                     let shape = try await ShapeResource.generateStaticMesh(from: updatedMesh)

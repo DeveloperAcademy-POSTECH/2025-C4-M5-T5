@@ -30,6 +30,6 @@ struct EmptyPlayerCard: View {
     }
 }
 
-#Preview {
-    EmptyPlayerCard()
-}
+//#Preview {
+//    EmptyPlayerCard()
+//}

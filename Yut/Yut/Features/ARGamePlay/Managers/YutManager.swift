@@ -1,12 +1,11 @@
-import Foundation
-import RealityKit
 import ARKit
+import Combine
 import CoreMotion
 import CoreHaptics
-import Combine
+import Foundation
+import RealityKit
 
 final class YutManager {
-    
     // MARK: - Properties
     private unowned let coordinator: ARCoordinator
     
@@ -27,7 +26,6 @@ final class YutManager {
     // MARK: - Init
     init(coordinator: ARCoordinator) {
         self.coordinator = coordinator
-        
     }
     
     // MARK: - Preload
@@ -74,13 +72,11 @@ final class YutManager {
 
             let impulse = event.impulse
             
-            // 1. 너무 약한 충돌은 무시 (여기서 걸러냄)
             guard impulse >= 0.4 else {
                 // print("⚠️ 너무 약한 충돌 무시됨: \(impulse)")
                 return
             }
             
-            // 2. 강도 비례 정규화 (최솟값 제한 없음)
             let normalized = min(impulse / 5.0, 1.0)
             Task { @MainActor in
                 self.haptics.playCollisionHaptic(with: normalized, sharpness: normalized)
@@ -120,7 +116,6 @@ final class YutManager {
                 DispatchQueue.main.async {
                     self.arState?.showFinalFrame = false
                 }
-                
                 self.lastThrowTime = Date()
                 subscribeToYutCollisions()
                 
@@ -130,8 +125,6 @@ final class YutManager {
             }
         }
     }
-    
-    
     
     // MARK: - Yut Throwing
     func throwYuts() {
@@ -149,8 +142,6 @@ final class YutManager {
         // 2. Task에서 비동기 처리
         Task { @MainActor in
             for i in 0..<yutNames.count {
-                
-                // AssetCacheManager에서 비동기 로드
                 guard let original = coordinator.assetCacheManager.cachedModel(named: yutNames[i]) else {
                     print("❌ 캐시된 모델 없음: \(yutNames[i])")
                     continue
