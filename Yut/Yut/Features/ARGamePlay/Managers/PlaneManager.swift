@@ -10,15 +10,15 @@ import Combine
 import RealityKit
 
 final class PlaneManager {
-    weak var coordinator: ARCoordinator?
+    weak var scene: Scene? // ARCoordinator 대신 Scene만 주입
     private var planeEntities: [UUID: ModelEntity] = [:]
 
-    init(coordinator: ARCoordinator) {
-        self.coordinator = coordinator
+    init(scene: Scene? = nil) {
+        self.scene = scene
     }
 
     func addPlane(for anchor: ARPlaneAnchor) {
-        guard let arView = coordinator?.arView else { return }
+        guard let scene = scene else { return }
 
         var planeMesh: MeshResource
         do {
@@ -51,7 +51,7 @@ final class PlaneManager {
 #endif
         anchorEntity.addChild(planeEntity)
         
-        arView.scene.addAnchor(anchorEntity)
+        scene.addAnchor(anchorEntity)
         self.planeEntities[anchor.identifier] = planeEntity
     }
     

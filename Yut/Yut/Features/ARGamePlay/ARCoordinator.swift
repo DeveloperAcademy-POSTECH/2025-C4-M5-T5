@@ -11,19 +11,21 @@ class ARCoordinator: NSObject, ARSessionDelegate {
     weak var arView: ARView? {
         didSet {
             gestureHandler.arView = arView
+            planeManager.scene = arView?.scene
         }
     }
     
     var arState: ARState? {
         didSet {
             if let arState {
-                arState.coordinator = self  // coordinator 참조 설정
+                arState.coordinator = self
                 actionStreamHandler.subscribe(to: arState)
             }
         }
     }
     
     // MARK: - MPC 연결
+    
     private let mpcManager = MPCManager.shared
     
     // MARK: - 서브 매니저
@@ -41,7 +43,7 @@ class ARCoordinator: NSObject, ARSessionDelegate {
     override init() {
         super.init()
         self.boardManager = BoardManager(coordinator: self)
-        self.planeManager = PlaneManager(coordinator: self)
+        self.planeManager = PlaneManager()
         self.pieceManager = PieceManager(coordinator: self)
         self.yutManager = YutManager(coordinator: self)
         self.assetCacheManager = AssetCacheManager()

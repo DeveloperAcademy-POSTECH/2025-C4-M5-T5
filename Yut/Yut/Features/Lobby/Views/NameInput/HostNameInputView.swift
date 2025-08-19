@@ -72,6 +72,6 @@ struct HostNameInputView: View {
     }
 }
 
-#Preview {
-    HostNameInputView()
-}
+//#Preview {
+//    HostNameInputView()
+//}
