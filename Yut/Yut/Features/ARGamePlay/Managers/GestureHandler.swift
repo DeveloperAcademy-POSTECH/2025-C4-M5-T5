@@ -33,7 +33,7 @@ class GestureHandler {
         let tapLocation = recognizer.location(in: arView)
         // 현재 앱 상태에 따라 다른 동작 수헹
         switch arState.gamePhase {
-        case .placeBoard:
+        case .placingBoard:
             guard boardManager.yutBoardAnchor == nil else { return }
             let results = arView.raycast(
                 from: tapLocation,

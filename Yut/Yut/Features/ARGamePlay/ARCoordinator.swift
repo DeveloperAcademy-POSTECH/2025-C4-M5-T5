@@ -62,8 +62,8 @@ class ARCoordinator: NSObject, ARSessionDelegate {
                 guard area >= arState.recognizedArea else { return }
                 arState.recognizedArea = area
                 
-                if area >= arState.minRequiredArea, arState.gamePhase == .searchingForSurface {
-                    arState.gamePhase = .placeBoard
+                if area >= arState.minRequiredArea, arState.gamePhase == .scanningPlanes {
+                    arState.gamePhase = .placingBoard
                 }
             }
             .store(in: &cancellables)

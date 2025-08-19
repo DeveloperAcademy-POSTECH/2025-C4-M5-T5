@@ -81,10 +81,10 @@ struct PlayView: View {
                         //                        MPCManager.shared.players = [player1, player2]
                         //
                         try? await Task.sleep(nanoseconds: 3 * 1_000_000_000)
-                        arState.gamePhase = .searchingForSurface
+                        arState.gamePhase = .scanningPlanes
                     }
                     
-                case .searchingForSurface:
+                case .scanningPlanes:
                     ProgressBar(
                         text: "말판을 배치할 평면을 충분히 스캔해 주세요",
                         currentProgress: arState.recognizedArea,
@@ -97,12 +97,12 @@ struct PlayView: View {
                     
                     RoundedBrownButton(title: "다음", isEnabled: canProceed) {
                         if canProceed {
-                            arState.gamePhase = .placeBoard
+                            arState.gamePhase = .placingBoard
                         }
                     }
                     
                     // 2. 사용자가 탭으로 보드를 놓는 단계
-                case .placeBoard:
+                case .placingBoard:
                     InstructionView(text: "탭해서 말판을 배치하세요")
                     Spacer()
                     EmptyView()
