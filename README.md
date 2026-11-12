@@ -3,6 +3,8 @@
 ## 윷 : YUT
 > 간단한 룰을 가진 윷놀이에 현실감 있는 AR기술을 접목하여 복잡한 규칙과 단조로운 시각 요소로 보드게임에 쉽게 흥미를 잃는 사용자에게 몰입감 있는 경험을 제공하고자 한다.
 
+현재 개발·실행 기준은 `Yut/Yut.xcodeproj`의 `Yut` scheme이다. 문서의 시작점은 [문서 안내](docs/README.md)다. 원본 UX/UI·물리를 유지하는 개선 범위와 검증 결과는 [QA 현황](docs/qa/README.md), 공용 UI 구조·색상 사용법은 [디자인 시스템](docs/guides/design-system.md)에서 확인한다.
+
 
 
 
