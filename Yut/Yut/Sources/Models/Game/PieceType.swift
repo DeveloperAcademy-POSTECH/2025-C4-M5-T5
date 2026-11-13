@@ -1,6 +1,6 @@
 //
 //  PieceType.swift
-//  Yut
+//  YUT
 //
 //  Created by soyeonsoo on 7/27/25.
 //

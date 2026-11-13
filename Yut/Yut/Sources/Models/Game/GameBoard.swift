@@ -1,7 +1,7 @@
 import Foundation
 
 /// 목적지의 칸뿐 아니라 선택한 경로와 이동 구간을 함께 보관하는 이동 후보다.
-/// `cell`의 `start`와 `end`는 각각 판 밖 복귀와 완주를 나타내는 논리 값이다.
+/// 출발점은 경로 인덱스 0인 판 위 칸이며, `end`는 완주를 나타내는 논리 값이다.
 struct MoveDestination: Codable, Equatable, Hashable, Identifiable, Sendable {
     let route: Int
     let index: Int
@@ -11,7 +11,6 @@ struct MoveDestination: Codable, Equatable, Hashable, Identifiable, Sendable {
 
     var id: String { "\(route):\(index)" }
     var isFinish: Bool { cell == "end" }
-    var isHome: Bool { cell == "start" }
 }
 
 /// 엔티티 이름과 일치하는 칸 식별자로 경로를 계산한다. AR 좌표나 렌더링 상태에는 의존하지 않는다.
@@ -36,12 +35,14 @@ enum GameBoard {
     /// - Returns: 이동할 수 없으면 빈 배열, 분기점에서는 선택 가능한 이동 후보들.
     static func destinations(for piece: GamePiece, result: YutResult) -> [MoveDestination] {
         guard result == .backdho else { return destinations(from: piece.position, result: result) }
-        guard case .onBoard = piece.position else { return [] }
+        guard case .onBoard(let route, let index) = piece.position,
+              routes.indices.contains(route), routes[route].indices.contains(index) else { return [] }
+        if index == 0 { return [destination(route: route, index: routes[route].count)] }
         let previous = piece.history.dropLast().last ?? .home
         if case .onBoard(let route, let index) = previous {
             return [destination(route: route, index: index)]
         }
-        return [MoveDestination(route: 0, index: 0, cell: "start")]
+        return [destination(route: 0, index: 0)]
     }
 
     /// 현재 위치를 기준으로 모서리·중앙의 분기와 완주 여부를 계산한다.
@@ -58,7 +59,7 @@ enum GameBoard {
         case .onBoard(let route, let index):
             guard routes.indices.contains(route), routes[route].indices.contains(index) else { return [] }
             if result == .backdho {
-                return [destination(route: route, index: index - 1)]
+                return [destination(route: route, index: index == 0 ? routes[route].count : index - 1)]
             }
             let cell = routes[route][index]
             let options: [Int]
@@ -92,7 +93,6 @@ enum GameBoard {
     }
 
     private static func destination(route: Int, index: Int) -> MoveDestination {
-        if index <= 0 { return MoveDestination(route: route, index: 0, cell: "start") }
         if index >= routes[route].count {
             return MoveDestination(route: route, index: routes[route].count, cell: "end")
         }

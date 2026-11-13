@@ -1,6 +1,6 @@
 //
 //  MainView.swift
-//  Yut
+//  YUT
 //
 //  Created by Hwnag Seyeon on 7/21/25.
 //
@@ -35,6 +35,8 @@ struct RootView: View {
                         switch route {
                         case .home:
                             HomeView(viewModel: homeViewModel)
+                        case .localPlay:
+                            LocalPlayView(viewModel: dependencies.makeLocalPlayViewModel())
                         case .hostNameInput:
                             HostNameInputView(
                                 viewModel: HostNameInputViewModel(
@@ -62,8 +64,6 @@ struct RootView: View {
                             SettingsView(viewModel: dependencies.settings)
                         case .legalDocument(let kind):
                             LegalDocumentView(viewModel: dependencies.makeLegalDocumentViewModel(kind))
-                        case .support:
-                            SupportView(viewModel: dependencies.makeSupportViewModel())
                         case .creators:
                             CreatorsView(viewModel: dependencies.creators)
                         }

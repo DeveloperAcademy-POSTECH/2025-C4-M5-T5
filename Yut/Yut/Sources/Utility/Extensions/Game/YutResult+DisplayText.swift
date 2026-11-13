@@ -1,6 +1,6 @@
 //
 //  YutResult+DisplayText.swift
-//  Yut
+//  YUT
 //
 //  Created by soyeonsoo on 7/24/25.
 //

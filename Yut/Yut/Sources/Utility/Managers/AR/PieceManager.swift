@@ -86,6 +86,12 @@ final class PieceManager {
         }
     }
 
+    /// 숨긴 선택 메시도 원래 중심 좌표로 투영할 수 있도록 캐시된 메시 경계를 사용한다.
+    func worldPosition(ofTile name: String) -> SIMD3<Float>? {
+        guard let tile = boardAnchor.findEntity(named: name) else { return nil }
+        return tile.convert(position: tileModels[name]?.mesh.bounds.center ?? .zero, to: nil)
+    }
+
     func highlightTiles(named names: [String]) {
         clearAllHighlights()
         for name in names {

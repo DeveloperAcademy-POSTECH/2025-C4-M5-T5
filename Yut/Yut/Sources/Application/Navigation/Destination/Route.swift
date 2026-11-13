@@ -1,12 +1,13 @@
 //
 //  Router.swift
-//  Yut
+//  YUT
 //
 //  Created by Hwnag Seyeon on 7/21/25.
 //
 
 enum Route: Hashable {
     case home
+    case localPlay
     case hostNameInput
     case guestNameInput
     case roomList(String)
@@ -15,6 +16,5 @@ enum Route: Hashable {
     case winner
     case settings
     case legalDocument(LegalDocument.Kind)
-    case support
     case creators
 }

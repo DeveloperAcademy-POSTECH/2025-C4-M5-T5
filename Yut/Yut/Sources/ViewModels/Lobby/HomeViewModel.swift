@@ -7,6 +7,7 @@ final class HomeViewModel: ObservableObject {
 
     init(navigator: any HomeNavigating) { self.navigator = navigator }
 
+    func playLocally() { navigator.showLocalPlay() }
     func createRoom() { navigator.showHostNameInput() }
     func joinRoom() { navigator.showGuestNameInput() }
     func showSettings() { navigator.showSettings() }

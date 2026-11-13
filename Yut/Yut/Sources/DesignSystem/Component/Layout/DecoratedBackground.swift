@@ -1,6 +1,6 @@
 //
 //  DecoratedBackground.swift
-//  Yut
+//  YUT
 //
 //  Created by soyeonsoo on 7/21/25.
 //

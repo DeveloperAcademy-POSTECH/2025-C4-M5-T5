@@ -20,7 +20,7 @@
 
 검증 자료: `/tmp/yut-game-exit-scan-before.xcresult`(수정 전 재현 실패), `/tmp/yut-game-exit-scan-tests.xcresult`, `/tmp/yut-game-exit-scan-device.log`, `/tmp/yut-game-exit-scan-simulator.log`, `/tmp/yut-game-exit-scan-gallery`. SDK 27.2 / iOS 18.3.1 시뮬레이터에서 테스트했으며 저장소의 배포 설정은 유지했다.
 
-관련 코드: [대기실 종료·시작 처리](../../../Yut/Yut/Sources/ViewModels/Lobby/WaitingRoomViewModel.swift), [플레이 상태·스캔 표시](../../../Yut/Yut/Sources/ViewModels/Game/PlayViewModel.swift), [플레이 화면](../../../Yut/Yut/Sources/Views/Game/PlayView.swift), [배치·스캔 UI](../../../Yut/Yut/Sources/Views/Game/SubViews/Play/PlacementControls.swift), [회귀 테스트](../../../Yut/YutTests/ViewModels/Game/PlayViewModelTests.swift).
+관련 코드: [대기실 종료·시작 처리](../../../Yut/Yut/Sources/ViewModels/Lobby/WaitingRoom/WaitingRoomViewModel.swift), [플레이 상태·스캔 표시](../../../Yut/Yut/Sources/ViewModels/Game/Play/PlayViewModel.swift), [플레이 화면](../../../Yut/Yut/Sources/Views/Game/Play/PlayView.swift), [배치·스캔 UI](../../../Yut/Yut/Sources/Views/Game/Play/SubViews/PlacementControls.swift), [회귀 테스트](../../../Yut/YutTests/ViewModels/Game/PlayViewModelTests.swift).
 
 ## 갑작스러운 연결 종료 후 게임 오류창·흰 화면 — 2026-11-12
 
@@ -42,5 +42,5 @@
 
 결과는 `/tmp/yut-settings-exit-final.xcresult`와 `/tmp/yut-settings-exit-tests.xcresult`에 나뉘어 있다. 첫 통합 실행의 AR UI는 RealityKit Metal 타입 반영 내부 EXC_BAD_ACCESS로 종료됐으며 같은 코드 재실행은 통과했다. 실제 연결 종료 중 화면 순서·응답성 확인은 사용자 요청으로 수행하지 않아 **검증 대기**로 남긴다.
 
-관련 코드: [오류·종료·재시도](../../../Yut/Yut/Sources/ViewModels/Game/PlayViewModel.swift), [앱 공통 안내](../../../Yut/Yut/Sources/Application/RootView.swift), [종료 화면](../../../Yut/Yut/Sources/Views/Game/SubViews/Play/GameEndedView.swift), [AR 비동기 정리](../../../Yut/Yut/Sources/Utility/Managers/AR/ARCoordinator.swift).
+관련 코드: [오류·종료·재시도](../../../Yut/Yut/Sources/ViewModels/Game/Play/PlayViewModel.swift), [앱 공통 안내](../../../Yut/Yut/Sources/Application/RootView.swift), [종료 화면](../../../Yut/Yut/Sources/Views/Game/Play/SubViews/GameEndedView.swift), [AR 비동기 정리](../../../Yut/Yut/Sources/Utility/Managers/AR/ARCoordinator.swift).
 

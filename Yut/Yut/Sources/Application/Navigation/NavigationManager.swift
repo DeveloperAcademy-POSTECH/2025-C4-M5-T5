@@ -1,6 +1,6 @@
 //
 //  NavigationManager.swift
-//  Yut
+//  YUT
 //
 //  Created by Hwnag Seyeon on 7/21/25.
 //

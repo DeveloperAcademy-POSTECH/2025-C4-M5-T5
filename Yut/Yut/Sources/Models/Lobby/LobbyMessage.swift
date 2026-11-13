@@ -10,7 +10,7 @@ struct LobbyPlayerSnapshot: Codable {
     let deviceID: UUID
 }
 
-/// 명단·시작은 호스트가 확정하고, 참가자는 자신의 추가 인원만 요청한다.
+/// 명단·시작은 호스트가 확정한다. 이전 버전의 추가 인원 요청은 수신해도 적용하지 않는다.
 enum LobbyMessage: Codable {
     case hello(UUID)
     case players([LobbyPlayerSnapshot])

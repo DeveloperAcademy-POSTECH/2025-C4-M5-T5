@@ -6,21 +6,10 @@ struct PlayerCard: View {
     let profileImage: String
 
     var body: some View {
-        VStack {
+        PlayerSlotCard(name: name) {
             Image(profileImage)
                 .resizable()
                 .scaledToFill()
-                .frame(width: 135, height: 135)
-                .clipShape(Circle())
-                .padding(.top, 64)
-                .padding(.bottom, 25)
-            Text(name)
-                .font(Typography.sectionTitle)
-                .foregroundStyle(ThemeColors.textPrimary)
-                .padding(.bottom, 16)
         }
-        .frame(maxWidth: .infinity)
-        .frame(height: 289)
-        .surfaceStyle()
     }
 }

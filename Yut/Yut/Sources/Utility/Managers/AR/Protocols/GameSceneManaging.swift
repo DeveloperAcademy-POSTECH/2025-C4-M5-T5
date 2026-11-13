@@ -21,6 +21,7 @@ protocol GameSceneManaging: AnyObject {
     func confirmBoard() async
     func shareSavedBoard()
     func render(_ state: GameState, models: [PlayerModel], canAct: Bool, force: Bool)
+    func finishActionPosition() -> CGPoint?
     func startMotion()
     func throwManually()
     func playGatheringSound()

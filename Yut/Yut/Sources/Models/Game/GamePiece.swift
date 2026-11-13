@@ -45,7 +45,8 @@ enum MatchPhase: String, Codable, Sendable {
     case showingResult
     case selectingPiece
     case selectingDestination
-    case promptingForCarry
+    case choosingMoveResult
+    case movingPiece
     case showingBonus
     case finished
 }
@@ -58,10 +59,12 @@ enum GameAction: Codable, Equatable, Sendable {
     case releaseThrow(launch: YutThrowLaunch)
     case recordThrow(YutResult)
     case dismissResult
+    case chooseMoveResult(Int)
     case selectPiece(UUID)
     case selectDestination(MoveDestination)
-    case resolveCarry(Bool)
     case cancelSelection
+    /// 호스트가 말 이동·재배치 연출 시간이 지난 뒤 다음 입력을 연다.
+    case completeMove
     /// 중단된 로컬 투사를 무효화하고 같은 차례의 준비 단계로 돌아간다.
     case cancelThrow
 }

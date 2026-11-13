@@ -1,6 +1,6 @@
-# Yut MVVM 아키텍처
+# YUT MVVM 아키텍처
 
-이 문서는 Yut의 MVVM 책임과 폴더 구조를 정의한다. Resources/Sources 분리, Application 내 내비게이션 집중, 화면별 View/ViewModel 대응, DesignSystem 분리를 기준으로 의존성 주입과 테스트 가능성을 유지한다.
+이 문서는 YUT의 MVVM 책임과 폴더 구조를 정의한다. Resources/Sources 분리, Application 내 내비게이션 집중, 화면별 View/ViewModel 대응, DesignSystem 분리를 기준으로 의존성 주입과 테스트 가능성을 유지한다.
 
 ## 1. 목표
 
@@ -124,10 +124,10 @@ ViewModel에는 protocol을 주입하고 실제 구현은 Application에서 만�
 
 ## 4. 폴더 구조
 
-Yut은 리소스를 `Resources`, 코드를 `Sources`에 둔다. `Views`와 `ViewModels`는 각각 최상위에서 관리하고, 같은 기능의 파일은 그 아래 동일한 기능 이름의 하위 폴더로 대응시킨다.
+YUT은 리소스를 `Resources`, 코드를 `Sources`에 둔다. `Views`와 `ViewModels`는 각각 최상위에서 관리하고, 같은 기능의 파일은 그 아래 동일한 기능 이름의 하위 폴더로 대응시킨다.
 
 ```text
-ProjectName/                 Yut의 앱 타깃 폴더: Yut/Yut
+ProjectName/                 YUT의 앱 타깃 폴더: Yut/Yut
 ├── Resources/
 │   ├── Assets.xcassets/
 │   ├── Color.xcassets/
@@ -141,7 +141,7 @@ ProjectName/                 Yut의 앱 타깃 폴더: Yut/Yut
     │   └── Navigation/
     │       └── Destination/
     ├── Views/
-    │   └── FeatureName/          독립 화면들과 SubViews/<영역>
+    │   └── FeatureName/          진입 화면·역할별 화면 그룹·SubViews
     ├── ViewModels/
     │   └── FeatureName/          화면과 같은 기능 경로
     ├── DesignSystem/
@@ -164,54 +164,68 @@ ProjectName/                 Yut의 앱 타깃 폴더: Yut/Yut
 
 ## 5. 기능별 하위 폴더 규칙
 
-같은 기능의 독립 화면 여러 개를 기능 폴더 바로 아래에 두고, 하위 구성 뷰는 `SubViews`에서 영역별로 묶는다.
+기능 안에서 역할이 관련된 독립 화면을 그룹으로 묶는다. 로비의 `HomeView`, 설정의 `SettingsView`처럼 기능 진입 화면은 기능 폴더 바로 아래에 둔다. 그룹의 화면을 구성하는 하위 뷰는 그 그룹의 `SubViews`에 둔다. 화면 하나마다 폴더를 만드는 규칙이 아니라 역할과 공유 구성에 따른 분류다.
 
 ```text
-Sources/
-├── Views/
-│   ├── Lobby/
-│   │   ├── HomeView.swift
+Sources/Views/
+├── Lobby/
+│   ├── HomeView.swift
+│   ├── NameInput/
 │   │   ├── HostNameInputView.swift
 │   │   ├── GuestNameInputView.swift
-│   │   ├── RoomListView.swift
-│   │   ├── WaitingRoomView.swift
 │   │   └── SubViews/
-│   │       ├── NameInput/
-│   │       │   ├── NameInputScreen.swift
-│   │       │   └── Components/NameInputFormView.swift
-│   │       ├── RoomList/RoomRowView.swift
-│   │       └── WaitingRoom/   헤더·인원 추가 모달
-│   └── Game/
-│       ├── PlayView.swift
-│       ├── WinnerView.swift
+│   │       ├── NameInputScreen.swift
+│   │       └── Components/NameInputFormView.swift
+│   ├── RoomList/
+│   │   ├── RoomListView.swift
+│   │   └── SubViews/RoomRowView.swift
+│   └── WaitingRoom/
+│       ├── WaitingRoomView.swift
+│       ├── LocalPlayView.swift
 │       └── SubViews/
-│           ├── Play/          배치·플레이 조작·업기·결과·모으기
-│           │   └── Components/  ARViewContainer, YutThrowButton
-│           └── Winner/        승자·패자·버튼 행
-└── ViewModels/
-    ├── Lobby/                 위 로비 화면 5개의 ViewModel
-    └── Game/                  PlayViewModel, WinnerViewModel
+│           ├── WaitingRoomLayout.swift
+│           ├── WaitingRoomHeader.swift
+│           └── LocalPlayerSlot.swift
+├── Game/
+│   ├── Play/
+│   │   ├── PlayView.swift
+│   │   └── SubViews/           배치·조작·현황판·결과·모으기
+│   │       └── Components/    ARViewContainer, YutThrowButton
+│   └── Winner/
+│       ├── WinnerView.swift
+│       └── SubViews/           승자·패자·버튼 행
+└── Settings/
+    ├── SettingsView.swift
+    ├── SubViews/
+    │   ├── SettingsMenuSection.swift
+    │   └── Components/SettingsMenuRow.swift
+    ├── Legal/
+    │   ├── LegalDocumentView.swift
+    │   └── SubViews/LegalDocumentSectionView.swift
+    └── Creators/
+        ├── CreatorsView.swift
+        └── SubViews/           헤더·이름 목록
 ```
 
-- 다른 기능에서도 재사용하는 UI는 `DesignSystem/Component`로 승격한다.
-- 한 화면의 섹션과 같은 기능의 여러 화면이 공유하는 뷰 모두 `Views/<기능>/SubViews/<영역>`에서 관리한다. 화면 파일에는 독립 화면의 조합을 남긴다.
-- `Components`는 해당 영역의 구성 요소를 별도로 묶을 실제 관계가 있을 때 추가한다. `SubViews`와의 구분은 크기·전체 화면 여부·재사용 횟수로 결정하지 않으며, 모든 영역에 같은 깊이를 강제하지 않는다.
-- `NameInputScreen`이 사용하는 폼은 `SubViews/NameInput/Components`, 플레이 조작을 구성하는 `ARViewContainer`·`YutThrowButton`은 `SubViews/Play/Components`에 둔다.
-- 시스템 구현은 `Utility/Managers/{AR,Game,Multipeer,Asset,Audio,Haptic}`에 둔다. 프로토콜은 해당 경계의 `Protocols`, 내비게이션 프로토콜은 `Application/Navigation/Protocols`, route는 `Destination`에 둔다.
-- 모델은 `Models/{AR,Game,Lobby}`, 확장은 `Utility/Extensions/{AR,Game}`처럼 책임별로 묶는다. 폴더 재배치가 모델 경계나 큰 타입의 책임 분리까지 완료했다는 뜻은 아니다.
-- 기능 사이에서 서로의 ViewModel을 직접 참조하지 않는다.
-- 공유할 데이터와 동작은 `Models` 또는 `Utility`의 작은 프로토콜 뒤에 둔다.
+- `ViewModels`도 위 독립 화면의 상대 경로에 대응한다. 예: `Lobby/NameInput/HostNameInputViewModel.swift`, `Lobby/WaitingRoom/LocalPlayViewModel.swift`, `Game/Play/PlayViewModel.swift`.
+- `WaitingRoom`은 멀티 대기실과 한 기기 인원 구성이 같은 레이아웃을 공유하는 화면 그룹이다. 하위 슬롯도 이 그룹의 `SubViews`에서 관리한다.
+- 한 화면의 섹션과 같은 그룹의 화면들이 공유하는 뷰는 그룹의 `SubViews`에 둔다. 화면 파일에는 독립 화면의 조합을 남긴다.
+- `Components`는 하위 뷰의 내부 구성 요소를 별도로 묶을 실제 관계가 있을 때 추가한다. 크기·전체 화면 여부·재사용 횟수만으로 분류하거나 모든 그룹의 깊이를 같게 만들지 않는다.
+- 다른 기능에서도 재사용하는 UI는 `DesignSystem/Component`에 둔다. 파일 이동만을 위해 공용 컴포넌트를 특정 화면에 종속시키지 않는다.
+- 시스템 구현은 `Utility/Managers/{AR,Game,Multipeer,Asset,Audio,Haptic}`에 둔다. 프로토콜은 담당 경계의 `Protocols`, 내비게이션 프로토콜은 `Application/Navigation/Protocols`, route는 `Destination`에 둔다.
+- 모델은 `Models/{AR,Game,Lobby}`, 확장은 `Utility/Extensions/{AR,Game}`처럼 책임별로 묶는다. 화면 그룹 기준을 Model·Manager에 기계적으로 적용하지 않는다.
+- 기능 사이에서 서로의 ViewModel을 직접 참조하지 않는다. 공유할 데이터와 동작은 `Models` 또는 `Utility`의 작은 프로토콜 뒤에 둔다.
 
 ### 독립 화면의 View–ViewModel 대응
 
 - 내비게이션의 독립 화면은 `[화면명]View`–`[화면명]ViewModel`을 1:1로 대응시킨다. 각 ViewModel 타입은 이름이 같은 별도 파일에 둔다.
-- `Views/<기능>/<화면명>View.swift`와 `ViewModels/<기능>/<화면명>ViewModel.swift`의 기능 경로를 맞춘다. 독립 화면이 단순해도 사용자 액션·화면 전환 의도는 화면 ViewModel에서 조정한다.
+- `Views/<기능>/<화면그룹>/<화면명>View.swift`와 `ViewModels/<기능>/<화면그룹>/<화면명>ViewModel.swift`의 상대 경로를 맞춘다. 기능 진입 화면은 양쪽에서 화면 그룹 경로를 생략한다. 독립 화면이 단순해도 사용자 액션·화면 전환 의도는 화면 ViewModel에서 조정한다.
 - 화면 내부 섹션·단순 모달은 부모의 값·Binding·액션으로 표시한다. `NameInputScreen`·`NameInputFormView`는 Host/Guest 닉네임 화면의 공통 구성 뷰이므로 별도 ViewModel을 만들지 않는다.
 - DesignSystem에는 업무 상태와 ViewModel을 전달하지 않는다. 버튼·입력창·카드마다 빈 ViewModel을 만들지 않는다.
 - `RootView`는 Application의 화면 조립·route 매핑, `ARViewContainer`는 UIKit/AR 연결 어댑터다. 두 타입은 독립 화면 대응 대상이 아니다.
 - 화면 전환 프로토콜과 NavigationManager의 구현은 `Application/Navigation`에 두고, ViewModel에는 작은 프로토콜을 주입한다. View에서 구체 내비게이션을 직접 호출하지 않는다.
 
-현재 Yut의 화면 대응 목록·검증은 [화면별 MVVM 정리 QA](../qa/structure/screen-viewmodel-mapping.md)에서 확인한다.
+현재 YUT의 화면 대응 목록·검증은 [화면별 MVVM 정리 QA](../qa/structure/screen-viewmodel-mapping.md)에서 확인한다.
 
 ## 6. 상태 소유권
 

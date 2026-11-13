@@ -7,8 +7,8 @@ import RealityKit
 @MainActor
 final class PlaneManager {
     var scene: Scene?
-    private let logger = Logger(subsystem: "Yut", category: "Plane")
-    private let signposter = OSSignposter(subsystem: "Yut", category: "ARPerformance")
+    private let logger = Logger(subsystem: "YUT", category: "Plane")
+    private let signposter = OSSignposter(subsystem: "YUT", category: "ARPerformance")
     private let recognizedAreaSubject = CurrentValueSubject<Float, Never>(0)
     private var showsVisualization = true
     private var visualizationColor = UIColor(named: "white1") ?? .white

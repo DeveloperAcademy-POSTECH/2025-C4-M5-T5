@@ -8,7 +8,7 @@ import UIKit
 final class GatheringFrameCache {
     static let frameCount = 30
     private let bundle: Bundle
-    private let signposter = OSSignposter(subsystem: "Yut", category: "ARPerformance")
+    private let signposter = OSSignposter(subsystem: "YUT", category: "ARPerformance")
     private var encodedFrames: [Data] = []
     private var preparedFrames: [Int: UIImage] = [:]
 

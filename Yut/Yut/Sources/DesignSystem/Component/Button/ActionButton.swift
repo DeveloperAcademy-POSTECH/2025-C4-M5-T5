@@ -26,11 +26,12 @@ struct ActionButton: View {
     var variant: Variant = .primary
     var size: Size = .regular
     var cornerRadius: CGFloat = 34
+    var colors: SurfaceColors? = nil
     let action: () -> Void
 
     var body: some View {
         Button(title, action: action)
-            .buttonStyle(ActionButtonStyle(variant: variant, height: size.height, cornerRadius: cornerRadius))
+            .buttonStyle(ActionButtonStyle(variant: variant, height: size.height, cornerRadius: cornerRadius, colors: colors))
             .disabled(!isEnabled)
     }
 }
@@ -40,20 +41,25 @@ private struct ActionButtonStyle: ButtonStyle {
     let variant: ActionButton.Variant
     let height: CGFloat
     let cornerRadius: CGFloat
+    let colors: SurfaceColors?
 
     private var foreground: Color {
         guard isEnabled else { return ThemeColors.disabledButtonText }
-        return variant == .primary ? ThemeColors.primaryButtonText : ThemeColors.secondaryButtonText
+        return colors?.foreground ?? (variant == .primary ? ThemeColors.primaryButtonText : ThemeColors.secondaryButtonText)
     }
 
     private var background: Color {
         guard isEnabled else { return ThemeColors.disabledButtonBackground }
-        return variant == .primary ? ThemeColors.primaryButtonBackground : ThemeColors.secondaryButtonBackground
+        return colors?.background ?? (variant == .primary ? ThemeColors.primaryButtonBackground : ThemeColors.secondaryButtonBackground)
     }
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(Typography.button)
+            .multilineTextAlignment(.center)
+            .lineLimit(2)
+            .minimumScaleFactor(0.8)
+            .padding(.horizontal, 16)
             .foregroundStyle(foreground)
             .frame(maxWidth: .infinity)
             .frame(height: height)

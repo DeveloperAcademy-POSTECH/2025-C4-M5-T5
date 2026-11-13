@@ -85,7 +85,7 @@ struct LobbyViewModelTests {
     }
 
     @Test
-    func guestCannotStartAndWaitsForHostRosterWhenAddingPlayer() async throws {
+    func guestCannotStartAndWaitsForHostConfirmation() async throws {
         let session = FakeLobbySession()
         session.isHost = false
         let navigation = RecordingLobbyNavigation()
@@ -94,8 +94,6 @@ struct LobbyViewModelTests {
         try await waitUntil { viewModel.players.count == 2 }
         viewModel.startGame()
         #expect(session.startCount == 0)
-        viewModel.addPlayer(named: " Friend \n")
-        #expect(session.requestedNames == ["Friend"])
         #expect(viewModel.players.count == 2)
         session.started.send(true)
         try await waitUntil { navigation.gameCount == 1 }
@@ -172,7 +170,6 @@ private final class FakeLobbySession: LobbySessionManaging, WaitingRoomSessionMa
     var hostedNames: [String] = []
     var browsedNames: [String] = []
     var selectedRooms: [RoomModel] = []
-    var requestedNames: [String] = []
     var startCount = 0
     var disconnectCount = 0
 
@@ -191,7 +188,6 @@ private final class FakeLobbySession: LobbySessionManaging, WaitingRoomSessionMa
         selectedRooms.append(room)
         return canConnect
     }
-    func addLocalPlayer(named name: String) { requestedNames.append(name) }
     func sendStartGameSignal() {
         startCount += 1
         if !shouldFailStart { started.send(true) }

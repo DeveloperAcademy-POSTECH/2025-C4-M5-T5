@@ -22,7 +22,6 @@ protocol WaitingRoomSessionManaging: AnyObject {
     var roomClosedPublisher: AnyPublisher<String?, Never> { get }
     var errorPublisher: AnyPublisher<String?, Never> { get }
 
-    func addLocalPlayer(named name: String)
     func sendStartGameSignal()
     func disconnect()
     func clearConnectionNotice()

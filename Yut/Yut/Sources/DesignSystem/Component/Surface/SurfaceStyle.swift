@@ -10,6 +10,7 @@ struct SurfaceStyle: ViewModifier {
     let kind: Kind
     let cornerRadius: CGFloat
     let colors: SurfaceColors?
+    let showsShadow: Bool
 
     func body(content: Content) -> some View {
         content
@@ -27,12 +28,12 @@ struct SurfaceStyle: ViewModifier {
             }
             .overlay { RoundedRectangle(cornerRadius: cornerRadius).stroke(ThemeColors.border, lineWidth: 1) }
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-            .shadow(color: ThemeColors.shadow.opacity(kind == .overlay ? 0.16 : 0.06), radius: 12, y: 4)
+            .shadow(color: ThemeColors.shadow.opacity(showsShadow ? (kind == .overlay ? 0.16 : 0.06) : 0), radius: 12, y: 4)
     }
 }
 
 extension View {
-    func surfaceStyle(_ kind: SurfaceStyle.Kind = .card, cornerRadius: CGFloat = 12, colors: SurfaceColors? = nil) -> some View {
-        modifier(SurfaceStyle(kind: kind, cornerRadius: cornerRadius, colors: colors))
+    func surfaceStyle(_ kind: SurfaceStyle.Kind = .card, cornerRadius: CGFloat = 12, colors: SurfaceColors? = nil, showsShadow: Bool = true) -> some View {
+        modifier(SurfaceStyle(kind: kind, cornerRadius: cornerRadius, colors: colors, showsShadow: showsShadow))
     }
 }

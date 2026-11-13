@@ -1,10 +1,10 @@
 # AR 환경 부하·발열
 
-**현재 대상: Yut · 상태: 검증 대기 · 우선순위: 높음 · 갱신: 2026-11-12**
+**현재 대상: YUT · 상태: 검증 대기 · 우선순위: 높음 · 갱신: 2026-11-12**
 
 원본 윷의 자연스러운 투사·사물 충돌을 유지하면서 대기 중 반복 계산과 불필요한 렌더링을 줄였다. **아래 수치는 코드·리소스·자동 테스트 결과이며, iPhone 15 Pro의 온도·전력·CPU·GPU 개선율은 미측정이다.**
 
-## 현재 Yut에서 확인하고 수정한 내용
+## 현재 YUT에서 확인하고 수정한 내용
 
 | 항목 | 확인한 문제 | 적용한 변경 |
 | --- | --- | --- |
@@ -45,6 +45,6 @@ Apple 기준: [CPU·충돌 최적화](https://developer.apple.com/documentation/
 
 ## 작업 이력
 
-- **2026-11-12:** 현재 Yut 부하 재분석, 평면 큐·수명·선택 칸 렌더·모으기/말 상태 중복 처리·자원 캐시·열 상태 후처리 적용. 빌드 2종·회귀 74개·AR UI 1개 통과. 실기기 발열 감소량은 검증 대기.
+- **2026-11-12:** 현재 YUT 부하 재분석, 평면 큐·수명·선택 칸 렌더·모으기/말 상태 중복 처리·자원 캐시·열 상태 후처리 적용. 빌드 2종·회귀 74개·AR UI 1개 통과. 실기기 발열 감소량은 검증 대기.
 
 근거 파일: `/tmp/yut-thermal-validation-tests.xcresult`, `/tmp/yut-thermal-device.log`, `/tmp/yut-thermal-simulator.log`. 재현 실패 기록: `/tmp/yut-thermal-queue-red.xcresult`. 리소스 조사: `/tmp/yut-thermal-board-meshes.log`, `/tmp/yut-thermal-board-materials.log`. 보존 대조: `/tmp/yut-thermal-scope.json`.

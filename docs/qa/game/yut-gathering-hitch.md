@@ -1,14 +1,30 @@
 # 윷 모으기 시작 지연
 
-> 현재 대상은 **Yut**이다.
+> 현재 대상은 **YUT**이다.
 
-**상태: 검증 대기 · 우선순위: 높음 · 갱신: 2026-11-12**
+**상태: 검증 대기 · 우선순위: 높음 · 갱신: 2026-11-13**
 
 사용자는 **윷 모으기 버튼을 누른 뒤 모션의 첫 화면이 나타나기 전 버벅임**을 제보했다. 시작 경로의 이미지·효과음 준비와 중복 장면 갱신을 줄였다. 실기기에서 원인별 소요 시간과 개선 정도는 아직 측정하지 않았다.
 
-## 현재 Yut 모으기 끊김 분석 — 2026-11-11
+## 버튼 직후 화면 전환 — 2026-11-13
 
-**2026-11-12 수정 반영 · 실기기 검증 대기.** 사용자는 원본 Yut에는 없던 버튼 직후 끊김을 제보했다. 원본에도 있던 이미지 로더만 회귀 원인으로 단정하지 않고, 새 상태 연결 경로의 중복 처리부터 줄였다.
+| 구분 | 확인·반영 내용 |
+| --- | --- |
+| 코드 확인 | 처음 3장·마지막 이미지 사전 준비, 효과음 준비, 말 모델 재구성 생략은 유지되어 있었다. 모으기 진입 때 이미지 뷰 생성과 현황판 제거가 동시에 발생했다 |
+| 수정 | 배치 후 이미지 뷰·첫 이미지 레이아웃을 유지하고 모으기 때만 즉시 표시. 현황판도 제거 대신 숨김 처리. 숨긴 UI는 터치·접근성에서 제외하고 모으기 재생 작업은 실행하지 않음 |
+| 유지 | 30장·30fps·1.3초 단계, 효과음, 윷 물리·충돌·말 이동 연출. 전체 이미지 디코딩 캐시를 늘리지 않음 |
+| 원인 가설 | 화면 계층 변경·첫 렌더 비용이 버튼 직후 끊김에 기여할 수 있음. 숨김 상태가 GPU 업로드 완료를 보장하지 않으므로 원인 확정·해소 판정은 하지 않음 |
+| 측정 구간 | `GatherInput` → `GatherStateReceived` → `GatherViewReady`, `GatherSubmission`·`ApplyGameScene` 구간 추가. 참가자의 승인 대기와 로컬 상태 반영을 구분하며 실제 표시 시점은 Instruments 프레임 기록으로 확인 필요 |
+
+실기기 QA는 사용자 요청에 따라 진행하지 않았다. iPhone 15 Pro의 첫 실행·반복·복귀 후 프레임 지연과 메모리 실측은 **검증 대기**다. 자동 검증 결과는 아래 작업 이력에 기록한다.
+
+**검증:** 단위·통합 138개 / 17개 suite, iOS 기기용 빌드 통과. AR UI 재검증에서 배치 → 자동 시작 → 모으기 → 수동 던지기 → 결과 판정이 통과했다. 처음 실행한 UI 테스트는 수동 던지기의 RealityKit 내부 `EventBus` 충돌 구독에서 `EXC_BAD_ACCESS`로 종료됐다. 코드 변경 없이 재실행한 동일 흐름은 통과했으나, 재발 원인은 미확정이다. 성공 여부와 별개로 모으기 끊김 개선량은 측정하지 않았다.
+
+결과: `/tmp/yut-autostart-first.xcresult`(단위 성공·최초 UI 실패), `/tmp/yut-autostart-ui-recheck.xcresult`(UI 성공), `/tmp/yut-autostart-device.log`. 크래시 기록: `YUT-2026-11-13-180250.ips`. 새 Swift 컴파일 오류·경고 없이 빌드됐으며 기존 AppIntents 메타데이터 안내는 유지된다.
+
+## 현재 YUT 모으기 끊김 분석 — 2026-11-11
+
+**2026-11-12 수정 반영 · 실기기 검증 대기.** 사용자는 원본 YUT에는 없던 버튼 직후 끊김을 제보했다. 원본에도 있던 이미지 로더만 회귀 원인으로 단정하지 않고, 새 상태 연결 경로의 중복 처리부터 줄였다.
 
 | 확인한 사실 | 이번 수정 | 검증·한계 |
 | --- | --- | --- |
@@ -24,7 +40,8 @@
 
 다음은 iPhone 15 Pro의 같은 Release 조건에서 첫 실행·반복 10회·복귀 후 입력→화면 표시 지연, 메인 스레드, 프레임·최대 메모리를 측정한다. 단독/호스트/참가자를 구분한다. `GatherInput`→`GatherViewReady` signpost는 뷰 준비 경로이고 실제 화면 표시 완료는 프레임 기록으로 확인한다.
 
-근거: [모으기 이미지](../../../Yut/Yut/Sources/Views/Game/SubViews/Play/YutGatheringSequenceView.swift), [이미지 준비·수명](../../../Yut/Yut/Sources/Utility/Managers/Asset/GatheringFrameCache.swift), [상태 반영](../../../Yut/Yut/Sources/ViewModels/Game/PlayViewModel.swift), [AR 렌더](../../../Yut/Yut/Sources/Utility/Managers/AR/ARCoordinator.swift), [효과음](../../../Yut/Yut/Sources/Utility/Managers/Audio/SoundService.swift). 2026-11-11 비교 기준은 `/tmp/yut-design-system-before-sha.json`이었다.
+근거: [모으기 이미지](../../../Yut/Yut/Sources/Views/Game/Play/SubViews/YutGatheringSequenceView.swift), [이미지 준비·수명](../../../Yut/Yut/Sources/Utility/Managers/Asset/GatheringFrameCache.swift), [상태 반영](../../../Yut/Yut/Sources/ViewModels/Game/Play/PlayViewModel.swift), [AR 렌더](../../../Yut/Yut/Sources/Utility/Managers/AR/ARCoordinator.swift), [효과음](../../../Yut/Yut/Sources/Utility/Managers/Audio/SoundService.swift). 2026-11-11 비교 기준은 `/tmp/yut-design-system-before-sha.json`이었다.
 
 - **2026-11-11:** 원본과의 시작 경로·디자인 시스템 전후 해시 대조. 이미지 읽기·중복 render 확인, 원인별 기여도 미측정.
 - **2026-11-12:** 중복 render·말 구성 갱신 축소, 일부 프레임 사전 준비·취소 가능한 재생·초기화 해제 반영. 자동 회귀·AR UI 통과, 실기기 검증 대기.
+- **2026-11-13:** 배치 자동 시작, 모으기 뷰·현황판 수명 유지와 즉시 표시, 입력·상태 반영 구간 계측 추가. 138개 테스트·UI 재검증·기기 빌드 통과. 최초 UI의 RealityKit 크래시 재발 및 실기기 끊김·메모리 확인 대기.

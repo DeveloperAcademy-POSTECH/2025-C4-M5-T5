@@ -1,6 +1,6 @@
 # 독립 화면별 View–ViewModel 대응
 
-**상태: 완료 · 우선순위: 중간 · 갱신: 2026-11-12**
+**상태: 완료 · 우선순위: 중간 · 갱신: 2026-11-13**
 
 독립 화면은 View–ViewModel 1:1과 파일·기능 폴더 대응을 지키도록 정리했다. 화면 섹션·단순 모달·DesignSystem에는 별도 ViewModel을 추가하지 않았다. [아키텍처 기준](../../guides/architecture.md#독립-화면의-viewviewmodel-대응)을 따른다.
 
@@ -11,16 +11,16 @@
 | 기능 경로 | View 파일 | ViewModel 파일 |
 | --- | --- | --- |
 | `Lobby` | `HomeView.swift` | `HomeViewModel.swift` |
-| `Lobby` | `HostNameInputView.swift` | `HostNameInputViewModel.swift` |
-| `Lobby` | `GuestNameInputView.swift` | `GuestNameInputViewModel.swift` |
-| `Lobby` | `RoomListView.swift` | `RoomListViewModel.swift` |
-| `Lobby` | `WaitingRoomView.swift` | `WaitingRoomViewModel.swift` |
-| `Game` | `WinnerView.swift` | `WinnerViewModel.swift` |
-| `Game` | `PlayView.swift` | `PlayViewModel.swift` |
+| `Lobby/WaitingRoom` | `LocalPlayView.swift` | `LocalPlayViewModel.swift` |
+| `Lobby/NameInput` | `HostNameInputView.swift` | `HostNameInputViewModel.swift` |
+| `Lobby/NameInput` | `GuestNameInputView.swift` | `GuestNameInputViewModel.swift` |
+| `Lobby/RoomList` | `RoomListView.swift` | `RoomListViewModel.swift` |
+| `Lobby/WaitingRoom` | `WaitingRoomView.swift` | `WaitingRoomViewModel.swift` |
+| `Game/Winner` | `WinnerView.swift` | `WinnerViewModel.swift` |
+| `Game/Play` | `PlayView.swift` | `PlayViewModel.swift` |
 | `Settings` | `SettingsView.swift` | `SettingsViewModel.swift` |
-| `Settings` | `LegalDocumentView.swift` | `LegalDocumentViewModel.swift` |
-| `Settings` | `SupportView.swift` | `SupportViewModel.swift` |
-| `Settings` | `CreatorsView.swift` | `CreatorsViewModel.swift` |
+| `Settings/Legal` | `LegalDocumentView.swift` | `LegalDocumentViewModel.swift` |
+| `Settings/Creators` | `CreatorsView.swift` | `CreatorsViewModel.swift` |
 
 ## 변경 내용
 
@@ -33,7 +33,7 @@
 
 ## 하위 뷰 폴더 정리 — 2026-11-11
 
-당시에는 화면과 구성 뷰가 같은 위치에 섞여 있던 부분을 부모 기준으로 묶었다. 아래는 이전 구조이며, 현재 경로는 상단 표와 11월 12일 기록을 따른다.
+당시에는 화면과 구성 뷰가 같은 위치에 섞여 있던 부분을 부모 기준으로 묶었다. 아래는 이전 구조이며, 현재 경로는 상단 표와 아래 역할별 화면 그룹 기록을 따른다.
 
 ```text
 Views/Lobby/WaitingRoom/
@@ -80,4 +80,12 @@ Views/Lobby/WaitingRoom/
 
 초기 설정·문서·문의 화면 3쌍을 추가해 당시 독립 화면은 10개였다. 같은 기능 경로 `Settings`를 사용하며 섹션은 `SubViews/{Settings,Legal,Support}`에 둔다. Terms·Privacy는 데이터 종류가 다른 같은 문서 화면을 사용한다. 앱 공통 안내와 게임 종료 대체 뷰는 값·액션을 받는 구성 요소이므로 빈 ViewModel을 추가하지 않았다. [설정 QA](../ui/settings-and-legal.md).
 
-**2026-11-12 / 제작자 분리:** 제작자 메뉴의 독립 화면 CreatorsView–CreatorsViewModel을 추가해 현재 11개 화면이 대응한다. 이름 목록은 SubViews/Creators에 두었다. [설정 QA](../ui/settings-and-legal.md#제작자-메뉴-분리--2026-11-12).
+**2026-11-12 / 제작자 분리:** 제작자 메뉴의 독립 화면 CreatorsView–CreatorsViewModel을 추가해 당시 11개 화면이 대응했다. 이름 목록은 SubViews/Creators에 두었다. [설정 QA](../ui/settings-and-legal.md#제작자-메뉴-분리--2026-11-12).
+
+**2026-11-13 / 문의 외부 연결:** 문의하기를 카카오 오픈채팅으로 직접 연결해 준비중 화면·ViewModel·route를 제거했다. 당시 독립 화면은 10쌍이며 문의 액션은 SettingsViewModel이 담당한다. [설정 QA](../ui/settings-and-legal.md#카카오-오픈채팅-문의문서-날짜--2026-11-13).
+
+**2026-11-13 / 한 기기 플레이:** `LocalPlayView`–`LocalPlayViewModel`을 `Lobby`에 추가해 현재 11쌍이다. 슬롯은 `SubViews/LocalPlay`에 두고, 멀티 방의 닉네임 추가 모달을 제거했다. [검증 기록](../game/local-play-and-multiplayer.md).
+
+## 역할별 화면 그룹 적용 — 2026-11-13
+
+로비 진입 화면은 `Lobby/HomeView`, 설정 진입 화면은 `Settings/SettingsView`로 유지한다. 나머지 화면은 닉네임 입력·방 목록·대기실, 플레이·승리, 법적 문서·제작자 그룹에 배치했다. ViewModel 11쌍의 상대 경로도 대응하며, 하위 뷰는 각 그룹의 `SubViews`에 둔다. 멀티·한 기기 화면은 `WaitingRoom`을 함께 사용한다. 구현 내용은 변경하지 않았다. 검증은 [디렉토리 QA](directory-structure-review.md#역할별-화면-그룹-적용--2026-11-13)에서 관리한다.

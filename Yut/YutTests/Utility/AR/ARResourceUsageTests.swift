@@ -104,7 +104,7 @@ struct ARResourceUsageTests {
     }
 
     @Test
-    func goalRemainsSelectableAndCompletesGameWithHiddenIdleMesh() async throws {
+    func goalMeshStaysHiddenAndExplicitFinishActionCompletesGame() async throws {
         let fixture = try BoardTestFixture()
         _ = try await fixture.prepare()
         defer { fixture.scene.reset() }
@@ -121,8 +121,11 @@ struct ARResourceUsageTests {
         fixture.state = state
         #expect(fixture.game.receive(.state(state), from: try #require(fixture.transport.hostDeviceID)))
         let goal = try #require(fixture.scene.pieceManager?.boardAnchor.findEntity(named: "end"))
-        #expect(goal.components[ModelComponent.self] != nil)
+        #expect(goal.components[ModelComponent.self] == nil)
+        #expect(goal.components[CollisionComponent.self] != nil)
         fixture.scene.gestureHandler.handleGameTap(at: CGPoint(x: 200, y: 400), hitEntity: goal)
+        #expect(fixture.game.state?.phase == .selectingDestination)
+        fixture.viewModel.finishPiece()
         #expect(fixture.game.state?.phase == .finished)
         #expect(fixture.game.state?.winnerID == players[0].id)
         #expect(goal.components[ModelComponent.self] == nil)

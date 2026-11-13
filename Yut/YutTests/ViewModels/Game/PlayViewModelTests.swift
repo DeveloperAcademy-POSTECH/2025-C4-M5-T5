@@ -55,10 +55,7 @@ struct PlayViewModelTests {
         let play = PlayViewModel(game: game, scene: scene, models: { [] }, navigator: navigation)
         let waiting = WaitingRoomViewModel(session: session, navigator: navigation)
         defer { session.disconnect() }
-        let room = try #require(session.hostRoom(named: "Host"))
-        navigation.showWaitingRoom(room)
-        session.addLocalPlayer(named: "Friend")
-        session.sendStartGameSignal()
+        #expect(session.startLocalGame(slots: [1, 2]))
         #expect(navigation.path.last == .playView)
 
         session.disconnect()
@@ -149,6 +146,7 @@ struct PlayViewModelTests {
             #expect(game.receive(.startGame(GameState(players: transport.gamePlayers)), from: host))
         }
 
+        scene.arState.placementPhase = .adjusting
         viewModel.beginPlacement()
         await viewModel.confirmBoard()
 
@@ -181,6 +179,7 @@ struct PlayViewModelTests {
         try state.apply(.dismissResult)
         try state.apply(.selectPiece(try #require(state.currentPieces.first).id))
         try state.apply(.selectDestination(try #require(state.availableDestinations.first)))
+        try state.apply(.completeMove)
         #expect(game.receive(.state(state), from: host))
         #expect(viewModel.turnPieceType != resultColor)
         #expect(viewModel.resultPieceType == resultColor)
@@ -268,6 +267,134 @@ struct PlayViewModelTests {
         #expect(fixture.viewModel.match?.pieces.allSatisfy { $0.position == .home } == true)
     }
 
+    @Test
+    func progressTracksAuthoritativeEntryAndSelectionAndClearsAtEnd() throws {
+        let fixture = makeFixture()
+        defer { fixture.game.stop() }
+        let players = fixture.transport.gamePlayers
+        var state = GameState(players: players)
+        #expect(fixture.game.receive(.startGame(state), from: fixture.host))
+        #expect(fixture.viewModel.playerProgress[0].waitingNumbers == [1, 2])
+        #expect(fixture.viewModel.playerProgress[0].isCurrent)
+        #expect(fixture.viewModel.playerProgress[0].isLocal)
+        #expect(!fixture.viewModel.playerProgress[1].isLocal)
+        for action: GameAction in [.startPlaying, .beginThrow, .armThrow, .releaseThrow(launch: .testLaunch),
+                                  .recordThrow(.yut), .dismissResult, .beginThrow, .armThrow,
+                                  .releaseThrow(launch: .testLaunch), .recordThrow(.dho), .dismissResult] {
+            try state.apply(action)
+        }
+        #expect(fixture.game.receive(.state(state), from: fixture.host))
+        fixture.viewModel.placeNewPiece()
+        let piece = try #require(state.currentPieces.first)
+        #expect(fixture.transport.sent.last == .request(GameRequest(gameID: state.id, revision: state.revision,
+            action: .selectPiece(piece.id))))
+        try state.apply(.selectPiece(piece.id))
+        try state.apply(.selectDestination(try #require(state.availableDestinations.first)))
+        #expect(fixture.game.receive(.state(state), from: fixture.host))
+        #expect(fixture.viewModel.playerProgress[0].movingNumbers == [1])
+        #expect(fixture.viewModel.playerProgress[0].waitingNumbers == [2])
+        #expect(fixture.viewModel.playerProgress.allSatisfy {
+            $0.waitingNumbers.count + $0.movingNumbers.count + $0.finishedNumbers.count == 2
+        })
+        fixture.game.stop()
+        #expect(fixture.viewModel.playerProgress.isEmpty)
+    }
+
+    @Test
+    func successfulPlacementStartsOnceAndFailedBroadcastCanRetry() async throws {
+        let transport = TestGameTransport()
+        let players = [GamePlayer(name: "A", order: 0, deviceID: transport.localDeviceID),
+                       GamePlayer(name: "B", order: 1)]
+        let game = GameSessionController(transport: transport)
+        defer { game.stop() }
+        let scene = TestGameScene()
+        let model = PlayViewModel(game: game, scene: scene, models: { [] }, navigator: TestGameNavigation())
+        #expect(game.start(players: players))
+        scene.arState.placementPhase = .adjusting
+        transport.shouldFail = true
+        await model.confirmBoard()
+        #expect(scene.arState.placementPhase == .confirmed)
+        #expect(game.state?.phase == .preparing)
+        #expect(model.errorMessage != nil)
+        transport.shouldFail = false
+        model.retry()
+        #expect(game.state?.phase == .readyToThrow)
+        let revision = try #require(game.state).revision
+        model.resumePhase()
+        await model.confirmBoard()
+        #expect(game.state?.revision == revision)
+        #expect(scene.confirmBoardCount == 1)
+        #expect(model.canAct)
+        model.beginThrow()
+        #expect(game.state?.phase == .gathering)
+    }
+
+    @Test(arguments: [true, false])
+    func failedOrCancelledPlacementDoesNotStart(cancel: Bool) async {
+        let transport = TestGameTransport()
+        let game = GameSessionController(transport: transport)
+        defer { game.stop() }
+        let scene = TestGameScene()
+        let model = PlayViewModel(game: game, scene: scene, models: { [] }, navigator: TestGameNavigation())
+        #expect(game.start(players: [GamePlayer(name: "A", order: 0, deviceID: transport.localDeviceID),
+                                    GamePlayer(name: "B", order: 1)]))
+        scene.arState.placementPhase = .adjusting
+        scene.confirmation = { scene.arState.placementPhase = cancel ? .confirmed : .adjusting }
+        let task = Task { await model.confirmBoard() }
+        if cancel { task.cancel() }
+        await task.value
+        #expect(game.state?.phase == .preparing)
+        #expect(game.state?.revision == 0)
+    }
+
+    @Test
+    func duplicatePlacementAndDisconnectDuringConfirmationCannotStart() async {
+        let transport = TestGameTransport()
+        let game = GameSessionController(transport: transport)
+        let scene = TestGameScene()
+        let model = PlayViewModel(game: game, scene: scene, models: { [] }, navigator: TestGameNavigation())
+        #expect(game.start(players: [GamePlayer(name: "A", order: 0, deviceID: transport.localDeviceID),
+                                    GamePlayer(name: "B", order: 1)]))
+        scene.arState.placementPhase = .adjusting
+        var completion: CheckedContinuation<Void, Never>?
+        scene.confirmation = {
+            await withCheckedContinuation { completion = $0 }
+            scene.arState.placementPhase = .confirmed
+        }
+        let pending = Task { await model.confirmBoard() }
+        while completion == nil { await Task.yield() }
+        await model.confirmBoard()
+        #expect(scene.confirmBoardCount == 1)
+        transport.disconnect()
+        let sentCount = transport.sent.count
+        completion?.resume()
+        await pending.value
+        #expect(game.state == nil)
+        #expect(transport.sent.count == sentCount)
+    }
+
+    @Test
+    func guestWaitsForHostStartAndCannotGatherBeforeBoardAlignment() throws {
+        let fixture = makeFixture()
+        defer { fixture.game.stop() }
+        var state = GameState(players: fixture.transport.gamePlayers)
+        #expect(fixture.game.receive(.startGame(state), from: fixture.host))
+        fixture.viewModel.resumePhase()
+        #expect(fixture.game.state?.phase == .preparing)
+        #expect(fixture.transport.sent.isEmpty)
+        fixture.scene.arState.placementPhase = .relocalizing
+        try state.apply(.startPlaying)
+        #expect(fixture.game.receive(.state(state), from: fixture.host))
+        fixture.viewModel.beginThrow()
+        #expect(fixture.transport.sent.isEmpty)
+        fixture.scene.arState.placementPhase = .confirmed
+        fixture.viewModel.resumePhase()
+        fixture.viewModel.beginThrow()
+        #expect(fixture.transport.sent.last == .request(GameRequest(gameID: state.id,
+            revision: state.revision, action: .beginThrow)))
+        #expect(fixture.game.state?.phase == .readyToThrow)
+    }
+
     private func makeFixture() -> (game: GameSessionController, transport: TestGameTransport, scene: TestGameScene, viewModel: PlayViewModel, navigator: TestGameNavigation, host: UUID) {
         let local = UUID()
         let host = UUID()
@@ -296,6 +423,7 @@ private final class TestGameScene: GameSceneManaging {
     var scanningOrder: Int?
     var beginPlacementCount = 0
     var confirmBoardCount = 0
+    var confirmation: (() async -> Void)?
     var resumeCount = 0
     func setScanningPlayer(order: Int?) { scanningOrder = order }
     init() { arState.placementPhase = .confirmed }
@@ -306,12 +434,17 @@ private final class TestGameScene: GameSceneManaging {
     func reset() { arState.placementPhase = .loading }
     func retry() { retryCount += 1; resume() }
     func beginPlacement() { beginPlacementCount += 1 }
-    func confirmBoard() async { confirmBoardCount += 1 }
+    func confirmBoard() async {
+        confirmBoardCount += 1
+        if let confirmation { await confirmation() }
+        else { arState.placementPhase = .confirmed }
+    }
     func shareSavedBoard() {}
     func render(_ state: GameState, models: [PlayerModel], canAct: Bool, force: Bool) { renderCount += 1 }
     func startMotion() {}
     func throwManually() { _ = onWillThrow?() }
     func playGatheringSound() { gatheringSoundCount += 1 }
+    func finishActionPosition() -> CGPoint? { nil }
     func captureLaunch() throws -> YutThrowLaunch { .testLaunch }
     func receiveBoard(_ board: SharedBoard) throws {}
     func receiveCollaboration(_ data: Data) throws {}

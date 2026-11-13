@@ -1,6 +1,6 @@
 # 플레이어 색상 안내·방 목록 정리
 
-**상태: 검증 대기 · 우선순위: 중간 · 갱신: 2026-11-12**
+**상태: 검증 대기 · 우선순위: 중간 · 갱신: 2026-11-13**
 
 AR 안내·스캔·게이지·결과에 말 색을 연결하고 방 목록 배경과 바깥 여백을 맞췄다. 새로운 색상 에셋은 추가하지 않고 기존 디자인 시스템을 확장했다. 실기기 카메라 환경에서의 스캔 색·가독성은 확인 대기다.
 
@@ -18,7 +18,7 @@ AR 안내·스캔·게이지·결과에 말 색을 연결하고 방 목록 배�
 
 SurfaceStyle·InstructionView·ProgressBar를 확장했다. 공용 UI는 색상 값만 받고 게임 플레이어를 판단하지 않는다. PieceType의 화면용 매핑은 Winner 폴더에서 [공용 확장](../../../Yut/Yut/Sources/Utility/Extensions/Game/PieceType+Appearance.swift)으로 옮겼다.
 
-근거: [ThemeColors](../../../Yut/Yut/Sources/DesignSystem/Color/ThemeColors.swift), [ProgressBar](../../../Yut/Yut/Sources/DesignSystem/Component/Feedback/ProgressBar.swift), [PlayViewModel](../../../Yut/Yut/Sources/ViewModels/Game/PlayViewModel.swift), [평면 표시](../../../Yut/Yut/Sources/Utility/Managers/AR/PlaneManager.swift), [RoomListView](../../../Yut/Yut/Sources/Views/Lobby/RoomListView.swift).
+근거: [ThemeColors](../../../Yut/Yut/Sources/DesignSystem/Color/ThemeColors.swift), [ProgressBar](../../../Yut/Yut/Sources/DesignSystem/Component/Feedback/ProgressBar.swift), [PlayViewModel](../../../Yut/Yut/Sources/ViewModels/Game/Play/PlayViewModel.swift), [평면 표시](../../../Yut/Yut/Sources/Utility/Managers/AR/PlaneManager.swift), [RoomListView](../../../Yut/Yut/Sources/Views/Lobby/RoomList/RoomListView.swift).
 
 ## 검증
 
@@ -32,5 +32,6 @@ SurfaceStyle·InstructionView·ProgressBar를 확장했다. 공용 UI는 색상 
 
 ## 남은 확인·작업 이력
 
+- **2026-11-13:** 한 기기 플레이 슬롯의 이름·말 색상을 번호에 고정했다. 현황판 말 아이콘을 20→40pt로 확대하고 공용 `PieceIcon`으로 투명 여백을 보정했다. 현황판 높이는 기본 144pt이며 기존 150pt 이하 검사·AR UI가 통과했다. [플레이 방식 분리 검증](../game/local-play-and-multiplayer.md).
 - **2026-11-12:** 기존 팔레트·표면 스타일 재사용, 스캔/턴/결과 색상 연결, 빈 목록 배경·바깥 여백 수정. 빌드 2종·회귀 85개·UI 4개·갤러리 12장 검증 완료. 원본 투사/판정·리소스 136개 내용 일치 확인.
 - **실기기 검증 대기:** 실제 방 스캔의 투명도와 네 말 색 가독성, 참가자별 스캔 색, 턴 전환·결과 표시. 기존 15 Pro 발열·모으기 지연 실측도 별도로 유지한다.

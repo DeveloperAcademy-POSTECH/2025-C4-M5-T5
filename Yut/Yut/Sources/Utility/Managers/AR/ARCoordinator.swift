@@ -42,7 +42,7 @@ final class ARCoordinator: NSObject, ARSessionDelegate, GameSceneManaging {
     private var areaObservation: AnyCancellable?
     private var thermalTask: Task<Void, Never>?
     private var baseRenderOptions: ARView.RenderOptions?
-    private let signposter = OSSignposter(subsystem: "Yut", category: "ARPerformance")
+    private let signposter = OSSignposter(subsystem: "YUT", category: "ARPerformance")
     private var generation = UUID()
     private var pendingBoard: SharedBoard?
     private var savedBoard: SharedBoard?
@@ -265,6 +265,8 @@ final class ARCoordinator: NSObject, ARSessionDelegate, GameSceneManaging {
                     worldMap: try NSKeyedArchiver.archivedData(withRootObject: map, requiringSecureCoding: true), scale: scale)
                 shareSavedBoard()
             }
+            try Task.checkCancellation()
+            guard generation == expected, isRunning else { return }
             boardConfirmed = true
             planeManager.disablePlaneVisualization()
             setPlacement(.confirmed)
@@ -323,7 +325,7 @@ final class ARCoordinator: NSObject, ARSessionDelegate, GameSceneManaging {
                 || previousState?.availableDestinations != state.availableDestinations || previousCanAct != canAct || force
             if changedSelection {
                 if canAct, state.phase == .selectingDestination {
-                    pieceManager?.highlightTiles(named: state.availableDestinations.map { $0.isHome ? "_6_6" : $0.cell })
+                    pieceManager?.highlightTiles(named: state.availableDestinations.filter { !$0.isFinish }.map { $0.cell })
                 } else { pieceManager?.clearAllHighlights() }
             }
             if ![.throwing, .showingResult, .waitingForShake].contains(state.phase),
@@ -386,12 +388,30 @@ final class ARCoordinator: NSObject, ARSessionDelegate, GameSceneManaging {
         guard canAct, isRunning, arState.placementPhase == .confirmed,
               let state = latestState, [.selectingPiece, .selectingDestination].contains(state.phase),
               let piece = state.pieces.first(where: { $0.id == id }), piece.playerID == state.currentPlayer?.id,
-              !GameBoard.destinations(for: piece, result: state.latestResult ?? .nak).isEmpty else { return }
-        onAction?(.selectPiece(id))
+              state.canMove(piece) else { return }
+        if state.phase == .selectingDestination {
+            // 선택 중인 말은 유지한다. 다른 내 말 탭은 유효한 목적지일 때만 자동 업기로 연결한다.
+            guard let selected = state.selectedPiece, selected.groupID != piece.groupID,
+                  let destination = state.availableDestinations.first(where: { $0.cell == piece.cell }) else { return }
+            onAction?(.selectDestination(destination))
+        } else {
+            onAction?(.selectPiece(id))
+        }
+    }
+
+    /// ARView 전체 좌표계의 출발점. 화면 밖이거나 카메라 뒤에 있으면 표시하지 않는다.
+    func finishActionPosition() -> CGPoint? {
+        guard isRunning, canAct, arState.placementPhase == .confirmed,
+              latestState?.phase == .selectingDestination,
+              latestState?.availableDestinations.contains(where: \.isFinish) == true,
+              let view = arView, let position = pieceManager?.worldPosition(ofTile: "_6_6") else { return nil }
+        return BoardTapResolver.projectedTarget(action: .destination("end"),
+            worldPosition: position, cameraTransform: view.cameraTransform.matrix,
+            viewport: view.bounds, project: { view.project($0) })?.center
     }
 
     func selectDestination(_ name: String) {
-        guard canAct, isRunning, let destination = latestState?.availableDestinations.first(where: { ($0.isHome ? "_6_6" : $0.cell) == name }) else { return }
+        guard canAct, isRunning, let destination = latestState?.availableDestinations.first(where: { !$0.isFinish && ($0.cell) == name }) else { return }
         onAction?(.selectDestination(destination))
     }
 
@@ -605,8 +625,8 @@ final class ARCoordinator: NSObject, ARSessionDelegate, GameSceneManaging {
             case .readyToThrow, .gathering, .waitingForShake, .throwing: phase = .readyToThrow
             case .showingResult, .showingBonus: phase = .showingYutResult
             case .selectingPiece: phase = .selectingPieceToMove
-            case .selectingDestination: phase = .selectingDestination
-            case .promptingForCarry: phase = .promptingForCarry
+            case .selectingDestination, .choosingMoveResult: phase = .selectingDestination
+            case .movingPiece: phase = .selectingPieceToMove
             case .finished: phase = .boardConfirmed
             }
         }

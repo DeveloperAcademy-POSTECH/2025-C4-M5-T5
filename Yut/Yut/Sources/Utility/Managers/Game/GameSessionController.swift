@@ -136,6 +136,11 @@ final class GameSessionController {
             && Set(next.pieces.map(\.id)).count == next.pieces.count
             && next.players.allSatisfy { player in next.pieces.filter { $0.playerID == player.id }.count == 2 }
             && next.pieces.allSatisfy { piece in next.players.contains { $0.id == piece.playerID } }
+            && Set(next.pendingResults.map(\.id)).count == next.pendingResults.count
+            && next.pendingResults.allSatisfy { $0.result != .nak }
+            && (next.phase == .choosingMoveResult
+                ? next.destinationResultChoices.count > 1
+                : next.pendingDestinationCell == nil)
     }
 
     private func isMember(_ id: UUID) -> Bool { state?.players.contains { $0.deviceID == id } == true }
@@ -147,7 +152,7 @@ final class GameSessionController {
             return false
         }
         switch request.action {
-        case .armThrow, .dismissResult: return false
+        case .armThrow, .dismissResult, .completeMove: return false
         case .startPlaying:
             guard sender == transport.localDeviceID else { return false }
         default:
@@ -185,6 +190,7 @@ final class GameSessionController {
         switch next.phase {
         case .gathering: action = .armThrow; duration = .milliseconds(1300)
         case .showingResult, .showingBonus: action = .dismissResult; duration = .milliseconds(1500)
+        case .movingPiece: action = .completeMove; duration = .milliseconds(800)
         default: return
         }
         transitionTask = Task { [weak self] in

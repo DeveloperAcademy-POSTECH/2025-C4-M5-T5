@@ -1,6 +1,6 @@
-# Yut 문서 안내
+# YUT 문서 안내
 
-**현재 개발 대상: `Yut/Yut.xcodeproj` · scheme `Yut` / 갱신: 2026-11-12**
+**현재 개발 대상: `Yut/Yut.xcodeproj` · scheme `Yut` / 갱신: 2026-11-13**
 
 작업 상태는 [QA 현황](qa/README.md), 코드 작성 기준은 아래 문서에서 확인한다.
 
@@ -11,8 +11,9 @@
 | [아키텍처](guides/architecture.md) | MVVM 책임, 의존성 주입, 화면·ViewModel·SubViews 구조 |
 | [Swift 컨벤션](guides/swift-conventions.md) | 이름, 코드 형식, 동시성, SwiftUI 작성 규칙 |
 | [디자인 시스템](guides/design-system.md) | 공용 컴포넌트, 색상·글자색 조합과 사용 기준 |
+| [게임 진행·규칙](guides/game-rules.md) | AR 준비, 조작 권한, 추가 던지기·결과 선택·말 상태·승리와 중단 처리 |
 
-개발 기준 문서 세 개는 `guides`에 모으며, AGENTS.md도 해당 경로를 참조한다. 변경 경과와 검증은 기준 문서가 아닌 해당 QA에 남긴다.
+개발 기준과 게임 진행 가이드는 `guides`에 모으며, AGENTS.md는 아키텍처·Swift 기준 경로를 참조한다. 변경 경과와 검증은 기준 문서가 아닌 해당 QA에 남긴다.
 
 ## QA·작업 추적
 
@@ -24,7 +25,8 @@ docs/
 ├── guides/
 │   ├── architecture.md        아키텍처 기준
 │   ├── swift-conventions.md   코딩 기준
-│   └── design-system.md       공용 UI 기준
+│   ├── design-system.md       공용 UI 기준
+│   └── game-rules.md          AR 게임 진행·규칙
 └── qa/
     ├── README.md              현재 상태·최근 작업·다음 작업
     ├── ar/                    공간 인식·렌더링·발열

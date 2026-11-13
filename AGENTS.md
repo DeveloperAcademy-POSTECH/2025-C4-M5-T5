@@ -45,8 +45,8 @@ Apple SDK의 최신 API나 컴파일러 제약이 문서와 충돌하면 공식 
 
 - 독립 화면은 `View`와 화면별 `ViewModel`을 1:1로 구성하고, 타입명·파일명·기능 폴더를 대응시킨다.
 - 화면 내부 섹션·단순 모달·DesignSystem 컴포넌트는 값·`Binding`·액션을 전달받는다. 대응 개수만 맞추기 위한 빈 ViewModel은 추가하지 않는다.
-- 같은 기능의 독립 화면은 `Views/<기능>`에 두고, ViewModel도 `ViewModels/<기능>`에서 대응시킨다. 화면마다 폴더를 추가하지 않는다.
-- 기능 내부 하위 뷰는 `Views/<기능>/SubViews/<영역>`에 모은다. 해당 영역의 구성 요소를 따로 묶을 필요가 있을 때만 `Components`를 추가한다. 크기나 재사용 횟수만으로 구분하지 않는다.
+- 같은 기능의 독립 화면은 역할별 화면 그룹으로 묶고, ViewModel도 같은 상대 경로로 대응시킨다. 기능의 진입 화면은 기능 폴더 바로 아래에 둘 수 있다. 예: `Lobby/HomeView`, `Lobby/NameInput/{HostNameInputView,GuestNameInputView}`, `Lobby/WaitingRoom/{WaitingRoomView,LocalPlayView}`. 뷰 하나마다 기계적으로 폴더를 만들지 않는다.
+- 화면 그룹의 하위 뷰는 해당 그룹의 `SubViews`에 모은다. 내부 구성 요소를 따로 묶을 필요가 있을 때만 `Components`를 추가한다. 기능 진입 화면의 하위 뷰는 기능 폴더의 `SubViews`에 둔다. 크기나 재사용 횟수만으로 구분하지 않는다.
 - `View`는 렌더링, 사용자 입력 전달, 화면 전용 UI 상태만 담당한다.
 - `ViewModel`은 프레젠테이션 상태와 사용자 액션에 따른 유스케이스 조정을 담당한다.
 - 도메인 규칙과 데이터 접근은 `ViewModel` 밖의 Model, Service, Repository, Manager에 둔다.

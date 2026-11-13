@@ -1,7 +1,7 @@
 import ARKit
 import RealityKit
 
-/// 정확한 3D 선택과 탭 시 44pt 보정을 함께 사용한다. 말 재선택은 목적지 선택보다 우선한다.
+/// 정확한 3D 선택과 탭 시 44pt 보정을 함께 사용한다. 같은 편 말과 목적지가 겹치면 자동 업기로 연결한다.
 @MainActor
 final class GestureHandler {
     weak var coordinator: ARCoordinator?
@@ -30,19 +30,24 @@ final class GestureHandler {
             if state.phase == .selectingPiece { return }
         }
         if state.phase == .selectingDestination,
-           let exact = BoardTapResolver.destination(from: hitEntity, allowed: state.availableDestinations.map({ $0.isHome ? "_6_6" : $0.cell })) {
+           let exact = BoardTapResolver.destination(from: hitEntity, allowed: state.availableDestinations.filter { !$0.isFinish }.map({ $0.cell })) {
             scene.selectDestination(exact)
             return
         }
         var targets = state.currentPieces.compactMap { value -> BoardTapTarget? in
-            guard value.cell != nil, let result = state.latestResult, !GameBoard.destinations(for: value, result: result).isEmpty,
+            guard value.cell != nil, state.canMove(value),
                   let piece = manager.pieces.first(where: { $0.id == value.id }) else { return nil }
+            if state.phase == .selectingDestination {
+                guard value.groupID != state.selectedPiece?.groupID,
+                      state.availableDestinations.contains(where: { $0.cell == value.cell }) else { return nil }
+            }
             return screenTarget(action: .piece(piece.id), entity: piece.entity,
                                 center: piece.entity.visualBounds(relativeTo: piece.entity).center, in: view)
         }
         if state.phase == .selectingDestination, let board = scene.boardManager?.yutBoardAnchor {
             targets += state.availableDestinations.compactMap { destination -> BoardTapTarget? in
-                let name = destination.isHome ? "_6_6" : destination.cell
+                guard !destination.isFinish else { return nil }
+                let name = destination.cell
                 guard let tile = board.findEntity(named: name) else { return nil }
                 let center = (tile as? ModelEntity)?.model?.mesh.bounds.center ?? .zero
                 return screenTarget(action: .destination(name), entity: tile, center: center, in: view)

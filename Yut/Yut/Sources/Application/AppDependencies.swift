@@ -14,10 +14,6 @@ final class AppDependencies: ObservableObject {
     let settings: SettingsViewModel
     let creators: CreatorsViewModel
     private let legalDocuments: any LegalDocumentLoading
-    private let supportActions: any SupportActions
-    // 문의처가 확정되면 이 조립 지점에 등록한다. 임의의 연락처로 보내지 않는다.
-    private let supportEmail: String? = nil
-    private let appVersion: String
 
     init() {
         let session = MPCManager.shared
@@ -29,18 +25,17 @@ final class AppDependencies: ObservableObject {
         home = HomeViewModel(navigator: navigation)
         waitingRoom = WaitingRoomViewModel(session: session, navigator: navigation)
         play = PlayViewModel(game: game, scene: scene, models: { session.players }, navigator: navigation)
-        settings = SettingsViewModel(navigator: navigation)
+        settings = SettingsViewModel(navigator: navigation,
+            supportActions: SystemSupportActions(application: .shared), supportChatURL: AppInformation.supportChatURL)
         creators = CreatorsViewModel(navigator: navigation)
         legalDocuments = BundledLegalDocumentLoader(bundle: .main)
-        supportActions = SystemSupportActions(application: .shared, pasteboard: .general)
-        appVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
+    }
+
+    func makeLocalPlayViewModel() -> LocalPlayViewModel {
+        LocalPlayViewModel(session: session, navigator: navigation)
     }
 
     func makeLegalDocumentViewModel(_ kind: LegalDocument.Kind) -> LegalDocumentViewModel {
         LegalDocumentViewModel(kind: kind, loader: legalDocuments, navigator: navigation)
-    }
-
-    func makeSupportViewModel() -> SupportViewModel {
-        SupportViewModel(email: supportEmail, appVersion: appVersion, actions: supportActions, navigator: navigation)
     }
 }

@@ -1,4 +1,4 @@
-# 원본 Yut 기준 단계적 개선
+# 원본 YUT 기준 단계적 개선
 
 **상태: 검증 대기 · 우선순위: 높음 · 갱신: 2026-11-12**
 
@@ -28,7 +28,7 @@
 | 중단된 던지기의 늦은 결과가 뒤늦게 도착 | 생성·평가 작업을 취소하고 같은 차례의 준비 단계로 복귀한다. 버전·작업 식별자가 다른 결과는 반영하지 않는다. |
 | 연결 초기화가 게임 전 내비게이션까지 초기화 | 실제 진행 중인 게임이 종료될 때만 게임 종료 콜백을 발행한다. 방 목록의 뒤로가기 회귀를 확인했다. |
 
-규칙: [GameState](../../../Yut/Yut/Sources/Models/Game/GameState.swift) · 권한·타이머: [GameSessionController](../../../Yut/Yut/Sources/Utility/Managers/Game/GameSessionController.swift) · 화면 조정: [PlayViewModel](../../../Yut/Yut/Sources/ViewModels/Game/PlayViewModel.swift) · AR·공유 공간: [ARCoordinator](../../../Yut/Yut/Sources/Utility/Managers/AR/ARCoordinator.swift) · 로비 전송: [MPCManager](../../../Yut/Yut/Sources/Utility/Managers/Multipeer/MPCManager.swift).
+규칙: [GameState](../../../Yut/Yut/Sources/Models/Game/GameState.swift) · 권한·타이머: [GameSessionController](../../../Yut/Yut/Sources/Utility/Managers/Game/GameSessionController.swift) · 화면 조정: [PlayViewModel](../../../Yut/Yut/Sources/ViewModels/Game/Play/PlayViewModel.swift) · AR·공유 공간: [ARCoordinator](../../../Yut/Yut/Sources/Utility/Managers/AR/ARCoordinator.swift) · 로비 전송: [MPCManager](../../../Yut/Yut/Sources/Utility/Managers/Multipeer/MPCManager.swift).
 
 ## 원본 물리 보존 근거
 
@@ -81,7 +81,7 @@ iOS·iOS Simulator 빌드 성공, 변경 코드의 새 Swift 컴파일 오류·�
 
 결과: `/tmp/yut-host-placement-tests.xcresult`, `/tmp/yut-host-placement-device.log`, `/tmp/yut-host-placement-simulator.log`.
 
-관련 코드: [PlayViewModel](../../../Yut/Yut/Sources/ViewModels/Game/PlayViewModel.swift), [PlayView](../../../Yut/Yut/Sources/Views/Game/PlayView.swift), [배치 안내](../../../Yut/Yut/Sources/Views/Game/SubViews/Play/PlacementControls.swift), [회귀 테스트](../../../Yut/YutTests/ViewModels/Game/PlayViewModelTests.swift).
+관련 코드: [PlayViewModel](../../../Yut/Yut/Sources/ViewModels/Game/Play/PlayViewModel.swift), [PlayView](../../../Yut/Yut/Sources/Views/Game/Play/PlayView.swift), [배치 안내](../../../Yut/Yut/Sources/Views/Game/Play/SubViews/PlacementControls.swift), [회귀 테스트](../../../Yut/YutTests/ViewModels/Game/PlayViewModelTests.swift).
 
 ## 연결 종료·재참여 기록
 
@@ -91,7 +91,7 @@ iOS·iOS Simulator 빌드 성공, 변경 코드의 새 Swift 컴파일 오류·�
 
 | 날짜 | 작업 | 검증·후속 |
 | --- | --- | --- |
-| 2026-11-10 | Yut 기준 전환, 로비·AR 진입 연결 | 빌드 2종·단위 12개·UI 2개 통과 |
+| 2026-11-10 | YUT 기준 전환, 로비·AR 진입 연결 | 빌드 2종·단위 12개·UI 2개 통과 |
 | 2026-11-10 | 탭 시 44pt 보정·겹침 해석 추가 | 빌드 2종·회귀 23개 통과 |
 | 2026-11-11 | 기능 차이 17개 분석 | 상태 로직과 실제 입력 연결의 차이를 구분 |
 | 2026-11-11 | 규칙·AR·권한·통신 이식, 불필요한 상시 작업 정리. 4번 제외 | 빌드 2종·회귀 53개·UI 3개 통과, 리소스·물리 핵심 대조. 실기기·간헐 시뮬레이터 종료 검증 대기 |
@@ -99,6 +99,6 @@ iOS·iOS Simulator 빌드 성공, 변경 코드의 새 Swift 컴파일 오류·�
 | 2026-11-12 | 배치 조작 방장 전용 표시·참가자 배치 중 안내·ViewModel 요청 차단 | 빌드 2종·회귀 89개·방장 AR UI 1개 통과, 실제 두 기기 표시·복귀 검증 대기 |
 | 2026-11-12 | 연결 종료 후 새 방 재참여 실패 정적 분석 | 최초 실패/종료 안내 혼용·이전 오류 초기화 누락·즉시 대기실 진입 확인. 직접 원인은 두 기기 로그 검증 대기, 앱 수정 없음 |
 | 2026-11-12 | 별도 광고 형식 결함 테스트·잘못된 광고 제외·별도 닉네임 광고·동일 피어의 이전 방 정리 | 회귀 93개·UI 2개·빌드 2종 통과. 별도 광고 입력 테스트와 실제 제보 재현을 구분. 당시 제보 해결 미확인 |
-| 2026-11-12 | 사용자 확인에 따라 두 기기 모두 Yut인 조건으로 정정 | 두 기기 모두 Yut인 조건에서 별도 입력 테스트와 제보 재현을 구분. 통신 ID 수명 재검토, 직접 원인 미확정. 문서만 수정 |
+| 2026-11-12 | 사용자 확인에 따라 두 기기 모두 YUT인 조건으로 정정 | 두 기기 모두 YUT인 조건에서 별도 입력 테스트와 제보 재현을 구분. 통신 ID 수명 재검토, 직접 원인 미확정. 문서만 수정 |
 | 2026-11-12 | 종료 후 지연된 시작 알림 재진입 차단·홈 복귀·종료 게임 AR 재개 차단, 방장/참가자 공통 로컬 스캔 게이지 | 수정 전 재현 후 빌드 2종·회귀 97개·UI 2개·라이트/다크 6장 통과. 실제 두 기기 이탈·스캔 확인 대기 |
 | 2026-11-12 | 갑작스러운 연결 종료 후 오류창·흰 화면 제보 재검토 | 게임 없는 PlayView의 빈 표시·retry 가드 부재·오류창/홈 이동 분산·늦은 AR 오류 후보 확인. 실제 UI 순서·스레드 정지 미확정, 코드 수정 없음 |

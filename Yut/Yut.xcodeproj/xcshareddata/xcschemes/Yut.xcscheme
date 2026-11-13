@@ -16,7 +16,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "69DF5E332E209A4600CE5E2A"
-               BuildableName = "Yut.app"
+               BuildableName = "YUT.app"
                BlueprintName = "Yut"
                ReferencedContainer = "container:Yut.xcodeproj">
             </BuildableReference>
@@ -69,7 +69,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "69DF5E332E209A4600CE5E2A"
-            BuildableName = "Yut.app"
+            BuildableName = "YUT.app"
             BlueprintName = "Yut"
             ReferencedContainer = "container:Yut.xcodeproj">
          </BuildableReference>
@@ -86,7 +86,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "69DF5E332E209A4600CE5E2A"
-            BuildableName = "Yut.app"
+            BuildableName = "YUT.app"
             BlueprintName = "Yut"
             ReferencedContainer = "container:Yut.xcodeproj">
          </BuildableReference>

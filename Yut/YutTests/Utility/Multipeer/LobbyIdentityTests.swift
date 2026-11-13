@@ -6,6 +6,63 @@ import Testing
 @MainActor
 struct LobbyIdentityTests {
     @Test
+    func localGameKeepsSlotNamesColorsAndAuthorityWithoutNetwork() throws {
+        let manager = MPCManager()
+        defer { manager.disconnect() }
+        let game = GameSessionController(transport: manager)
+        #expect(manager.startLocalGame(slots: [2, 4]))
+        #expect(manager.players.map(\.name) == ["플레이어 2", "플레이어 4"])
+        #expect(manager.players.map(\.sequence) == [2, 4])
+        #expect(manager.players.allSatisfy { $0.deviceID == manager.localDeviceID })
+        #expect(manager.isLocalPlay && manager.hasStartedGame && game.canAct)
+        #expect(manager.session == nil && manager.advertiser == nil && manager.browser == nil)
+        manager.startAdvertising()
+        manager.startBrowsing()
+        let outsider = MCPeerID(displayName: "Guest")
+        #expect(!manager.acceptInvitation(from: outsider))
+        manager.peer(outsider, changedTo: .connected)
+        manager.receive(try JSONEncoder().encode(LobbyMessage.hello(UUID())), from: outsider)
+        #expect(!manager.hasRemotePlayers)
+        #expect(manager.advertiser == nil && manager.browser == nil)
+        #expect(manager.players.count == 2)
+        #expect(!manager.startLocalGame(slots: [1, 3]))
+        var state = try #require(game.state)
+        try state.apply(.startPlaying)
+        for _ in 0..<2 {
+            #expect(state.currentPlayer?.deviceID == manager.localDeviceID)
+            for action: GameAction in [.beginThrow, .armThrow, .releaseThrow(launch: .testLaunch),
+                                      .recordThrow(.backdho), .dismissResult] { try state.apply(action) }
+        }
+        #expect(state.pieces.count == 4)
+        manager.disconnect()
+        #expect(game.state == nil && manager.players.isEmpty && !manager.isLocalPlay)
+        #expect(manager.hostRoom(named: "Host") != nil)
+        #expect(manager.advertiser != nil && !manager.isLocalPlay)
+        #expect(manager.players.count == 1)
+    }
+
+    @Test
+    func invalidLocalRosterDoesNotReplaceExistingRoomAndMultiplayerRejectsExtraPlayer() throws {
+        let manager = MPCManager()
+        defer { manager.disconnect() }
+        #expect(manager.hostRoom(named: "Host") != nil)
+        let host = try #require(manager.players.first)
+        for slots: Set<Int> in [[], [1], [1, 5], [0, 1, 2, 3, 4]] {
+            #expect(!manager.startLocalGame(slots: slots))
+            #expect(manager.players.first === host)
+        }
+        let peer = MCPeerID(displayName: "Guest")
+        #expect(manager.acceptInvitation(from: peer))
+        manager.peer(peer, changedTo: .connected)
+        let identity = UUID()
+        manager.receive(try JSONEncoder().encode(LobbyMessage.hello(identity)), from: peer)
+        manager.receive(try JSONEncoder().encode(LobbyMessage.hello(identity)), from: peer)
+        manager.receive(try JSONEncoder().encode(LobbyMessage.addPlayer("Extra")), from: peer)
+        #expect(manager.players.count == 2)
+        #expect(Set(manager.gamePlayers.map(\.deviceID)).count == 2)
+    }
+
+    @Test
     func incompatibleUUIDPeerIsNotPresentedAsJoinableRoom() {
         let manager = MPCManager()
         defer { manager.disconnect() }
@@ -147,7 +204,6 @@ struct LobbyIdentityTests {
         defer { manager.disconnect() }
         let game = GameSessionController(transport: manager)
         _ = try #require(manager.hostRoom(named: "Host"))
-        manager.addLocalPlayer(named: "Friend")
         let peer = MCPeerID(displayName: "Joining")
         let accepted = manager.acceptInvitation(from: peer)
         #expect(accepted)
@@ -155,16 +211,16 @@ struct LobbyIdentityTests {
         #expect(!manager.hasStartedGame)
         manager.peer(peer, changedTo: .notConnected)
         manager.sendStartGameSignal()
-        #expect(manager.hasStartedGame)
-        #expect(game.state != nil)
+        #expect(!manager.hasStartedGame)
+        #expect(game.state == nil)
         // 연결된 적 없는 피어의 종료 이벤트가 진행 중인 방을 닫으면 안 된다.
         manager.peer(peer, changedTo: .notConnected)
-        #expect(manager.hasStartedGame)
+        #expect(!manager.hasStartedGame)
         #expect(manager.roomClosedReason == nil)
     }
 
     @Test
-    func localAdditionCannotTakeSlotsReservedForJoiningDevices() throws {
+    func invitationsReserveEveryRemainingSlot() throws {
         let manager = MPCManager()
         defer { manager.disconnect() }
         _ = try #require(manager.hostRoom(named: "Host"))
@@ -172,7 +228,6 @@ struct LobbyIdentityTests {
             let accepted = manager.acceptInvitation(from: MCPeerID(displayName: name))
             #expect(accepted)
         }
-        manager.addLocalPlayer(named: "Extra")
         #expect(manager.players.count == 1)
         let accepted = manager.acceptInvitation(from: MCPeerID(displayName: "Full"))
         #expect(!accepted)

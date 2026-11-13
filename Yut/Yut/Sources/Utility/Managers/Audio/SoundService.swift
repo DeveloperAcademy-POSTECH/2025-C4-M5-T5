@@ -5,7 +5,7 @@ import OSLog
 @MainActor
 final class SoundService: NSObject, AVAudioPlayerDelegate, GameSoundPlaying {
     private let audioSession: AVAudioSession
-    private let logger = Logger(subsystem: "Yut", category: "Sound")
+    private let logger = Logger(subsystem: "YUT", category: "Sound")
     private var players: [String: AVAudioPlayer] = [:]
     private var isActive = false
 

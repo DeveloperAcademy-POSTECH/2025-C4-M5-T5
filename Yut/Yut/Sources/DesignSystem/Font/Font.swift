@@ -1,6 +1,6 @@
 //
 //  Font.swift
-//  Yut
+//  YUT
 //
 //  Created by Hwnag Seyeon on 7/20/25.
 //

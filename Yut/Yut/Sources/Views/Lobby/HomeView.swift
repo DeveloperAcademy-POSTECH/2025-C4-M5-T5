@@ -1,6 +1,6 @@
 //
 //  HomeView.swift
-//  Yut
+//  YUT
 //
 //
 
@@ -18,10 +18,11 @@ struct HomeView: View {
                 Text("윷")
                     .foregroundStyle(ThemeColors.textPrimary)
                     .font(.hancom(.hoonmin, size: 236))
-                    .padding(.top, 98)
+                    .padding(.top, 32)
                 Spacer()
                 
                 VStack(spacing: 12) {
+                    ActionButton(title: "한 기기로 플레이", action: viewModel.playLocally)
                     ActionButton(
                         title: "방 만들기",
                         variant: .secondary

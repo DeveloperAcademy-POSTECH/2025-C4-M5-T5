@@ -14,7 +14,7 @@
 
 위 표는 수정 전 분석이다. 이후 **기본 코칭의 자동 추가와 해당 코칭만 생성하던 ARView+Extension.swift를 제거**했다. 기존 자체 스캔 게이지·안내·방장 전용 배치 조작은 유지했다. AR 공간 인식·공유 맵·충돌면은 변경하지 않았다.
 
-현재 코드: [AR 세션 시작](../../../Yut/Yut/Sources/Utility/Managers/AR/ARCoordinator.swift), [자체 스캔 UI](../../../Yut/Yut/Sources/Views/Game/SubViews/Play/PlacementControls.swift). 기본 코칭의 역할은 [Apple 문서](https://developer.apple.com/documentation/arkit/arcoachingoverlayview)를 참조했다.
+현재 코드: [AR 세션 시작](../../../Yut/Yut/Sources/Utility/Managers/AR/ARCoordinator.swift), [자체 스캔 UI](../../../Yut/Yut/Sources/Views/Game/Play/SubViews/PlacementControls.swift). 기본 코칭의 역할은 [Apple 문서](https://developer.apple.com/documentation/arkit/arcoachingoverlayview)를 참조했다.
 
 진단 자료: `/tmp/yut-coaching-analysis.log`, `/tmp/yut-coaching-analysis.xcresult`. 분석 단계의 진단 프로젝트·테스트는 `/tmp/yut-coaching-analysis`에만 작성했다. 후속 수정 후 앱 소스에서 ARCoachingOverlayView 생성 경로가 없음을 확인했다. iOS 서명 빌드·전체 회귀 101개·로비/AR UI 3개 통과. 실기기에서 사진의 검은 영역 제거를 직접 확인하는 QA는 사용자 요청으로 중단했으며, 시뮬레이터는 실제 AR 코칭 화면 검증을 대신하지 않는다.
 

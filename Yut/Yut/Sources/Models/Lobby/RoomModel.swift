@@ -1,6 +1,6 @@
 //
 //  RoomModel.swift
-//  Yut
+//  YUT
 //
 //  Created by Hwnag Seyeon on 7/26/25.
 //

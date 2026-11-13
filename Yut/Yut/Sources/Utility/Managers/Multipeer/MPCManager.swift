@@ -27,7 +27,8 @@ final class MPCManager: NSObject, ObservableObject, GameTransporting {
     @MainActor var onGameMessage: ((GameMessage, UUID) -> Bool)?
     @MainActor var onStartGame: (() -> Bool)?
     @MainActor var onGameStopped: (() -> Void)?
-    private let logger = Logger(subsystem: "Yut", category: "Lobby")
+    private let logger = Logger(subsystem: "YUT", category: "Lobby")
+    private(set) var isLocalPlay = false
     private(set) var myPeerID = MCPeerID(displayName: UIDevice.current.name)
     private(set) var session: MCSession?
     private(set) var advertiser: MCNearbyServiceAdvertiser?
@@ -111,16 +112,27 @@ final class MPCManager: NSObject, ObservableObject, GameTransporting {
         return true
     }
 
-    @MainActor
-    func addLocalPlayer(named name: String) {
-        let name = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !name.isEmpty, !hasStartedGame, players.count < 4 else { return }
-        if isHost {
-            appendPlayer(named: name, peer: myPeerID)
-            sendPlayersUpdate()
-        } else if let hostPeerID {
-            _ = send(.addPlayer(name), to: [hostPeerID])
+    /// 로컬 게임은 광고·탐색·MCSession 없이 동일 기기에 모든 차례를 배정한다.
+    func startLocalGame(slots: Set<Int>) -> Bool {
+        guard !hasStartedGame, (2...4).contains(slots.count), slots.allSatisfy({ (1...4).contains($0) }) else { return false }
+        disconnect()
+        clearConnectionNotice()
+        isLocalPlay = true
+        isHost = true
+        myPeerID = MCPeerID(displayName: "Local")
+        let ordered = slots.sorted()
+        players = ordered.map { slot in
+            PlayerModel(name: "플레이어 \(slot)", sequence: slot, peerID: myPeerID,
+                isHost: slot == ordered.first, deviceID: localDeviceID, preparePieces: false)
         }
+        guard onStartGame?() == true else {
+            players = []
+            isHost = false
+            isLocalPlay = false
+            return false
+        }
+        hasStartedGame = true
+        return true
     }
 
     @MainActor
@@ -157,6 +169,7 @@ final class MPCManager: NSObject, ObservableObject, GameTransporting {
         hostPeerID = nil
         peerDeviceIDs = [:]
         isHost = false
+        isLocalPlay = false
         hasStartedGame = false
         connectionError = nil
         onGameStopped?()
@@ -164,7 +177,7 @@ final class MPCManager: NSObject, ObservableObject, GameTransporting {
 
     @MainActor
     func startAdvertising() {
-        guard isHost, !hasStartedGame, let host = players.first(where: \.isHost) else { return }
+        guard !isLocalPlay, isHost, !hasStartedGame, let host = players.first(where: \.isHost) else { return }
         advertiser?.stopAdvertisingPeer()
         let info = ["roomID": hostedRoomID.uuidString, "players": String(players.count), "hostName": host.name]
         let advertiser = MCNearbyServiceAdvertiser(peer: myPeerID, discoveryInfo: info, serviceType: serviceType)
@@ -175,6 +188,7 @@ final class MPCManager: NSObject, ObservableObject, GameTransporting {
 
     @MainActor
     func startBrowsing() {
+        guard !isLocalPlay else { return }
         browser?.stopBrowsingForPeers()
         let browser = MCNearbyServiceBrowser(peer: myPeerID, serviceType: serviceType)
         browser.delegate = self
@@ -213,7 +227,7 @@ final class MPCManager: NSObject, ObservableObject, GameTransporting {
 
     @MainActor
     func acceptInvitation(from peer: MCPeerID) -> Bool {
-        guard isHost, !hasStartedGame, players.count + pendingPeers.count < 4,
+        guard !isLocalPlay, isHost, !hasStartedGame, players.count + pendingPeers.count < 4,
               !pendingPeers.contains(peer), !connectedPeers.contains(peer) else { return false }
         pendingPeers.insert(peer)
         let expectedSession = session
@@ -232,7 +246,7 @@ final class MPCManager: NSObject, ObservableObject, GameTransporting {
 
     @MainActor
     func peer(_ peer: MCPeerID, changedTo state: MCSessionState) {
-        guard state != .connecting else { return }
+        guard !isLocalPlay, state != .connecting else { return }
         if state == .connected {
             if !connectedPeers.contains(peer) { connectedPeers.append(peer) }
             if isHost, !hasStartedGame { pendingPeers.insert(peer) }
@@ -256,6 +270,7 @@ final class MPCManager: NSObject, ObservableObject, GameTransporting {
 
     @MainActor
     func receive(_ data: Data, from peer: MCPeerID) {
+        guard !isLocalPlay else { return }
         guard let message = try? JSONDecoder().decode(LobbyMessage.self, from: data) else { return }
         do {
             switch message {
@@ -272,9 +287,6 @@ final class MPCManager: NSObject, ObservableObject, GameTransporting {
                 sendPlayersUpdate()
             case .players(let snapshots) where !isHost && peer == hostPeerID && !hasStartedGame:
                 try apply(snapshots)
-            case .addPlayer(let name) where isHost && connectedPeers.contains(peer) && !hasStartedGame:
-                appendPlayer(named: name, peer: peer)
-                sendPlayersUpdate()
             case .game(let message):
                 guard let sender = peerDeviceIDs[peer], isHost || peer == hostPeerID else { return }
                 let accepted = onGameMessage?(message, sender) == true
@@ -321,7 +333,7 @@ final class MPCManager: NSObject, ObservableObject, GameTransporting {
     private func appendPlayer(named name: String, peer: MCPeerID) {
         let name = name.trimmingCharacters(in: .whitespacesAndNewlines)
         let occupied = Set(players.map(\.sequence))
-        guard !name.isEmpty, players.count + pendingPeers.count < 4,
+        guard !name.isEmpty, !players.contains(where: { $0.peerID == peer }), players.count + pendingPeers.count < 4,
               let sequence = (1...4).first(where: { !occupied.contains($0) }) else { return }
         guard let deviceID = peer == myPeerID ? localDeviceID : peerDeviceIDs[peer] else { return }
         players.append(PlayerModel(name: name, sequence: sequence, peerID: peer, deviceID: deviceID, preparePieces: false))
@@ -342,13 +354,15 @@ final class MPCManager: NSObject, ObservableObject, GameTransporting {
     private func apply(_ snapshots: [LobbyPlayerSnapshot]) throws {
         guard (2...4).contains(snapshots.count), Set(snapshots.map(\.id)).count == snapshots.count,
               Set(snapshots.map(\.sequence)).count == snapshots.count,
+              Set(snapshots.map(\.deviceID)).count == snapshots.count,
               snapshots.allSatisfy({ (1...4).contains($0.sequence) && !$0.name.isEmpty }),
               snapshots.filter(\.isHost).count == 1 else { throw LobbyError.invalidRoster }
         let entries = try snapshots.map { snapshot -> (LobbyPlayerSnapshot, MCPeerID) in
             guard let peer = try NSKeyedUnarchiver.unarchivedObject(ofClass: MCPeerID.self, from: snapshot.peerData) else { throw LobbyError.invalidRoster }
             return (snapshot, peer)
         }
-        guard entries.contains(where: { $0.0.isHost && $0.1 == hostPeerID }),
+        guard Set(entries.map { $0.1 }).count == entries.count,
+              entries.contains(where: { $0.0.isHost && $0.1 == hostPeerID }),
               entries.contains(where: { $0.1 == myPeerID && $0.0.deviceID == localDeviceID }) else { throw LobbyError.invalidRoster }
         var deviceIDs: [MCPeerID: UUID] = [:]
         for (snapshot, peer) in entries {
